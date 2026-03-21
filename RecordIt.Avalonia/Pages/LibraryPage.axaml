@@ -1,0 +1,168 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="RecordIt.Avalonia.Pages.LibraryPage"
+             Background="{StaticResource BgBaseBrush}">
+
+  <Grid RowDefinitions="Auto,Auto,*">
+
+    <!-- Header -->
+    <Border Grid.Row="0"
+            Background="{StaticResource BgSurfaceBrush}"
+            BorderBrush="{StaticResource BorderDefaultBrush}"
+            BorderThickness="0,0,0,1"
+            Padding="24,16">
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel Grid.Column="0" Spacing="4">
+          <TextBlock Text="Library" Classes="page-title" />
+          <TextBlock Text="All your recordings and whiteboards"
+                     FontSize="13"
+                     Foreground="{StaticResource TextSecondaryBrush}" />
+        </StackPanel>
+        <Button Grid.Column="1"
+                Classes="ghost"
+                Content="⊕ Import"
+                VerticalAlignment="Center"
+                Click="ImportBtn_Click" />
+      </Grid>
+    </Border>
+
+    <!-- Stats bar -->
+    <Border Grid.Row="1"
+            Background="{StaticResource BgSurfaceBrush}"
+            BorderBrush="{StaticResource BorderDefaultBrush}"
+            BorderThickness="0,0,0,1"
+            Padding="24,12">
+      <StackPanel Orientation="Horizontal" Spacing="32">
+        <StackPanel Spacing="2">
+          <TextBlock x:Name="VideoCountLabel" Text="0"
+                     FontSize="20" FontWeight="Bold"
+                     Foreground="{StaticResource BrandPrimaryBrush}" />
+          <TextBlock Text="Videos" FontSize="12"
+                     Foreground="{StaticResource TextSecondaryBrush}" />
+        </StackPanel>
+        <StackPanel Spacing="2">
+          <TextBlock x:Name="WhiteboardCountLabel" Text="0"
+                     FontSize="20" FontWeight="Bold"
+                     Foreground="{StaticResource BrandSecondaryBrush}" />
+          <TextBlock Text="Whiteboards" FontSize="12"
+                     Foreground="{StaticResource TextSecondaryBrush}" />
+        </StackPanel>
+        <StackPanel Spacing="2">
+          <TextBlock x:Name="StorageLabel" Text="0 MB"
+                     FontSize="20" FontWeight="Bold"
+                     Foreground="{StaticResource BrandAccentBrush}" />
+          <TextBlock Text="Storage Used" FontSize="12"
+                     Foreground="{StaticResource TextSecondaryBrush}" />
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
+    <!-- Content area -->
+    <ScrollViewer Grid.Row="2" Padding="24,20">
+      <StackPanel Spacing="20">
+
+        <!-- Search + filter row -->
+        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+          <TextBox Grid.Column="0"
+                   x:Name="SearchBox"
+                   Watermark="Search recordings…"
+                   FontSize="13"
+                   Background="{StaticResource BgElevatedBrush}"
+                   Foreground="{StaticResource TextPrimaryBrush}"
+                   BorderBrush="{StaticResource BorderDefaultBrush}"
+                   CornerRadius="8"
+                   TextChanged="SearchBox_TextChanged" />
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+            <Button x:Name="FilterAllBtn"
+                    Classes="primary"
+                    Content="All"
+                    Click="FilterAll_Click"
+                    Padding="12,6" />
+            <Button x:Name="FilterVideoBtn"
+                    Classes="ghost"
+                    Content="▶ Videos"
+                    Click="FilterVideo_Click"
+                    Padding="12,6" />
+            <Button x:Name="FilterBoardBtn"
+                    Classes="ghost"
+                    Content="✏ Boards"
+                    Click="FilterBoard_Click"
+                    Padding="12,6" />
+          </StackPanel>
+        </Grid>
+
+        <!-- Recording grid -->
+        <ItemsControl x:Name="RecordingGrid">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <Border Classes="alvonia-card"
+                      Width="200"
+                      Margin="0,0,16,16"
+                      Cursor="Hand">
+                <StackPanel Spacing="10">
+                  <!-- Thumbnail -->
+                  <Border Height="110"
+                          Background="{StaticResource BgElevatedBrush}"
+                          CornerRadius="8">
+                    <TextBlock Text="{Binding ThumbIcon}"
+                               FontSize="32"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center" />
+                  </Border>
+                  <!-- Info -->
+                  <StackPanel Spacing="3">
+                    <TextBlock Text="{Binding Name}"
+                               FontSize="13"
+                               FontWeight="Medium"
+                               Foreground="{StaticResource TextPrimaryBrush}"
+                               TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{Binding Meta}"
+                               FontSize="11"
+                               Foreground="{StaticResource TextTertiaryBrush}" />
+                  </StackPanel>
+                  <!-- Actions -->
+                  <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
+                    <Button Grid.Column="1" Classes="ghost"
+                            Content="📂" FontSize="14"
+                            Padding="6,3" ToolTip.Tip="Open file location" />
+                    <Button Grid.Column="2" Classes="ghost"
+                            Content="🗑" FontSize="14"
+                            Padding="6,3" ToolTip.Tip="Delete" />
+                  </Grid>
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!-- Empty state -->
+        <Border x:Name="EmptyState"
+                IsVisible="True"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Padding="40">
+          <StackPanel Spacing="12" HorizontalAlignment="Center">
+            <TextBlock Text="📁"
+                       FontSize="48"
+                       HorizontalAlignment="Center" />
+            <TextBlock Text="No recordings yet"
+                       FontSize="16" FontWeight="Medium"
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       HorizontalAlignment="Center" />
+            <TextBlock Text="Start recording to see your files here."
+                       FontSize="13"
+                       Foreground="{StaticResource TextTertiaryBrush}"
+                       HorizontalAlignment="Center" />
+          </StackPanel>
+        </Border>
+
+      </StackPanel>
+    </ScrollViewer>
+
+  </Grid>
+</UserControl>

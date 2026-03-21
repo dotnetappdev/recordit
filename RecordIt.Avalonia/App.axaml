@@ -4,6 +4,9 @@
              xmlns:fluent="clr-namespace:Avalonia.Themes.Fluent;assembly=Avalonia.Themes.Fluent"
              x:Class="RecordIt.Avalonia.App">
   <Application.Styles>
-    <fluent:FluentTheme/>
+    <!-- Avalonia Fluent base theme (provides default control styles) -->
+    <fluent:FluentTheme />
+    <!-- Alvonia UI design tokens + class-based overrides -->
+    <StyleInclude Source="avares://RecordIt.Avalonia/Styles/AlvoniaTheme.axaml" />
   </Application.Styles>
 </Application>

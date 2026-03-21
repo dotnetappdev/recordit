@@ -29,40 +29,108 @@
       <div class="container">
         <div class="section-header">
           <div class="section-badge">All Features</div>
-          <h1 class="section-title">Packed with everything you need</h1>
-          <p class="section-subtitle">RecordIt brings professional recording and collaboration tools together in one Alvonia UI app.</p>
+          <h1 class="section-title">Professional recording studio in your pocket</h1>
+          <p class="section-subtitle">RecordIt combines an OBS-inspired studio interface with a full drawing whiteboard — all wrapped in Alvonia UI's modern Windows 11 design language.</p>
+        </div>
+
+        <!-- Studio Interface -->
+        <div style="margin-bottom: 80px;">
+          <h2 style="font-size: 28px; font-weight: 700; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;">
+            <span style="background: rgba(99,102,241,0.15); color: #6366f1; width: 40px; height: 40px; border-radius: 10px; display:inline-flex; align-items:center; justify-content:center; font-size:20px;">🎛️</span>
+            Studio Interface
+          </h2>
+          <div class="features-grid">
+            <div class="feature-card">
+              <h3 class="feature-title">5 Dockable Panels</h3>
+              <p class="feature-desc">Scenes, Sources, Audio Mixer, Options, and Controls panels sit below the live preview — just like a professional broadcast studio. Each panel can be shown or hidden from the View menu.</p>
+            </div>
+            <div class="feature-card">
+              <h3 class="feature-title">Full Menu Bar</h3>
+              <p class="feature-desc">File / Edit / View / Docks / Tools / Help menu bar gives quick access to all features. Start and stop recording directly from the File menu.</p>
+            </div>
+            <div class="feature-card">
+              <h3 class="feature-title">Scene Management</h3>
+              <p class="feature-desc">Create multiple scenes for different recording setups. Reorder them with arrow buttons and switch instantly via the quick-access scene bar on the preview.</p>
+            </div>
+            <div class="feature-card">
+              <h3 class="feature-title">Source Management</h3>
+              <p class="feature-desc">Add, remove, and reorder capture sources per scene. Each source shows its type icon (display, window, camera, audio input, audio output). Add Source dialog enumerates all live devices.</p>
+            </div>
+            <div class="feature-card">
+              <h3 class="feature-title">Modern Windows 11 Look</h3>
+              <p class="feature-desc">Alvonia UI's indigo accent color, rounded corners, layered dark surfaces, and Fluent Design depth make RecordIt distinctly its own — inspired by pro tools, designed for Windows 11.</p>
+            </div>
+            <div class="feature-card">
+              <h3 class="feature-title">Three Apps, One Design</h3>
+              <p class="feature-desc">The same studio layout and Alvonia UI tokens are shared across WinUI 3, Avalonia UI (.NET cross-platform), and Electron — identical look and feel everywhere.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Audio Mixer -->
+        <div style="margin-bottom: 80px;">
+          <h2 style="font-size: 28px; font-weight: 700; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;">
+            <span style="background: rgba(34,197,94,0.15); color: #22c55e; width: 40px; height: 40px; border-radius: 10px; display:inline-flex; align-items:center; justify-content:center; font-size:20px;">🎚️</span>
+            Audio Mixer
+          </h2>
+          <div class="features-grid">
+            <div class="feature-card">
+              <h3 class="feature-title">Real-Time VU Meters</h3>
+              <p class="feature-desc">Live peak-level meters per channel updating at 50 ms, powered by the Windows Core Audio <code>IAudioMeterInformation</code> COM interface. Green → yellow → red gradient shows safe, warning, and clip zones.</p>
+            </div>
+            <div class="feature-card">
+              <h3 class="feature-title">Per-Channel Volume Faders</h3>
+              <p class="feature-desc">Horizontal volume slider per channel with live dB readout. Range is 0–100% with sub-1% step precision. Volume is applied to the ffmpeg recording pipeline.</p>
+            </div>
+            <div class="feature-card">
+              <h3 class="feature-title">Mute Buttons</h3>
+              <p class="feature-desc">Instantly mute any channel during recording. Muted channels show flat VU meters. State is preserved between sessions.</p>
+            </div>
+            <div class="feature-card">
+              <h3 class="feature-title">Desktop Audio Channel</h3>
+              <p class="feature-desc">Dedicated channel for system audio (speakers / loopback). Metered via Windows default render endpoint. Recorded using WASAPI loopback capture.</p>
+            </div>
+            <div class="feature-card">
+              <h3 class="feature-title">Mic/Aux Channel</h3>
+              <p class="feature-desc">Dedicated microphone channel metered via the default capture endpoint. Device selectable from the Options panel from a fully enumerated device list.</p>
+            </div>
+            <div class="feature-card">
+              <h3 class="feature-title">Add Audio Sources</h3>
+              <p class="feature-desc">Click + in the Audio Mixer toolbar to add any detected dshow audio device as a new mixer channel with its own VU meter, fader, and mute button.</p>
+            </div>
+          </div>
         </div>
 
         <!-- Screen Recording -->
         <div style="margin-bottom: 80px;">
           <h2 style="font-size: 28px; font-weight: 700; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;">
-            <span style="background: rgba(99,102,241,0.15); color: #6366f1; width: 40px; height: 40px; border-radius: 10px; display:inline-flex; align-items:center; justify-content:center; font-size:20px;">⏺</span>
+            <span style="background: rgba(239,68,68,0.15); color: #ef4444; width: 40px; height: 40px; border-radius: 10px; display:inline-flex; align-items:center; justify-content:center; font-size:20px;">⏺</span>
             Screen Recording
           </h2>
           <div class="features-grid">
             <div class="feature-card">
               <h3 class="feature-title">4K Ultra HD Recording</h3>
-              <p class="feature-desc">Record at resolutions from 480p up to 4K Ultra HD (3840×2160) with frame rates of 15, 24, 30, or 60 fps. Hardware-accelerated encoding via GPU.</p>
+              <p class="feature-desc">Record at resolutions from 480p up to 4K Ultra HD (3840×2160) with frame rates of 15, 24, 30, or 60 fps via ffmpeg's libx264 codec.</p>
             </div>
             <div class="feature-card">
               <h3 class="feature-title">Multiple Capture Sources</h3>
-              <p class="feature-desc">Choose to capture your entire screen, a specific monitor, a single application window, or a custom region.</p>
+              <p class="feature-desc">Primary display, all displays, or specific application window. Sources listed in the Sources panel with add/remove/reorder controls.</p>
             </div>
             <div class="feature-card">
-              <h3 class="feature-title">Audio Mixing</h3>
-              <p class="feature-desc">Record microphone input, system audio, or both simultaneously. Independent volume controls and noise suppression.</p>
+              <h3 class="feature-title">Correct Audio Mapping</h3>
+              <p class="feature-desc">Fixed: audio stream index now correctly tracks whether a webcam input is present, eliminating the silent-recording bug from earlier versions.</p>
             </div>
             <div class="feature-card">
               <h3 class="feature-title">Webcam Overlay</h3>
-              <p class="feature-desc">Add a picture-in-picture webcam overlay. Customizable size, position, and shape (circular or rectangular).</p>
+              <p class="feature-desc">Add a picture-in-picture webcam overlay at bottom-right. Select your camera from the Options panel's enumerated device list.</p>
             </div>
             <div class="feature-card">
-              <h3 class="feature-title">Multiple Output Formats</h3>
-              <p class="feature-desc">Save recordings as MP4 (H.264/H.265), WebM (VP9), MKV, or AVI. Configurable bitrate and codec settings.</p>
+              <h3 class="feature-title">Desktop Audio (Loopback)</h3>
+              <p class="feature-desc">Capture system audio using WASAPI loopback — records exactly what you hear without needing virtual audio cables or Stereo Mix.</p>
             </div>
             <div class="feature-card">
-              <h3 class="feature-title">Countdown Timer</h3>
-              <p class="feature-desc">Optional 3-second countdown before recording starts so you can position your windows before capture begins.</p>
+              <h3 class="feature-title">Recording Status Badge</h3>
+              <p class="feature-desc">Live red recording badge with elapsed timer overlaid on the preview. Title bar also shows the REC indicator and timer.</p>
             </div>
           </div>
         </div>
@@ -124,7 +192,7 @@
         </div>
 
         <!-- Alvonia UI -->
-        <div>
+        <div style="margin-bottom: 80px;">
           <h2 style="font-size: 28px; font-weight: 700; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;">
             <span style="background: rgba(99,102,241,0.15); color: #6366f1; width: 40px; height: 40px; border-radius: 10px; display:inline-flex; align-items:center; justify-content:center; font-size:20px;">🎨</span>
             Alvonia UI Design System
@@ -132,15 +200,45 @@
           <div class="features-grid">
             <div class="feature-card">
               <h3 class="feature-title">Dark & Light Themes</h3>
-              <p class="feature-desc">First-class dark mode (default) and light mode. Toggle instantly from the title bar. Respects system preference.</p>
+              <p class="feature-desc">First-class dark mode (default) and light mode. Toggle instantly from the title bar. Respects system preference on all platforms.</p>
             </div>
             <div class="feature-card">
-              <h3 class="feature-title">Cross-Platform Parity</h3>
-              <p class="feature-desc">Identical UI between WinUI 3 and Electron. Same colors, typography, spacing, and interactions everywhere.</p>
+              <h3 class="feature-title">Three-App Parity</h3>
+              <p class="feature-desc">Identical studio layout, color system, typography, and interactions across WinUI 3, Avalonia UI, and Electron. Same design tokens everywhere.</p>
             </div>
             <div class="feature-card">
               <h3 class="feature-title">Custom Title Bar</h3>
-              <p class="feature-desc">Frameless window with a custom title bar showing the app logo, recording indicator, theme toggle, and window controls.</p>
+              <p class="feature-desc">Frameless window with a custom title bar showing the app logo, live recording indicator with elapsed timer, theme toggle, and window controls.</p>
+            </div>
+            <div class="feature-card">
+              <h3 class="feature-title">Indigo Accent Identity</h3>
+              <p class="feature-desc">Panel headers use indigo uppercase tracking labels (VS Code / Figma-style), distinguishing RecordIt from OBS's flat gray aesthetic.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Whiteboard -->
+        <div>
+          <h2 style="font-size: 28px; font-weight: 700; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;">
+            <span style="background: rgba(139,92,246,0.15); color: #8b5cf6; width: 40px; height: 40px; border-radius: 10px; display:inline-flex; align-items:center; justify-content:center; font-size:20px;">✏️</span>
+            Whiteboard (MS Teams-Style)
+          </h2>
+          <div class="features-grid">
+            <div class="feature-card">
+              <h3 class="feature-title">Rich Drawing Tools</h3>
+              <p class="feature-desc">Pen, highlighter, eraser, and a full set of shapes: lines, rectangles, ellipses, and triangles. Adjustable brush sizes.</p>
+            </div>
+            <div class="feature-card">
+              <h3 class="feature-title">Zoom Controls</h3>
+              <p class="feature-desc">Zoom in and out (25%–400%) with smooth pan/drag. Zoom controls persist across app navigation.</p>
+            </div>
+            <div class="feature-card">
+              <h3 class="feature-title">Undo / Redo</h3>
+              <p class="feature-desc">Full undo/redo history. Keyboard shortcuts (Ctrl+Z, Ctrl+Y) for fast corrections.</p>
+            </div>
+            <div class="feature-card">
+              <h3 class="feature-title">Export to PNG</h3>
+              <p class="feature-desc">Save your whiteboard as a high-resolution PNG image from any app variant.</p>
             </div>
           </div>
         </div>
@@ -151,7 +249,7 @@
   <footer class="footer">
     <div class="container">
       <div class="footer-bottom">
-        <p>© 2024 Alvonia · <a href="index.html">RecordIt</a> · Built with Alvonia UI, WinUI 3, and Electron</p>
+        <p>© 2025 Alvonia · <a href="index.html">RecordIt</a> · Built with Alvonia UI, WinUI 3, Avalonia, and Electron</p>
       </div>
     </div>
   </footer>

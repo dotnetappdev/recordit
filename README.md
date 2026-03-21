@@ -1,28 +1,52 @@
 # RecordIt
 
-> Professional Screen Recording & Whiteboard App — powered by **Alvonia UI**
+> Professional Screen Recording Studio & Whiteboard App — powered by **Alvonia UI**
 
 [![GitHub Pages](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://dotnetappdev.github.io/recordit)
 [![WinUI 3](https://img.shields.io/badge/WinUI-3.0-indigo)](winui/)
+[![.NET](https://img.shields.io/badge/.NET-10-purple)](winui/)
+[![Avalonia](https://img.shields.io/badge/Avalonia-11-teal)](RecordIt.Avalonia/)
 [![Electron](https://img.shields.io/badge/Electron-26-cyan)](alvonia-ui/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Build](https://img.shields.io/github/actions/workflow/status/dotnetappdev/recordit/build.yml)](https://github.com/dotnetappdev/recordit/actions)
 
-RecordIt combines a professional-grade screen recorder with an **MS Teams-style collaborative whiteboard**. It ships as two apps sharing the same **Alvonia UI** design system — a native Windows WinUI 3 app and a cross-platform Electron app — with identical UI and features on both platforms.
+RecordIt is a **studio-grade screen recording app** with an OBS-inspired dockable multi-panel interface, built on **Alvonia UI** — our own modern Windows 11 / Fluent Design design system. It combines a professional recording studio layout with an **MS Teams-style collaborative whiteboard** and ships as three apps that all look and feel identical:
+
+- **RecordIt WinUI** — Native Windows app (WinUI 3 / Windows App SDK, .NET 10, C#)
+- **RecordIt Avalonia** — Cross-platform .NET app (Avalonia UI 11, C#) for Windows, macOS, Linux
+- **RecordIt Electron** — Web-tech cross-platform app (Electron + React + TypeScript)
 
 ---
 
 ## ✨ Features
 
+### 🎛️ Studio Interface (OBS-inspired, Alvonia-styled)
+- **5 dockable panels** — Scenes, Sources, Audio Mixer, Options, Controls
+- **Full menu bar**: File / Edit / View / Docks / Tools / Help with panel toggle support
+- **Scene management**: multiple scenes with reordering and quick-switch bar on the preview
+- **Source list**: add/remove/reorder capture sources with type icons (screen, window, camera, audio)
+- **Add Source dialog** enumerates all capture types + all live audio sources including desktop loopback
+- Panel visibility toggled per-panel from the View menu
+- Modern Windows 11 Fluent Design aesthetic — rounded corners, layered surfaces, indigo accent
+
 ### 🔴 Screen Recording
 - **4K/1080p/720p** recording at 15–60 fps
-- **Multiple capture sources**: full screen, specific monitor, application window
-- **Microphone + system audio** recording with mixing controls
-- **Webcam overlay** (picture-in-picture) during recording
-- **Output formats**: MP4 (H.264), WebM (VP9), MKV
-- Hardware-accelerated encoding via GPU
+- **Multiple capture sources**: full screen, all displays, specific monitor, application window
+- **Audio capture**: desktop loopback (WASAPI), microphone/line-in with per-device selection
+- **Webcam overlay** (picture-in-picture) during recording, selectable device
+- **Output formats**: MP4 (H.264 / libx264), WebM (VP9)
+- ffmpeg backend with correct audio stream mapping (fixed multi-input index bug)
 - Countdown timer before recording starts
 - System tray integration and global hotkeys
+
+### 🎚️ Audio Mixer
+- **Real-time VU meters** — green→yellow→red gradient per channel, 50 ms refresh via Core Audio
+- **Per-channel volume fader** (0–100%, dB readout)
+- **Per-channel mute button**
+- **Desktop Audio** channel — peak via `IAudioMeterInformation` on the default render endpoint
+- **Mic/Aux** channel — peak via `IAudioMeterInformation` on the default capture endpoint
+- Additional audio channels added dynamically from detected dshow devices
+- All real audio devices enumerated separately (video vs audio) — no more mixed device lists
 
 ### ✏️ Whiteboard (MS Teams-style)
 - **Drawing tools**: Pen, highlighter, eraser with adjustable brush sizes
@@ -48,39 +72,45 @@ RecordIt combines a professional-grade screen recorder with an **MS Teams-style 
 
 ---
 
-## 🏗️ Architecture: Two Apps, One UI
+## 🏗️ Architecture: Three Apps, One UI
 
-RecordIt is built with the **Alvonia UI** design system ensuring visual parity across both implementations:
+RecordIt is built with the **Alvonia UI** design system ensuring identical look and feel across all implementations:
 
 ```
 recordit/
-├── alvonia-ui/              # 🌐 Electron + React (cross-platform)
-│   ├── electron/
-│   │   ├── main.js          # Electron main process
-│   │   └── preload.js       # Context bridge API
-│   ├── src/
-│   │   ├── App.tsx
-│   │   ├── components/
-│   │   │   ├── TitleBar.tsx
-│   │   │   ├── Sidebar.tsx
-│   │   │   ├── RecordingPage.tsx
-│   │   │   ├── WhiteboardPage.tsx
-│   │   │   ├── LibraryPage.tsx
-│   │   │   └── SettingsPage.tsx
-│   │   └── styles/
-│   │       ├── global.css   # Alvonia UI design tokens
-│   │       └── app.css      # Component styles
-│   └── package.json
-│
-├── winui/                   # 🪟 WinUI 3 C# (Windows-native)
+├── winui/                   # 🪟 WinUI 3 / .NET 10 (Windows-native)
 │   ├── RecordIt/
 │   │   ├── MainWindow.xaml(.cs)
-│   │   ├── Pages/           # Record, Whiteboard, Library, Settings
-│   │   ├── Services/        # ScreenRecordingService.cs
+│   │   ├── Pages/
+│   │   │   ├── RecordPage.xaml(.cs)    # OBS-style studio interface
+│   │   │   ├── WhiteboardPage.xaml(.cs)
+│   │   │   ├── LibraryPage.xaml(.cs)
+│   │   │   └── SettingsPage.xaml(.cs)
+│   │   ├── Services/
+│   │   │   └── AudioMeterService.cs    # Core Audio COM interop (VU metering)
 │   │   └── Styles/
-│   │       └── AlvoniaTheme.xaml  # XAML design system
-│   └── RecordIt.Package/    # MSIX packaging project
-│       └── Package.appxmanifest
+│   │       └── AlvoniaTheme.xaml       # XAML design tokens + styles
+│   └── RecordIt.Package/               # MSIX packaging
+│
+├── RecordIt.Avalonia/       # 🖥️ Avalonia UI / .NET (cross-platform)
+│   └── ...                             # Mirrors WinUI structure
+│
+├── RecordIt.Core/           # 📦 Shared .NET core library
+│   ├── Services/
+│   │   ├── ScreenRecordingService.cs   # ffmpeg backend (fixed stream index bug)
+│   │   ├── CaptionService.cs
+│   │   └── ExportService.cs
+│   └── Models/
+│
+├── alvonia-ui/              # 🌐 Electron + React (cross-platform)
+│   ├── electron/
+│   │   ├── main.js
+│   │   └── preload.js
+│   ├── src/
+│   │   ├── components/      # Recording, Whiteboard, Library, Settings pages
+│   │   └── styles/
+│   │       └── global.css   # Alvonia UI CSS design tokens
+│   └── package.json
 │
 ├── docs/                    # 📄 GitHub Pages static site
 │   ├── index.html
