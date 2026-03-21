@@ -158,7 +158,28 @@ public sealed class ScreenMagnifier : IDisposable
         set => _factor = Math.Clamp(value, 1.25, 8.0);
     }
 
+    /// <summary>
+    /// How much the magnification changes per <see cref="ZoomIn"/> / <see cref="ZoomOut"/> call.
+    /// Expressed as a multiplier delta added to <see cref="Factor"/>.
+    /// Default 0.25 (quarter-step); range 0.05–2.0.
+    /// </summary>
+    public double ZoomSpeed { get; set; } = 0.25;
+
     public bool IsActive { get; private set; }
+
+    /// <summary>Increase zoom by one <see cref="ZoomSpeed"/> step.  Starts the magnifier if needed.</summary>
+    public void ZoomIn()
+    {
+        Factor = Math.Min(_factor + ZoomSpeed, 8.0);
+        if (!IsActive) Start(_factor);
+    }
+
+    /// <summary>Decrease zoom by one <see cref="ZoomSpeed"/> step.  Stops when ≤ 1.</summary>
+    public void ZoomOut()
+    {
+        Factor = Math.Max(_factor - ZoomSpeed, 1.25);
+        if (_factor <= 1.25 && IsActive) Stop();
+    }
 
     public ScreenMagnifier()
     {

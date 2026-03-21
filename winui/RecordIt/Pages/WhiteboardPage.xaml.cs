@@ -52,6 +52,10 @@ public sealed partial class WhiteboardPage : Page
     // ─── Monitor-level zoom (ScreenMagnifier) ────────────────────────────────
     private readonly ScreenMagnifier _screenMagnifier = new();
     private double _screenZoomFactor = 2.0;
+    private double _screenZoomSpeed  = 0.25;
+
+    // ─── Screen annotation overlay ───────────────────────────────────────────
+    private readonly ScreenAnnotationOverlay _annotationOverlay = new();
 
     public WhiteboardPage()
     {
@@ -529,6 +533,15 @@ public sealed partial class WhiteboardPage : Page
     private void CanvasAreaOuter_SizeChanged(object sender, SizeChangedEventArgs e)
         => UpdateCropBands();
 
+    // ─── Page lifecycle ───────────────────────────────────────────────────────
+
+    protected override void OnNavigatedFrom(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
+    {
+        base.OnNavigatedFrom(e);
+        _screenMagnifier.Stop();
+        _annotationOverlay.Stop();
+    }
+
     // ─── Monitor-level zoom ───────────────────────────────────────────────────
 
     private void ScreenZoomToggleBtn_Click(object sender, RoutedEventArgs e)
@@ -537,34 +550,55 @@ public sealed partial class WhiteboardPage : Page
         {
             _screenMagnifier.Stop();
             if (ScreenZoomIcon != null)
-                ScreenZoomIcon.Glyph = "\uE8B6"; // magnifier icon (off state)
+                ScreenZoomIcon.Glyph = "\uE8B6";
         }
         else
         {
+            _screenMagnifier.ZoomSpeed = _screenZoomSpeed;
             bool started = _screenMagnifier.Start(_screenZoomFactor);
             if (started && ScreenZoomIcon != null)
-                ScreenZoomIcon.Glyph = "\uE711"; // close / active indicator
+                ScreenZoomIcon.Glyph = "\uE711";
         }
     }
 
     private void ScreenZoomInBtn_Click(object sender, RoutedEventArgs e)
     {
-        _screenZoomFactor = Math.Min(_screenZoomFactor * 1.25, 8.0);
-        if (_screenMagnifier.IsActive)
-            _screenMagnifier.Factor = _screenZoomFactor;
-        else
-            _screenMagnifier.Start(_screenZoomFactor);
+        _screenMagnifier.ZoomSpeed = _screenZoomSpeed;
+        _screenMagnifier.ZoomIn();
+        _screenZoomFactor = _screenMagnifier.Factor;
+        if (ScreenZoomIcon != null)
+            ScreenZoomIcon.Glyph = _screenMagnifier.IsActive ? "\uE711" : "\uE8B6";
+        if (ZoomFactorSlider != null)
+            ZoomFactorSlider.Value = _screenZoomFactor;
     }
 
     private void ScreenZoomOutBtn_Click(object sender, RoutedEventArgs e)
     {
-        _screenZoomFactor = Math.Max(_screenZoomFactor / 1.25, 1.25);
-        if (_screenMagnifier.IsActive)
-        {
-            _screenMagnifier.Factor = _screenZoomFactor;
-            if (_screenZoomFactor <= 1.0)
-                _screenMagnifier.Stop();
-        }
+        _screenMagnifier.ZoomSpeed = _screenZoomSpeed;
+        _screenMagnifier.ZoomOut();
+        _screenZoomFactor = _screenMagnifier.Factor;
+        if (ScreenZoomIcon != null)
+            ScreenZoomIcon.Glyph = _screenMagnifier.IsActive ? "\uE711" : "\uE8B6";
+        if (ZoomFactorSlider != null)
+            ZoomFactorSlider.Value = _screenZoomFactor;
+    }
+
+    private void ZoomFactorSlider_ValueChanged(object sender,
+        Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
+    {
+        _screenZoomFactor = e.NewValue;
+        _screenMagnifier.Factor = _screenZoomFactor;
+        if (ZoomFactorLabel != null)
+            ZoomFactorLabel.Text = $"{_screenZoomFactor:0.0}×";
+    }
+
+    private void ZoomSpeedSlider_ValueChanged(object sender,
+        Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
+    {
+        _screenZoomSpeed = e.NewValue;
+        _screenMagnifier.ZoomSpeed = _screenZoomSpeed;
+        if (ZoomSpeedLabel != null)
+            ZoomSpeedLabel.Text = $"{_screenZoomSpeed:0.00}";
     }
 
     // ─── Quick screen capture → whiteboard background ─────────────────────────
@@ -654,6 +688,89 @@ public sealed partial class WhiteboardPage : Page
     private const uint SRCCOPY = 0x00CC0020;
     private const int  SM_CXSCREEN = 0;
     private const int  SM_CYSCREEN = 1;
+
+    // ─── Screen annotation ────────────────────────────────────────────────────
+
+    private void AnnotateToggle_Click(object sender, RoutedEventArgs e)
+    {
+        if (_annotationOverlay.IsActive)
+        {
+            _annotationOverlay.Stop();
+            AnnotationBar.Visibility = Visibility.Collapsed;
+            if (AnnotateToggleIcon != null) AnnotateToggleIcon.Glyph = "\uECAA";
+            if (AnnotateToggleText != null) AnnotateToggleText.Text  = "Annotate";
+        }
+        else
+        {
+            if (_annotationOverlay.Start())
+            {
+                AnnotationBar.Visibility = Visibility.Visible;
+                if (AnnotateToggleIcon != null) AnnotateToggleIcon.Glyph = "\uE711";
+                if (AnnotateToggleText != null) AnnotateToggleText.Text  = "Annotating";
+                SyncAnnotateDrawModeUI();
+            }
+        }
+    }
+
+    private void AnnotateDrawMode_Click(object sender, RoutedEventArgs e)
+    {
+        bool newDraw = !_annotationOverlay.IsDrawMode;
+        _annotationOverlay.SetDrawMode(newDraw);
+        // Give the PostMessage a moment to land before refreshing UI
+        DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low,
+            SyncAnnotateDrawModeUI);
+    }
+
+    private void SyncAnnotateDrawModeUI()
+    {
+        bool draw = _annotationOverlay.IsDrawMode;
+        if (AnnotateDrawModeIcon != null)
+            AnnotateDrawModeIcon.Glyph = draw ? "\uED63" : "\uE8F4"; // pen / eye
+        if (AnnotateDrawModeText != null)
+            AnnotateDrawModeText.Text  = draw ? "Drawing" : "Passthrough";
+    }
+
+    private void AnnotateTool_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is string tagStr && int.TryParse(tagStr, out int tool))
+            _annotationOverlay.SetTool(tool);
+    }
+
+    private void AnnotateColor_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        if (sender is Border b && b.Tag is string hex)
+            _annotationOverlay.SetColorRef(HexToColorRef(hex));
+    }
+
+    private void AnnotateWidth_Changed(object sender,
+        Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
+    {
+        int w = (int)e.NewValue;
+        _annotationOverlay.SetStrokeWidth(w);
+        if (AnnotateWidthLabel != null)
+            AnnotateWidthLabel.Text = w.ToString();
+    }
+
+    private void AnnotateUndo_Click(object sender, RoutedEventArgs e)
+        => _annotationOverlay.UndoLastStroke();
+
+    private void AnnotateClear_Click(object sender, RoutedEventArgs e)
+        => _annotationOverlay.Clear();
+
+    private void AnnotateStop_Click(object sender, RoutedEventArgs e)
+        => AnnotateToggle_Click(sender, e);
+
+    /// <summary>
+    /// Convert a hex colour string ("#RRGGBB") to a Win32 COLORREF (0x00BBGGRR).
+    /// </summary>
+    private static int HexToColorRef(string hex)
+    {
+        hex = hex.TrimStart('#');
+        byte r = Convert.ToByte(hex[0..2], 16);
+        byte g = Convert.ToByte(hex[2..4], 16);
+        byte b = Convert.ToByte(hex[4..6], 16);
+        return (int)((uint)r | ((uint)g << 8) | ((uint)b << 16));
+    }
 
     // ─── Participants ─────────────────────────────────────────────────────────
 
