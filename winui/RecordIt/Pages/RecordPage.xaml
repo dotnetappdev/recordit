@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="RecordIt.Pages.RecordPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Background="{StaticResource BgBaseBrush}">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Page Header -->
+        <Border Grid.Row="0"
+                Padding="24,20"
+                BorderBrush="{StaticResource BorderDefaultBrush}"
+                BorderThickness="0,0,0,1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Spacing="2">
+                    <TextBlock Text="Screen Recorder"
+                               Style="{StaticResource PageTitleStyle}" />
+                    <TextBlock Text="Capture your screen, window, or application"
+                               Style="{StaticResource PageSubtitleStyle}" />
+                </StackPanel>
+                <Button Grid.Column="1"
+                        x:Name="RefreshSourcesBtn"
+                        Style="{StaticResource AlvoniaGhostButtonStyle}"
+                        Click="RefreshSourcesBtn_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE72C;" FontSize="13" />
+                        <TextBlock Text="Refresh Sources" />
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
+
+        <!-- Page Body -->
+        <ScrollViewer Grid.Row="1" Padding="24">
+            <StackPanel Spacing="16">
+
+                <!-- Source Selection -->
+                <Border Style="{StaticResource AlvoniaCardStyle}">
+                    <StackPanel Spacing="16">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7F8;" FontSize="16"
+                                      Foreground="{StaticResource BrandPrimaryBrush}" />
+                            <TextBlock Text="Capture Source" FontWeight="SemiBold" FontSize="15"
+                                       Foreground="{StaticResource TextPrimaryBrush}" />
+                        </StackPanel>
+
+                        <GridView x:Name="SourcesGridView"
+                                  SelectionMode="Single"
+                                  ItemClick="SourceItem_Click"
+                                  IsItemClickEnabled="True">
+                            <GridView.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <ItemsWrapGrid Orientation="Horizontal"
+                                                   MaximumRowsOrColumns="4" />
+                                </ItemsPanelTemplate>
+                            </GridView.ItemsPanel>
+                            <GridView.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Width="200" CornerRadius="10"
+                                            Background="{StaticResource BgElevatedBrush}"
+                                            Margin="4">
+                                        <StackPanel>
+                                            <Border Height="112" CornerRadius="8,8,0,0"
+                                                    Background="{StaticResource BgOverlayBrush}">
+                                                <Image Source="{Binding Thumbnail}"
+                                                       Stretch="UniformToFill" />
+                                            </Border>
+                                            <TextBlock Text="{Binding Name}"
+                                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                                       FontSize="12"
+                                                       Padding="10,6"
+                                                       TextTrimming="CharacterEllipsis" />
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </GridView.ItemTemplate>
+                        </GridView>
+
+                        <!-- Empty state -->
+                        <StackPanel x:Name="EmptySourcesState"
+                                    HorizontalAlignment="Center"
+                                    Spacing="8"
+                                    Padding="40"
+                                    Visibility="Collapsed">
+                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7F8;" FontSize="40"
+                                      Foreground="{StaticResource TextTertiaryBrush}"
+                                      HorizontalAlignment="Center" />
+                            <TextBlock Text="No sources found"
+                                       FontSize="15" FontWeight="SemiBold"
+                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                       HorizontalAlignment="Center" />
+                            <TextBlock Text="Click Refresh Sources to scan for available capture sources."
+                                       FontSize="13"
+                                       Foreground="{StaticResource TextTertiaryBrush}"
+                                       HorizontalAlignment="Center"
+                                       TextAlignment="Center" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Settings Row -->
+                <Grid ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Quality Settings -->
+                    <Border Grid.Column="0" Style="{StaticResource AlvoniaCardStyle}">
+                        <StackPanel Spacing="16">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8FE;" FontSize="16"
+                                          Foreground="{StaticResource BrandPrimaryBrush}" />
+                                <TextBlock Text="Quality Settings" FontWeight="SemiBold" FontSize="15"
+                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                            </StackPanel>
+
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Resolution" FontSize="12"
+                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                                <ComboBox x:Name="QualityCombo"
+                                          Style="{StaticResource AlvoniaComboBoxStyle}"
+                                          HorizontalAlignment="Stretch"
+                                          SelectedIndex="0">
+                                    <ComboBoxItem Content="1080p HD" />
+                                    <ComboBoxItem Content="1440p QHD" />
+                                    <ComboBoxItem Content="4K Ultra HD" />
+                                    <ComboBoxItem Content="720p" />
+                                    <ComboBoxItem Content="480p" />
+                                </ComboBox>
+                            </StackPanel>
+
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Frame Rate" FontSize="12"
+                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                                <ComboBox x:Name="FpsCombo"
+                                          Style="{StaticResource AlvoniaComboBoxStyle}"
+                                          HorizontalAlignment="Stretch"
+                                          SelectedIndex="1">
+                                    <ComboBoxItem Content="60 fps" />
+                                    <ComboBoxItem Content="30 fps" />
+                                    <ComboBoxItem Content="24 fps" />
+                                    <ComboBoxItem Content="15 fps" />
+                                </ComboBox>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Audio & Camera -->
+                    <Border Grid.Column="1" Style="{StaticResource AlvoniaCardStyle}">
+                        <StackPanel Spacing="16">
+                            <TextBlock Text="Audio &amp; Camera" FontWeight="SemiBold" FontSize="15"
+                                       Foreground="{StaticResource TextPrimaryBrush}" />
+
+                            <Grid Padding="0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Spacing="2">
+                                    <TextBlock Text="Microphone" FontWeight="Medium" FontSize="14"
+                                               Foreground="{StaticResource TextPrimaryBrush}" />
+                                    <TextBlock Text="Record system audio &amp; mic" FontSize="12"
+                                               Foreground="{StaticResource TextSecondaryBrush}" />
+                                </StackPanel>
+                                <ToggleSwitch x:Name="MicToggle"
+                                             Grid.Column="1"
+                                             IsOn="True"
+                                             Style="{StaticResource AlvoniaToggleSwitchStyle}" />
+                            </Grid>
+
+                            <Border BorderBrush="{StaticResource BorderDefaultBrush}"
+                                    BorderThickness="0,1,0,0" />
+
+                            <Grid Padding="0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Spacing="2">
+                                    <TextBlock Text="Camera Overlay" FontWeight="Medium" FontSize="14"
+                                               Foreground="{StaticResource TextPrimaryBrush}" />
+                                    <TextBlock Text="Show webcam in corner" FontSize="12"
+                                               Foreground="{StaticResource TextSecondaryBrush}" />
+                                </StackPanel>
+                                <ToggleSwitch x:Name="CameraToggle"
+                                             Grid.Column="1"
+                                             IsOn="False"
+                                             Style="{StaticResource AlvoniaToggleSwitchStyle}" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Recording Controls Bar -->
+        <Border Grid.Row="2"
+                Background="{StaticResource BgSurfaceBrush}"
+                BorderBrush="{StaticResource BorderDefaultBrush}"
+                BorderThickness="0,1,0,0"
+                Padding="24,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Record/Stop button -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+                    <Button x:Name="StartRecordBtn"
+                            Style="{StaticResource AlvoniaRecordButtonStyle}"
+                            Click="StartRecordBtn_Click">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Ellipse Width="16" Height="16" Fill="White" />
+                            <TextBlock Text="Start Recording" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button x:Name="StopRecordBtn"
+                            Visibility="Collapsed"
+                            Style="{StaticResource AlvoniaGhostButtonStyle}"
+                            Click="StopRecordBtn_Click"
+                            BorderBrush="{StaticResource BorderStrongBrush}"
+                            BorderThickness="1"
+                            CornerRadius="20"
+                            Padding="24,12">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE71A;"
+                                      FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" />
+                            <TextBlock Text="Stop Recording"
+                                       Foreground="{StaticResource TextPrimaryBrush}" />
+                        </StackPanel>
+                    </Button>
+
+                    <TextBlock x:Name="RecordHintText"
+                               Text="Select a capture source first"
+                               VerticalAlignment="Center"
+                               FontSize="13"
+                               Foreground="{StaticResource TextTertiaryBrush}" />
+                </StackPanel>
+
+                <!-- Right controls -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4">
+                    <Button x:Name="MicBtn"
+                            Style="{StaticResource AlvoniaGhostButtonStyle}"
+                            Click="MicBtn_Click"
+                            ToolTipService.ToolTip="Toggle Microphone">
+                        <FontIcon x:Name="MicIcon" FontFamily="Segoe MDL2 Assets"
+                                  Glyph="&#xE720;" FontSize="16"
+                                  Foreground="{StaticResource TextSecondaryBrush}" />
+                    </Button>
+                    <Button x:Name="CamBtn"
+                            Style="{StaticResource AlvoniaGhostButtonStyle}"
+                            Click="CamBtn_Click"
+                            ToolTipService.ToolTip="Toggle Camera">
+                        <FontIcon x:Name="CamIcon" FontFamily="Segoe MDL2 Assets"
+                                  Glyph="&#xE714;" FontSize="16"
+                                  Foreground="{StaticResource TextSecondaryBrush}" />
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Page>

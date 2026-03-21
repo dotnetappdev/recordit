@@ -1,0 +1,95 @@
+{
+  "name": "recordit-alvonia-ui",
+  "version": "1.0.0",
+  "description": "RecordIt - Screen Recording & Whiteboard App with Alvonia UI",
+  "main": "electron/main.js",
+  "homepage": "./",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "electron": "electron .",
+    "electron:dev": "concurrently \"BROWSER=none npm start\" \"wait-on http://localhost:3000 && electron .\"",
+    "electron:build": "npm run build && electron-builder",
+    "electron:build:win": "npm run build && electron-builder --win",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1",
+    "framer-motion": "^10.16.4",
+    "lucide-react": "^0.263.1",
+    "clsx": "^2.0.0",
+    "fabric": "^5.3.0",
+    "react-colorful": "^5.6.1",
+    "electron-is-dev": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "typescript": "^5.1.6",
+    "electron": "^26.0.0",
+    "electron-builder": "^24.6.3",
+    "concurrently": "^8.2.1",
+    "wait-on": "^7.0.1"
+  },
+  "build": {
+    "appId": "com.alvonia.recordit",
+    "productName": "RecordIt",
+    "directories": {
+      "buildResources": "assets",
+      "output": "dist"
+    },
+    "files": [
+      "build/**/*",
+      "electron/**/*",
+      "node_modules/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "appx",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "assets/icon.ico",
+      "publisherName": "Alvonia",
+      "signingHashAlgorithms": ["sha256"]
+    },
+    "appx": {
+      "publisherDisplayName": "Alvonia",
+      "displayName": "RecordIt",
+      "identityName": "Alvonia.RecordIt",
+      "publisher": "CN=Alvonia",
+      "applicationId": "RecordIt",
+      "backgroundColor": "#0f0f0f"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "assets/icon.icns"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "assets/icon.png"
+    }
+  },
+  "eslintConfig": {
+    "extends": ["react-app"]
+  },
+  "browserslist": {
+    "production": [">0.2%", "not dead", "not op_mini all"],
+    "development": ["last 1 chrome version", "last 1 firefox version", "last 1 safari version"]
+  }
+}

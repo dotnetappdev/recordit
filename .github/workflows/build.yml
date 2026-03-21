@@ -1,0 +1,117 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+jobs:
+  build-electron:
+    name: Build Electron App
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: alvonia-ui/package-lock.json
+
+      - name: Install dependencies
+        working-directory: alvonia-ui
+        run: npm ci
+
+      - name: Build React app
+        working-directory: alvonia-ui
+        run: npm run build
+
+      - name: Package Electron (Windows)
+        working-directory: alvonia-ui
+        run: npm run electron:build:win
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Electron artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: electron-windows
+          path: |
+            alvonia-ui/dist/*.exe
+            alvonia-ui/dist/*.appx
+            alvonia-ui/dist/*.msix
+
+  build-winui:
+    name: Build WinUI 3 App
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Restore NuGet packages
+        working-directory: winui
+        run: nuget restore RecordIt.sln
+
+      - name: Build WinUI app
+        working-directory: winui
+        run: |
+          msbuild RecordIt.sln `
+            /p:Configuration=Release `
+            /p:Platform=x64 `
+            /p:AppxBundle=Never `
+            /p:UapAppxPackageBuildMode=SideloadOnly
+
+      - name: Upload WinUI artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: winui-windows
+          path: winui/RecordIt.Package/bin/x64/Release/**/*.msix
+
+  release:
+    name: Create GitHub Release
+    needs: [build-electron, build-winui]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Electron artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: electron-windows
+          path: ./release-artifacts/electron
+
+      - name: Download WinUI artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: winui-windows
+          path: ./release-artifacts/winui
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./release-artifacts/**/*
+          generate_release_notes: true
+          body: |
+            ## RecordIt ${{ github.ref_name }}
+
+            ### Downloads
+            | Platform | Type | File |
+            |----------|------|------|
+            | Windows Native | WinUI 3 MSIX | `RecordIt.msix` |
+            | Windows Cross-Platform | Electron NSIS | `RecordIt-Setup-*.exe` |
+            | Windows Cross-Platform | Electron AppX | `RecordIt-*.appx` |
+
+            ### What's Changed
+            See [Changelog](https://dotnetappdev.github.io/recordit/docs.html#changelog) for details.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

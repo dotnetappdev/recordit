@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="RecordIt.Pages.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Background="{StaticResource BgBaseBrush}">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0"
+                Padding="24,20"
+                BorderBrush="{StaticResource BorderDefaultBrush}"
+                BorderThickness="0,0,0,1">
+            <StackPanel Spacing="2">
+                <TextBlock Text="Settings" Style="{StaticResource PageTitleStyle}" />
+                <TextBlock Text="Configure RecordIt preferences"
+                           Style="{StaticResource PageSubtitleStyle}" />
+            </StackPanel>
+        </Border>
+
+        <!-- Settings Body -->
+        <ScrollViewer Grid.Row="1" Padding="24">
+            <StackPanel Spacing="24" MaxWidth="640">
+
+                <!-- Appearance -->
+                <StackPanel Spacing="12">
+                    <TextBlock Text="APPEARANCE" Style="{StaticResource SectionTitleStyle}" />
+                    <Border Style="{StaticResource AlvoniaCardStyle}">
+                        <StackPanel>
+                            <!-- Theme -->
+                            <Grid Padding="0,4" Margin="0,0,0,16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Spacing="2">
+                                    <TextBlock Text="Theme" FontWeight="Medium"
+                                               Foreground="{StaticResource TextPrimaryBrush}" />
+                                    <TextBlock Text="Choose your preferred color scheme" FontSize="12"
+                                               Foreground="{StaticResource TextSecondaryBrush}" />
+                                </StackPanel>
+                                <ComboBox Grid.Column="1"
+                                          Style="{StaticResource AlvoniaComboBoxStyle}"
+                                          Width="140" SelectedIndex="0">
+                                    <ComboBoxItem Content="Dark" />
+                                    <ComboBoxItem Content="Light" />
+                                    <ComboBoxItem Content="System" />
+                                </ComboBox>
+                            </Grid>
+                            <Border BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,1,0,0" />
+                            <!-- Language -->
+                            <Grid Padding="0,16,0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Spacing="2">
+                                    <TextBlock Text="Language" FontWeight="Medium"
+                                               Foreground="{StaticResource TextPrimaryBrush}" />
+                                    <TextBlock Text="Interface language" FontSize="12"
+                                               Foreground="{StaticResource TextSecondaryBrush}" />
+                                </StackPanel>
+                                <ComboBox Grid.Column="1"
+                                          Style="{StaticResource AlvoniaComboBoxStyle}"
+                                          Width="140" SelectedIndex="0">
+                                    <ComboBoxItem Content="English" />
+                                    <ComboBoxItem Content="Deutsch" />
+                                    <ComboBoxItem Content="Français" />
+                                    <ComboBoxItem Content="Español" />
+                                    <ComboBoxItem Content="日本語" />
+                                </ComboBox>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- Recording -->
+                <StackPanel Spacing="12">
+                    <TextBlock Text="RECORDING" Style="{StaticResource SectionTitleStyle}" />
+                    <Border Style="{StaticResource AlvoniaCardStyle}">
+                        <StackPanel Spacing="0">
+                            <Grid Padding="0,4" Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Default Quality" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Output video resolution" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <ComboBox Grid.Column="1" Style="{StaticResource AlvoniaComboBoxStyle}" Width="140" SelectedIndex="0">
+                                    <ComboBoxItem Content="1080p HD"/>
+                                    <ComboBoxItem Content="1440p QHD"/>
+                                    <ComboBoxItem Content="4K Ultra HD"/>
+                                    <ComboBoxItem Content="720p"/>
+                                </ComboBox>
+                            </Grid>
+                            <Border BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,1,0,0" />
+                            <Grid Padding="0,12" Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Output Format" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Container format for recordings" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <ComboBox Grid.Column="1" Style="{StaticResource AlvoniaComboBoxStyle}" Width="140" SelectedIndex="0">
+                                    <ComboBoxItem Content="MP4 (H.264)"/>
+                                    <ComboBoxItem Content="WebM (VP9)"/>
+                                    <ComboBoxItem Content="MKV"/>
+                                </ComboBox>
+                            </Grid>
+                            <Border BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,1,0,0" />
+                            <Grid Padding="0,12,0,4">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Show Countdown" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="3-second countdown before recording" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1" IsOn="True" Style="{StaticResource AlvoniaToggleSwitchStyle}" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- System -->
+                <StackPanel Spacing="12">
+                    <TextBlock Text="SYSTEM" Style="{StaticResource SectionTitleStyle}" />
+                    <Border Style="{StaticResource AlvoniaCardStyle}">
+                        <StackPanel>
+                            <Grid Padding="0,4" Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Notifications" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Show notifications when recording completes" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1" IsOn="True" Style="{StaticResource AlvoniaToggleSwitchStyle}" />
+                            </Grid>
+                            <Border BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,1,0,0" />
+                            <Grid Padding="0,12" Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Hardware Acceleration" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Use GPU for encoding when available" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1" IsOn="True" Style="{StaticResource AlvoniaToggleSwitchStyle}" />
+                            </Grid>
+                            <Border BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,1,0,0" />
+                            <Grid Padding="0,12,0,4">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Start Minimized" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Launch RecordIt minimized to system tray" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <ToggleSwitch Grid.Column="1" IsOn="False" Style="{StaticResource AlvoniaToggleSwitchStyle}" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- Keyboard Shortcuts -->
+                <StackPanel Spacing="12">
+                    <TextBlock Text="KEYBOARD SHORTCUTS" Style="{StaticResource SectionTitleStyle}" />
+                    <Border Style="{StaticResource AlvoniaCardStyle}">
+                        <StackPanel>
+                            <ItemsControl>
+                                <ItemsControl.Items>
+                                    <x:String>Start/Stop Recording|Ctrl+Shift+R</x:String>
+                                    <x:String>Pause Recording|Ctrl+Shift+P</x:String>
+                                    <x:String>Open Whiteboard|Ctrl+Shift+W</x:String>
+                                    <x:String>Take Screenshot|Ctrl+Shift+S</x:String>
+                                    <x:String>Minimize to Tray|Ctrl+M</x:String>
+                                </ItemsControl.Items>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Padding="0,8" BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,0,0,1">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="{Binding}" Grid.Column="0"
+                                                       FontWeight="Medium"
+                                                       Foreground="{StaticResource TextPrimaryBrush}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- About -->
+                <StackPanel Spacing="12">
+                    <TextBlock Text="ABOUT" Style="{StaticResource SectionTitleStyle}" />
+                    <Border Style="{StaticResource AlvoniaCardStyle}">
+                        <StackPanel Spacing="12">
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <Border Width="48" Height="48" CornerRadius="12"
+                                        Background="{StaticResource BrandPrimaryBrush}">
+                                    <TextBlock Text="R" Foreground="White" FontWeight="Bold"
+                                               FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <StackPanel VerticalAlignment="Center" Spacing="2">
+                                    <TextBlock Text="RecordIt" FontWeight="Bold" FontSize="18"
+                                               Foreground="{StaticResource TextPrimaryBrush}" />
+                                    <TextBlock Text="Version 1.0.0 · Alvonia UI · WinUI 3"
+                                               FontSize="12"
+                                               Foreground="{StaticResource TextSecondaryBrush}" />
+                                </StackPanel>
+                            </StackPanel>
+                            <Border BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,1,0,0" />
+                            <TextBlock TextWrapping="Wrap" LineHeight="20" FontSize="13"
+                                       Foreground="{StaticResource TextSecondaryBrush}">
+                                RecordIt is a screen recording and whiteboard collaboration tool
+                                built with Alvonia UI design system on WinUI 3. Perfect for tutorials,
+                                demos, and team collaboration.
+                            </TextBlock>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <HyperlinkButton Content="Website" Foreground="{StaticResource BrandPrimaryBrush}" />
+                                <HyperlinkButton Content="Privacy Policy" Foreground="{StaticResource TextSecondaryBrush}" />
+                                <HyperlinkButton Content="Changelog" Foreground="{StaticResource TextSecondaryBrush}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>
