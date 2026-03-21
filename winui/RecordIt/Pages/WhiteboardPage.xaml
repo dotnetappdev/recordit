@@ -383,6 +383,12 @@
                             ToolTipService.ToolTip="Circle — highlight area">
                         <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xF137;" FontSize="13" />
                     </Button>
+                    <Button x:Name="AnnotateRectBtn"
+                            Style="{StaticResource WbToolButtonStyle}"
+                            Click="AnnotateTool_Click" Tag="3"
+                            ToolTipService.ToolTip="Rectangle — box a region">
+                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7C6;" FontSize="13" />
+                    </Button>
                 </StackPanel>
 
                 <Rectangle Width="1" Height="18" Fill="#22FFFFFF" />

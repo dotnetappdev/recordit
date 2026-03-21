@@ -21,9 +21,10 @@ namespace RecordIt;
 public sealed class ScreenAnnotationOverlay : IDisposable
 {
     // ─── Tool IDs ────────────────────────────────────────────────────────────
-    public const int ToolPen    = 0;
-    public const int ToolArrow  = 1;
-    public const int ToolCircle = 2;
+    public const int ToolPen       = 0;
+    public const int ToolArrow     = 1;
+    public const int ToolCircle    = 2;
+    public const int ToolRectangle = 3;
 
     // ─── Chroma-key background ───────────────────────────────────────────────
     // COLORREF RGB(1,1,1) — near-black; used as the transparent colour.
@@ -119,6 +120,7 @@ public sealed class ScreenAnnotationOverlay : IDisposable
     [DllImport("gdi32.dll")] private static extern bool   MoveToEx(IntPtr hdc, int x, int y, IntPtr prev);
     [DllImport("gdi32.dll")] private static extern bool   LineTo(IntPtr hdc, int x, int y);
     [DllImport("gdi32.dll")] private static extern bool   Ellipse(IntPtr hdc, int l, int t, int r, int b);
+    [DllImport("gdi32.dll")] private static extern bool   Rectangle(IntPtr hdc, int l, int t, int r, int b);
     [DllImport("gdi32.dll")] private static extern IntPtr GetStockObject(int obj);
     private const int PS_SOLID   = 0;
     private const int NULL_BRUSH = 5;
@@ -454,6 +456,15 @@ public sealed class ScreenAnnotationOverlay : IDisposable
             {
                 var a = s.Points[0]; var b = s.Points[^1];
                 Ellipse(hdc,
+                    Math.Min(a.X, b.X), Math.Min(a.Y, b.Y),
+                    Math.Max(a.X, b.X), Math.Max(a.Y, b.Y));
+                break;
+            }
+
+            case ToolRectangle:
+            {
+                var a = s.Points[0]; var b = s.Points[^1];
+                Rectangle(hdc,
                     Math.Min(a.X, b.X), Math.Min(a.Y, b.Y),
                     Math.Max(a.X, b.X), Math.Max(a.Y, b.Y));
                 break;
