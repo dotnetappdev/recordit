@@ -1,0 +1,73 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\sasproducts\\recordit\\winui\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}|RecordIt\\RecordIt.csproj|d:\\sasproducts\\recordit\\winui\\recordit\\pages\\whiteboardpage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}|RecordIt\\RecordIt.csproj|solutionrelative:recordit\\pages\\whiteboardpage.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}|RecordIt\\RecordIt.csproj|d:\\sasproducts\\recordit\\winui\\recordit\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}|RecordIt\\RecordIt.csproj|solutionrelative:recordit\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 5,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{cce594b6-0c39-4442-ba28-10c64ac7e89f}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:134:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:135:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:133:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:136:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "WhiteboardPage.xaml",
+              "DocumentMoniker": "D:\\sasproducts\\recordit\\winui\\RecordIt\\Pages\\WhiteboardPage.xaml",
+              "RelativeDocumentMoniker": "RecordIt\\Pages\\WhiteboardPage.xaml",
+              "ToolTip": "D:\\sasproducts\\recordit\\winui\\RecordIt\\Pages\\WhiteboardPage.xaml",
+              "RelativeToolTip": "RecordIt\\Pages\\WhiteboardPage.xaml",
+              "ViewState": "AgIAACMBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2026-03-21T19:26:55.823Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "MainWindow.xaml",
+              "DocumentMoniker": "D:\\sasproducts\\recordit\\winui\\RecordIt\\MainWindow.xaml",
+              "RelativeDocumentMoniker": "RecordIt\\MainWindow.xaml",
+              "ToolTip": "D:\\sasproducts\\recordit\\winui\\RecordIt\\MainWindow.xaml",
+              "RelativeToolTip": "RecordIt\\MainWindow.xaml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2026-03-21T19:23:31.544Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

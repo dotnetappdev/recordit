@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecordIt", "RecordIt\Record
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecordIt.Package", "RecordIt.Package\RecordIt.Package.wapproj", "{B2C3D4E5-F6A7-8901-BCDE-F12345678901}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecordIt.Core", "..\RecordIt.Core\RecordIt.Core.csproj", "{C3D4E5F6-7890-1234-ABCD-EF23456789012}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,5 +23,9 @@ Global
 		{B2C3D4E5-F6A7-8901-BCDE-F12345678901}.Debug|x64.Build.0 = Debug|x64
 		{B2C3D4E5-F6A7-8901-BCDE-F12345678901}.Release|x64.ActiveCfg = Release|x64
 		{B2C3D4E5-F6A7-8901-BCDE-F12345678901}.Release|x64.Build.0 = Release|x64
+		{C3D4E5F6-7890-1234-ABCD-EF23456789012}.Debug|x64.ActiveCfg = Debug|x64
+		{C3D4E5F6-7890-1234-ABCD-EF23456789012}.Debug|x64.Build.0 = Debug|x64
+		{C3D4E5F6-7890-1234-ABCD-EF23456789012}.Release|x64.ActiveCfg = Release|x64
+		{C3D4E5F6-7890-1234-ABCD-EF23456789012}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 EndGlobal

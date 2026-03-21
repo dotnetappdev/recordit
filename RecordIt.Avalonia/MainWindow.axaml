@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="RecordIt.Avalonia.MainWindow"
+        Title="RecordIt" Width="1024" Height="720">
+
+  <Grid>
+    <TextBlock Text="RecordIt (Avalonia)" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20"/>
+  </Grid>
+
+</Window>

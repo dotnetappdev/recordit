@@ -1,0 +1,158 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Alvonia UI Color Palette -->
+
+    <!-- Brand Colors -->
+    <Color x:Key="BrandPrimaryColor">#FF6366F1</Color>
+    <Color x:Key="BrandPrimaryHoverColor">#FF5254CC</Color>
+    <Color x:Key="BrandSecondaryColor">#FF8B5CF6</Color>
+    <Color x:Key="BrandAccentColor">#FF06B6D4</Color>
+
+    <!-- Background Colors (Dark Theme) -->
+    <Color x:Key="BgBaseColor">#FF0F0F0F</Color>
+    <Color x:Key="BgSurfaceColor">#FF1A1A1A</Color>
+    <Color x:Key="BgElevatedColor">#FF222222</Color>
+    <Color x:Key="BgOverlayColor">#FF2A2A2A</Color>
+    <Color x:Key="BgHoverColor">#FF333333</Color>
+    <Color x:Key="BgActiveColor">#FF3D3D3D</Color>
+
+    <!-- Text Colors -->
+    <Color x:Key="TextPrimaryColor">#FFF5F5F5</Color>
+    <Color x:Key="TextSecondaryColor">#FFA3A3A3</Color>
+    <Color x:Key="TextTertiaryColor">#FF737373</Color>
+    <Color x:Key="TextDisabledColor">#FF525252</Color>
+
+    <!-- Border Colors -->
+    <Color x:Key="BorderDefaultColor">#FF2A2A2A</Color>
+    <Color x:Key="BorderStrongColor">#FF404040</Color>
+    <Color x:Key="BorderFocusColor">#FF6366F1</Color>
+
+    <!-- Status Colors -->
+    <Color x:Key="SuccessColor">#FF22C55E</Color>
+    <Color x:Key="WarningColor">#FFF59E0B</Color>
+    <Color x:Key="ErrorColor">#FFEF4444</Color>
+    <Color x:Key="RecordingColor">#FFEF4444</Color>
+
+    <!-- Brushes -->
+    <SolidColorBrush x:Key="BrandPrimaryBrush" Color="{StaticResource BrandPrimaryColor}" />
+    <SolidColorBrush x:Key="BrandSecondaryBrush" Color="{StaticResource BrandSecondaryColor}" />
+    <SolidColorBrush x:Key="BgBaseBrush" Color="{StaticResource BgBaseColor}" />
+    <SolidColorBrush x:Key="BgSurfaceBrush" Color="{StaticResource BgSurfaceColor}" />
+    <SolidColorBrush x:Key="BgElevatedBrush" Color="{StaticResource BgElevatedColor}" />
+    <SolidColorBrush x:Key="BgOverlayBrush" Color="{StaticResource BgOverlayColor}" />
+    <SolidColorBrush x:Key="BgHoverBrush" Color="{StaticResource BgHoverColor}" />
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}" />
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}" />
+    <SolidColorBrush x:Key="TextTertiaryBrush" Color="{StaticResource TextTertiaryColor}" />
+    <SolidColorBrush x:Key="BorderDefaultBrush" Color="{StaticResource BorderDefaultColor}" />
+    <SolidColorBrush x:Key="BorderStrongBrush" Color="{StaticResource BorderStrongColor}" />
+    <SolidColorBrush x:Key="RecordingBrush" Color="{StaticResource RecordingColor}" />
+    <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}" />
+    <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource ErrorColor}" />
+
+    <!-- Override WinUI System Brushes for Dark Alvonia Theme -->
+    <SolidColorBrush x:Key="ApplicationPageBackgroundThemeBrush" Color="{StaticResource BgBaseColor}" />
+    <SolidColorBrush x:Key="NavigationViewContentBackground" Color="{StaticResource BgBaseColor}" />
+
+    <!-- Card Style -->
+    <Style x:Key="AlvoniaCardStyle" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource BgSurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Padding" Value="20" />
+    </Style>
+
+    <!-- Primary Button Style -->
+    <Style x:Key="AlvoniaPrimaryButtonStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+        <Setter Property="Background" Value="{StaticResource BrandPrimaryBrush}" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="16,8" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <!-- Ghost Button Style -->
+    <Style x:Key="AlvoniaGhostButtonStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="12,6" />
+    </Style>
+
+    <!-- Record Button Style -->
+    <Style x:Key="AlvoniaRecordButtonStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+        <Setter Property="Background" Value="{StaticResource RecordingBrush}" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="20" />
+        <Setter Property="Padding" Value="24,12" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontSize" Value="15" />
+    </Style>
+
+    <!-- Sidebar NavButton Style -->
+    <Style x:Key="AlvoniaSidebarButtonStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource TextTertiaryBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Width" Value="40" />
+        <Setter Property="Height" Value="40" />
+        <Setter Property="Padding" Value="0" />
+    </Style>
+
+    <!-- Whiteboard Tool Button -->
+    <Style x:Key="WbToolButtonStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Width" Value="36" />
+        <Setter Property="Height" Value="36" />
+        <Setter Property="Padding" Value="0" />
+    </Style>
+
+    <!-- Section title text style -->
+    <Style x:Key="SectionTitleStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource TextTertiaryBrush}" />
+        <Setter Property="CharacterSpacing" Value="50" />
+    </Style>
+
+    <!-- Page title -->
+    <Style x:Key="PageTitleStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    </Style>
+
+    <!-- Subtitle -->
+    <Style x:Key="PageSubtitleStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+    </Style>
+
+    <!-- ComboBox dark style override -->
+    <Style x:Key="AlvoniaComboBoxStyle" TargetType="ComboBox" BasedOn="{StaticResource DefaultComboBoxStyle}">
+        <Setter Property="Background" Value="{StaticResource BgElevatedBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderDefaultBrush}" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="8,4" />
+    </Style>
+
+    <!-- ToggleSwitch style -->
+    <Style x:Key="AlvoniaToggleSwitchStyle" TargetType="ToggleSwitch" BasedOn="{StaticResource DefaultToggleSwitchStyle}">
+        <Setter Property="OffContent" Value="" />
+        <Setter Property="OnContent" Value="" />
+    </Style>
+
+</ResourceDictionary>
+

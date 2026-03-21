@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWpf>false</UseWpf>
+    <AssemblyName>RecordIt.Avalonia</AssemblyName>
+    <RootNamespace>RecordIt.Avalonia</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.0.0" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.0.0" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="11.0.0" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RecordIt.Core\RecordIt.Core.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -44,7 +44,7 @@
                                     <TextBlock Text="Choose your preferred color scheme" FontSize="12"
                                                Foreground="{StaticResource TextSecondaryBrush}" />
                                 </StackPanel>
-                                <ComboBox Grid.Column="1"
+                                <ComboBox x:Name="ThemeCombo" Grid.Column="1"
                                           Style="{StaticResource AlvoniaComboBoxStyle}"
                                           Width="140" SelectedIndex="0">
                                     <ComboBoxItem Content="Dark" />
@@ -65,7 +65,7 @@
                                     <TextBlock Text="Interface language" FontSize="12"
                                                Foreground="{StaticResource TextSecondaryBrush}" />
                                 </StackPanel>
-                                <ComboBox Grid.Column="1"
+                                <ComboBox x:Name="LanguageCombo" Grid.Column="1"
                                           Style="{StaticResource AlvoniaComboBoxStyle}"
                                           Width="140" SelectedIndex="0">
                                     <ComboBoxItem Content="English" />
@@ -90,7 +90,7 @@
                                     <TextBlock Text="Default Quality" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
                                     <TextBlock Text="Output video resolution" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
                                 </StackPanel>
-                                <ComboBox Grid.Column="1" Style="{StaticResource AlvoniaComboBoxStyle}" Width="140" SelectedIndex="0">
+                                <ComboBox x:Name="QualityCombo" Grid.Column="1" Style="{StaticResource AlvoniaComboBoxStyle}" Width="140" SelectedIndex="0">
                                     <ComboBoxItem Content="1080p HD"/>
                                     <ComboBoxItem Content="1440p QHD"/>
                                     <ComboBoxItem Content="4K Ultra HD"/>
@@ -104,7 +104,7 @@
                                     <TextBlock Text="Output Format" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
                                     <TextBlock Text="Container format for recordings" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
                                 </StackPanel>
-                                <ComboBox Grid.Column="1" Style="{StaticResource AlvoniaComboBoxStyle}" Width="140" SelectedIndex="0">
+                                <ComboBox x:Name="FormatCombo" Grid.Column="1" Style="{StaticResource AlvoniaComboBoxStyle}" Width="140" SelectedIndex="0">
                                     <ComboBoxItem Content="MP4 (H.264)"/>
                                     <ComboBoxItem Content="WebM (VP9)"/>
                                     <ComboBoxItem Content="MKV"/>
@@ -117,7 +117,7 @@
                                     <TextBlock Text="Show Countdown" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
                                     <TextBlock Text="3-second countdown before recording" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
                                 </StackPanel>
-                                <ToggleSwitch Grid.Column="1" IsOn="True" Style="{StaticResource AlvoniaToggleSwitchStyle}" />
+                                <ToggleSwitch x:Name="CountdownToggle" Grid.Column="1" IsOn="True" Style="{StaticResource AlvoniaToggleSwitchStyle}" />
                             </Grid>
                         </StackPanel>
                     </Border>
@@ -134,7 +134,7 @@
                                     <TextBlock Text="Notifications" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
                                     <TextBlock Text="Show notifications when recording completes" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
                                 </StackPanel>
-                                <ToggleSwitch Grid.Column="1" IsOn="True" Style="{StaticResource AlvoniaToggleSwitchStyle}" />
+                                <ToggleSwitch x:Name="NotificationsToggle" Grid.Column="1" IsOn="True" Style="{StaticResource AlvoniaToggleSwitchStyle}" />
                             </Grid>
                             <Border BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,1,0,0" />
                             <Grid Padding="0,12" Margin="0,0,0,12">
@@ -143,7 +143,7 @@
                                     <TextBlock Text="Hardware Acceleration" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
                                     <TextBlock Text="Use GPU for encoding when available" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
                                 </StackPanel>
-                                <ToggleSwitch Grid.Column="1" IsOn="True" Style="{StaticResource AlvoniaToggleSwitchStyle}" />
+                                <ToggleSwitch x:Name="HardwareAccelToggle" Grid.Column="1" IsOn="True" Style="{StaticResource AlvoniaToggleSwitchStyle}" />
                             </Grid>
                             <Border BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,1,0,0" />
                             <Grid Padding="0,12,0,4">
@@ -152,7 +152,7 @@
                                     <TextBlock Text="Start Minimized" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
                                     <TextBlock Text="Launch RecordIt minimized to system tray" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
                                 </StackPanel>
-                                <ToggleSwitch Grid.Column="1" IsOn="False" Style="{StaticResource AlvoniaToggleSwitchStyle}" />
+                                <ToggleSwitch x:Name="StartMinimizedToggle" Grid.Column="1" IsOn="False" Style="{StaticResource AlvoniaToggleSwitchStyle}" />
                             </Grid>
                         </StackPanel>
                     </Border>

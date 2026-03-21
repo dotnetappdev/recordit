@@ -7,8 +7,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     Title="RecordIt"
-    MinWidth="900"
-    MinHeight="600">
+    >
 
     <Grid Background="{StaticResource BgBaseBrush}">
         <Grid.RowDefinitions>
@@ -155,10 +154,7 @@
                                   Foreground="{StaticResource TextTertiaryBrush}" />
                     </Button>
 
-                    <!-- Spacer -->
-                    <StackPanel.Children>
-                        <!-- Additional spacer element handled in code -->
-                    </StackPanel.Children>
+                    <!-- Spacer (handled in code) -->
                 </StackPanel>
             </Border>
 

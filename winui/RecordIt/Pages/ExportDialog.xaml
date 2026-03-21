@@ -1,0 +1,28 @@
+<ContentDialog
+    x:Class="RecordIt.Pages.ExportDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Export Render"
+    PrimaryButtonText="Start"
+    SecondaryButtonText="Cancel"
+    CloseButtonText="Close">
+
+    <StackPanel Spacing="12" Padding="12">
+        <TextBlock Text="Choose export target and options" FontWeight="SemiBold" />
+
+        <StackPanel Orientation="Horizontal" Spacing="8">
+            <RadioButton x:Name="RbTikTok" Content="TikTok (vertical)" IsChecked="True" />
+            <RadioButton x:Name="RbYouTube" Content="YouTube (16:9)" />
+            <RadioButton x:Name="RbTwitch" Content="Twitch (720p)" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+            <TextBlock Text="Output folder" VerticalAlignment="Center" />
+            <TextBox x:Name="OutputPathBox" Width="360" />
+            <Button x:Name="BrowseBtn" Content="Browse" Click="BrowseBtn_Click" />
+        </StackPanel>
+
+        <ProgressBar x:Name="ProgressBar" IsIndeterminate="True" Height="8" />
+        <TextBlock x:Name="ProgressText" Text="Ready" FontSize="12" Foreground="{StaticResource TextTertiaryBrush}" />
+    </StackPanel>
+</ContentDialog>

@@ -193,17 +193,65 @@
                                     <TextBlock Text="Show webcam in corner" FontSize="12"
                                                Foreground="{StaticResource TextSecondaryBrush}" />
                                 </StackPanel>
-                                <ToggleSwitch x:Name="CameraToggle"
-                                             Grid.Column="1"
-                                             IsOn="False"
-                                             Style="{StaticResource AlvoniaToggleSwitchStyle}" />
+                                <StackPanel Grid.Column="1">
+                                    <ToggleSwitch x:Name="CameraToggle" IsOn="False" Style="{StaticResource AlvoniaToggleSwitchStyle}" />
+                                    <ComboBox x:Name="WebcamDeviceCombo" Style="{StaticResource AlvoniaComboBoxStyle}" Width="200" Margin="0,8,0,0">
+                                        <ComboBoxItem Content="Default" />
+                                    </ComboBox>
+                                </StackPanel>
                             </Grid>
+                            <Grid Padding="0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Spacing="2">
+                                    <TextBlock Text="Microphone Device" FontWeight="Medium" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" />
+                                    <TextBlock Text="Choose microphone / loopback device" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1">
+                                    <ComboBox x:Name="MicDeviceCombo" Style="{StaticResource AlvoniaComboBoxStyle}" Width="200">
+                                        <ComboBoxItem Content="Default" />
+                                    </ComboBox>
+                                    <Button x:Name="ProbeDevicesBtn" Style="{StaticResource AlvoniaGhostButtonStyle}" Click="ProbeDevicesBtn_Click" Margin="0,8,0,0">Probe Devices</Button>
+                                </StackPanel>
+                            </Grid>
+                            <Grid Padding="0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Spacing="2">
+                                    <TextBlock Text="Preview" FontWeight="Medium" FontSize="14" Foreground="{StaticResource TextPrimaryBrush}" />
+                                    <TextBlock Text="Open preview windows for display / webcam (uses ffplay)" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                    <Button x:Name="StartPreviewBtn" Style="{StaticResource AlvoniaGhostButtonStyle}" Click="StartPreviewBtn_Click">Start Preview</Button>
+                                    <Button x:Name="StopPreviewBtn" Style="{StaticResource AlvoniaGhostButtonStyle}" Click="StopPreviewBtn_Click">Stop Preview</Button>
+                                </StackPanel>
+                            </Grid>
+                            <Border BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,1,0,0" />
+                            <StackPanel Padding="8,12,8,0">
+                                <TextBlock Text="Additional Audio Tracks (SFX / Music)" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}" />
+                                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+                                    <Button x:Name="AddAudioTrackBtn" Style="{StaticResource AlvoniaGhostButtonStyle}" Click="AddAudioTrackBtn_Click">Add Track</Button>
+                                    <Button x:Name="ClearAudioTracksBtn" Style="{StaticResource AlvoniaGhostButtonStyle}" Click="ClearAudioTracksBtn_Click">Clear</Button>
+                                </StackPanel>
+                                <ListView x:Name="AudioTracksList" Height="80" Margin="0,8,0,0" />
+                            </StackPanel>
                         </StackPanel>
                     </Border>
                 </Grid>
             </StackPanel>
         </ScrollViewer>
 
+        <!-- Docked Preview (embedded ffplay) -->
+        <Border Grid.Row="1" x:Name="PreviewHost" Width="420" Height="240" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,32,32,0" Background="{StaticResource BgElevatedBrush}" CornerRadius="8">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Text="Preview" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                <TextBlock Text="(docked ffplay)" FontSize="12" Foreground="{StaticResource TextTertiaryBrush}" HorizontalAlignment="Center" />
+            </StackPanel>
+        </Border>
         <!-- Recording Controls Bar -->
         <Border Grid.Row="2"
                 Background="{StaticResource BgSurfaceBrush}"
@@ -253,6 +301,12 @@
 
                 <!-- Right controls -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4">
+                    <Button x:Name="ExportBtn"
+                            Style="{StaticResource AlvoniaGhostButtonStyle}"
+                            Click="ExportBtn_Click"
+                            ToolTipService.ToolTip="Export recording">
+                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7C3;" FontSize="16" />
+                    </Button>
                     <Button x:Name="MicBtn"
                             Style="{StaticResource AlvoniaGhostButtonStyle}"
                             Click="MicBtn_Click"

@@ -144,7 +144,8 @@ public sealed partial class WhiteboardPage : Page
             Stroke = new SolidColorBrush(_currentTool == "eraser" ? Colors.Transparent : _currentColor),
             StrokeThickness = _currentTool == "eraser" ? _brushSize * 4 :
                               _currentTool == "highlighter" ? _brushSize * 4 : _brushSize,
-            StrokeLineCap = PenLineCap.Round,
+            StrokeStartLineCap = PenLineCap.Round,
+            StrokeEndLineCap = PenLineCap.Round,
             Opacity = _currentTool == "highlighter" ? 0.4 : 1.0
         };
         WhiteboardCanvas.Children.Add(line);
@@ -190,7 +191,8 @@ public sealed partial class WhiteboardPage : Page
                     X2 = end.X, Y2 = end.Y,
                     Stroke = stroke,
                     StrokeThickness = _brushSize,
-                    StrokeLineCap = PenLineCap.Round
+                    StrokeStartLineCap = PenLineCap.Round,
+                    StrokeEndLineCap = PenLineCap.Round
                 };
                 shape = line;
                 break;
@@ -228,7 +230,14 @@ public sealed partial class WhiteboardPage : Page
         // Save canvas as PNG using RenderTargetBitmap
         var renderBitmap = new Microsoft.UI.Xaml.Media.Imaging.RenderTargetBitmap();
         await renderBitmap.RenderAsync(WhiteboardCanvas);
-        var pixels = await renderBitmap.GetPixelsAsync();
+        var pixelsBuffer = await renderBitmap.GetPixelsAsync();
+
+        byte[] pixels;
+        using (var reader = Windows.Storage.Streams.DataReader.FromBuffer(pixelsBuffer))
+        {
+            pixels = new byte[pixelsBuffer.Length];
+            reader.ReadBytes(pixels);
+        }
 
         using var stream = await file.OpenAsync(Windows.Storage.FileAccessMode.ReadWrite);
         var encoder = await Windows.Graphics.Imaging.BitmapEncoder.CreateAsync(
@@ -238,7 +247,7 @@ public sealed partial class WhiteboardPage : Page
             Windows.Graphics.Imaging.BitmapAlphaMode.Premultiplied,
             (uint)renderBitmap.PixelWidth,
             (uint)renderBitmap.PixelHeight,
-            96, 96, pixels.ToArray());
+            96, 96, pixels);
         await encoder.FlushAsync();
     }
 

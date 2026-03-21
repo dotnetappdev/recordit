@@ -7,12 +7,14 @@ using System;
 using System.Threading;
 using Windows.Graphics;
 using WinRT.Interop;
+using System.Runtime.InteropServices;
 
 namespace RecordIt;
 
 public sealed partial class MainWindow : Window
 {
-    private AppWindow _appWindow;
+    private AppWindow? _appWindow;
+    private IntPtr _hWnd = IntPtr.Zero;
     private Timer? _recordingTimer;
     private int _recordingSeconds;
     private bool _isDarkTheme = true;
@@ -28,28 +30,48 @@ public sealed partial class MainWindow : Window
 
     private void SetupWindow()
     {
-        var hWnd = WindowNativeInterop.GetWindowHandle(this);
-        var windowId = Win32Interop.GetWindowIdFromWindow(hWnd);
-        _appWindow = AppWindow.GetFromWindowId(windowId);
+        try
+        {
+            _hWnd = WindowNativeInterop.GetWindowHandle(this);
+            if (_hWnd == IntPtr.Zero)
+            {
+                // Couldn't get native handle; skip AppWindow-specific setup.
+                return;
+            }
 
-        // Configure custom title bar
-        _appWindow.TitleBar.ExtendsContentIntoTitleBar = true;
-        _appWindow.TitleBar.ButtonBackgroundColor = Colors.Transparent;
-        _appWindow.TitleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
-        _appWindow.TitleBar.ButtonForegroundColor = Colors.White;
-        _appWindow.TitleBar.ButtonHoverBackgroundColor = Windows.UI.Color.FromArgb(255, 51, 51, 51);
-        _appWindow.TitleBar.ButtonPressedBackgroundColor = Windows.UI.Color.FromArgb(255, 61, 61, 61);
+            var windowId = Win32Interop.GetWindowIdFromWindow(_hWnd);
+            _appWindow = AppWindow.GetFromWindowId(windowId);
 
-        ExtendsContentIntoTitleBar = true;
-        SetTitleBar(TitleBar);
+            if (_appWindow == null)
+            {
+                // AppWindow not available in this environment; bail out gracefully.
+                return;
+            }
 
-        // Set initial size
-        _appWindow.Resize(new SizeInt32(1280, 800));
-        _appWindow.MoveAndResize(new RectInt32(
-            (int)(Microsoft.UI.Windowing.DisplayArea.Primary.WorkArea.Width - 1280) / 2,
-            (int)(Microsoft.UI.Windowing.DisplayArea.Primary.WorkArea.Height - 800) / 2,
-            1280, 800
-        ));
+            // Configure custom title bar
+            _appWindow.TitleBar.ExtendsContentIntoTitleBar = true;
+            _appWindow.TitleBar.ButtonBackgroundColor = Colors.Transparent;
+            _appWindow.TitleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
+            _appWindow.TitleBar.ButtonForegroundColor = Colors.White;
+            _appWindow.TitleBar.ButtonHoverBackgroundColor = Windows.UI.Color.FromArgb(255, 51, 51, 51);
+            _appWindow.TitleBar.ButtonPressedBackgroundColor = Windows.UI.Color.FromArgb(255, 61, 61, 61);
+
+            ExtendsContentIntoTitleBar = true;
+            SetTitleBar(TitleBar);
+
+            // Set initial size
+            _appWindow.Resize(new SizeInt32(1280, 800));
+            _appWindow.MoveAndResize(new RectInt32(
+                (int)(Microsoft.UI.Windowing.DisplayArea.Primary.WorkArea.Width - 1280) / 2,
+                (int)(Microsoft.UI.Windowing.DisplayArea.Primary.WorkArea.Height - 800) / 2,
+                1280, 800
+            ));
+        }
+        catch
+        {
+            // If anything goes wrong while obtaining native window or AppWindow, leave defaults.
+            _appWindow = null;
+        }
     }
 
     public void StartRecordingIndicator()
@@ -138,17 +160,40 @@ public sealed partial class MainWindow : Window
 
     private void MinimizeBtn_Click(object sender, RoutedEventArgs e)
     {
-        _appWindow.Presenter.SetPresenter(AppWindowPresenterKind.Default);
-        ((OverlappedPresenter)_appWindow.Presenter).Minimize();
+        if (_appWindow != null)
+        {
+            _appWindow.Presenter.SetPresenter(AppWindowPresenterKind.Default);
+            ((OverlappedPresenter)_appWindow.Presenter).Minimize();
+            return;
+        }
+
+        // Fallback: use Win32 ShowWindow if we have a valid HWND
+        if (_hWnd != IntPtr.Zero)
+        {
+            NativeMethods.ShowWindow(_hWnd, NativeMethods.SW_MINIMIZE);
+        }
     }
 
     private void MaximizeBtn_Click(object sender, RoutedEventArgs e)
     {
-        var presenter = (OverlappedPresenter)_appWindow.Presenter;
-        if (presenter.State == OverlappedPresenterState.Maximized)
-            presenter.Restore();
-        else
-            presenter.Maximize();
+        if (_appWindow != null)
+        {
+            var presenter = (OverlappedPresenter)_appWindow.Presenter;
+            if (presenter.State == OverlappedPresenterState.Maximized)
+                presenter.Restore();
+            else
+                presenter.Maximize();
+            return;
+        }
+
+        if (_hWnd != IntPtr.Zero)
+        {
+            // Toggle maximize/restore using Win32
+            if (NativeMethods.IsZoomed(_hWnd))
+                NativeMethods.ShowWindow(_hWnd, NativeMethods.SW_RESTORE);
+            else
+                NativeMethods.ShowWindow(_hWnd, NativeMethods.SW_MAXIMIZE);
+        }
     }
 
     private void CloseBtn_Click(object sender, RoutedEventArgs e)

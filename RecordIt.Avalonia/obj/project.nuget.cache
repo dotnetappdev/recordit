@@ -1,0 +1,60 @@
+{
+  "version": 2,
+  "dgSpecHash": "1wRimJ9LpVo=",
+  "success": true,
+  "projectFilePath": "D:\\sasproducts\\recordit\\RecordIt.Avalonia\\RecordIt.Avalonia.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\David\\.nuget\\packages\\avalonia\\11.0.0\\avalonia.11.0.0.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\avalonia.angle.windows.natives\\2.1.0.2023020321\\avalonia.angle.windows.natives.2.1.0.2023020321.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\avalonia.buildservices\\0.0.28\\avalonia.buildservices.0.0.28.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\avalonia.desktop\\11.0.0\\avalonia.desktop.11.0.0.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\avalonia.freedesktop\\11.0.0\\avalonia.freedesktop.11.0.0.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\avalonia.native\\11.0.0\\avalonia.native.11.0.0.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\avalonia.reactiveui\\11.0.0\\avalonia.reactiveui.11.0.0.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\avalonia.remote.protocol\\11.0.0\\avalonia.remote.protocol.11.0.0.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\avalonia.skia\\11.0.0\\avalonia.skia.11.0.0.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\avalonia.themes.fluent\\11.0.0\\avalonia.themes.fluent.11.0.0.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\avalonia.win32\\11.0.0\\avalonia.win32.11.0.0.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\avalonia.x11\\11.0.0\\avalonia.x11.11.0.0.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\dynamicdata\\7.9.5\\dynamicdata.7.9.5.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\harfbuzzsharp\\2.8.2.3\\harfbuzzsharp.2.8.2.3.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\harfbuzzsharp.nativeassets.linux\\2.8.2.3\\harfbuzzsharp.nativeassets.linux.2.8.2.3.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\harfbuzzsharp.nativeassets.macos\\2.8.2.3\\harfbuzzsharp.nativeassets.macos.2.8.2.3.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\harfbuzzsharp.nativeassets.webassembly\\2.8.2.3\\harfbuzzsharp.nativeassets.webassembly.2.8.2.3.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\harfbuzzsharp.nativeassets.win32\\2.8.2.3\\harfbuzzsharp.nativeassets.win32.2.8.2.3.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\microcom.runtime\\0.11.0\\microcom.runtime.0.11.0.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\microsoft.data.sqlite\\8.0.0\\microsoft.data.sqlite.8.0.0.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\microsoft.data.sqlite.core\\8.0.0\\microsoft.data.sqlite.core.8.0.0.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\microsoft.win32.systemevents\\6.0.0\\microsoft.win32.systemevents.6.0.0.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\reactiveui\\18.3.1\\reactiveui.18.3.1.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\skiasharp\\2.88.3\\skiasharp.2.88.3.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\skiasharp.nativeassets.linux\\2.88.3\\skiasharp.nativeassets.linux.2.88.3.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\skiasharp.nativeassets.macos\\2.88.3\\skiasharp.nativeassets.macos.2.88.3.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\skiasharp.nativeassets.webassembly\\2.88.3\\skiasharp.nativeassets.webassembly.2.88.3.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\skiasharp.nativeassets.win32\\2.88.3\\skiasharp.nativeassets.win32.2.88.3.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\splat\\14.4.1\\splat.14.4.1.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\sqlitepclraw.bundle_e_sqlite3\\2.1.6\\sqlitepclraw.bundle_e_sqlite3.2.1.6.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\sqlitepclraw.core\\2.1.6\\sqlitepclraw.core.2.1.6.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\sqlitepclraw.lib.e_sqlite3\\2.1.6\\sqlitepclraw.lib.e_sqlite3.2.1.6.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\sqlitepclraw.provider.e_sqlite3\\2.1.6\\sqlitepclraw.provider.e_sqlite3.2.1.6.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\system.componentmodel.annotations\\4.5.0\\system.componentmodel.annotations.4.5.0.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\system.drawing.common\\6.0.0\\system.drawing.common.6.0.0.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\system.reactive\\5.0.0\\system.reactive.5.0.0.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\tmds.dbus.protocol\\0.15.0\\tmds.dbus.protocol.0.15.0.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\microsoft.windows.sdk.net.ref\\10.0.19041.57\\microsoft.windows.sdk.net.ref.10.0.19041.57.nupkg.sha512"
+  ],
+  "logs": [
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "message": "Package 'SkiaSharp' 2.88.3 has a known high severity vulnerability, https://github.com/advisories/GHSA-j7hp-h8jx-5ppr",
+      "projectPath": "D:\\sasproducts\\recordit\\RecordIt.Avalonia\\RecordIt.Avalonia.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\sasproducts\\recordit\\RecordIt.Avalonia\\RecordIt.Avalonia.csproj",
+      "libraryId": "SkiaSharp",
+      "targetGraphs": [
+        "net10.0-windows10.0.19041.0"
+      ]
+    }
+  ]
+}
