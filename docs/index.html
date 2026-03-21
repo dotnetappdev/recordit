@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="RecordIt - Professional Screen Recording & Whiteboard App built with Alvonia UI" />
+  <title>RecordIt – Screen Recording & Whiteboard · Alvonia UI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <div class="nav-logo-icon">R</div>
+        <span>RecordIt</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html" class="active">Home</a></li>
+        <li><a href="features.html">Features</a></li>
+        <li><a href="installation.html">Install</a></li>
+        <li><a href="docs.html">Docs</a></li>
+        <li>
+          <a href="https://github.com/dotnetappdev/recordit" class="btn btn-outline" target="_blank">
+            GitHub
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-badge">Alvonia UI · WinUI 3 · Electron</div>
+    <h1 class="hero-title">
+      Record. Draw. <span class="gradient-text">Collaborate.</span>
+    </h1>
+    <p class="hero-subtitle">
+      RecordIt combines professional screen recording with a powerful MS Teams-style
+      whiteboard — available as a native Windows app and cross-platform desktop client.
+    </p>
+    <div class="hero-actions">
+      <a href="installation.html#windows" class="btn btn-primary btn-lg">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-13.051-1.8"/>
+        </svg>
+        Download for Windows
+      </a>
+      <a href="features.html" class="btn btn-outline btn-lg">View Features →</a>
+    </div>
+    <div class="hero-meta">
+      <span>Free & Open Source</span>
+      <span>·</span>
+      <span>Windows 10/11</span>
+      <span>·</span>
+      <span>macOS & Linux via Electron</span>
+    </div>
+
+    <!-- App Screenshot Mockup -->
+    <div class="hero-screenshot">
+      <div class="screenshot-browser">
+        <div class="screenshot-titlebar">
+          <div class="screenshot-logo">
+            <div class="screenshot-logo-icon">R</div>
+            <span>RecordIt</span>
+          </div>
+          <div class="screenshot-controls">
+            <div class="ctrl-btn ctrl-min"></div>
+            <div class="ctrl-btn ctrl-max"></div>
+            <div class="ctrl-btn ctrl-close"></div>
+          </div>
+        </div>
+        <div class="screenshot-body">
+          <div class="screenshot-sidebar">
+            <div class="ss-nav-item active">&#x1F4F9;</div>
+            <div class="ss-nav-item">&#x270F;&#xFE0F;</div>
+            <div class="ss-nav-item">&#x1F4C1;</div>
+            <div class="ss-spacer"></div>
+            <div class="ss-nav-item">&#x2699;&#xFE0F;</div>
+          </div>
+          <div class="screenshot-content">
+            <div class="ss-page-header">
+              <div>
+                <div class="ss-title">Screen Recorder</div>
+                <div class="ss-subtitle">Capture your screen, window, or application</div>
+              </div>
+            </div>
+            <div class="ss-sources">
+              <div class="ss-source selected">
+                <div class="ss-source-thumb">🖥️</div>
+                <div class="ss-source-name">Entire Screen</div>
+              </div>
+              <div class="ss-source">
+                <div class="ss-source-thumb">🪟</div>
+                <div class="ss-source-name">App Window</div>
+              </div>
+              <div class="ss-source">
+                <div class="ss-source-thumb">📺</div>
+                <div class="ss-source-name">Display 2</div>
+              </div>
+            </div>
+            <div class="ss-controls">
+              <button class="ss-record-btn">⏺ Start Recording</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Grid -->
+  <section class="section features-section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-badge">Features</div>
+        <h2 class="section-title">Everything you need to record and collaborate</h2>
+        <p class="section-subtitle">Built with Alvonia UI — identical experience on Windows native and Electron</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon" style="background: rgba(99,102,241,0.15); color: #6366f1">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4" fill="currentColor"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">HD Screen Recording</h3>
+          <p class="feature-desc">Capture at up to 4K resolution with 60fps. Record screen, window, or specific app regions with hardware acceleration.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background: rgba(139,92,246,0.15); color: #8b5cf6">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">Teams-Style Whiteboard</h3>
+          <p class="feature-desc">Collaborative whiteboard with pen, shapes, text, sticky notes, and real-time participant cursors — just like MS Teams.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background: rgba(6,182,212,0.15); color: #06b6d4">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">Dual App Parity</h3>
+          <p class="feature-desc">100% identical UI and features between the WinUI 3 Windows app and the Electron cross-platform app — Alvonia UI everywhere.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background: rgba(34,197,94,0.15); color: #22c55e">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">MSIX Installer</h3>
+          <p class="feature-desc">Clean Windows installation via MSIX package. Microsoft Store-ready with auto-updates, system tray, and startup integration.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background: rgba(239,68,68,0.15); color: #ef4444">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2a3 3 0 013 3v7a3 3 0 01-6 0V5a3 3 0 013-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">Audio & Camera</h3>
+          <p class="feature-desc">Record with microphone audio, system sounds, and webcam overlay. Fine-grained audio mixing controls.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">Recording Library</h3>
+          <p class="feature-desc">Browse, preview, and manage all your recordings. Search, filter, and organize video and whiteboard content in one place.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Apps Comparison -->
+  <section class="section apps-section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-badge">Two Apps, One UI</div>
+        <h2 class="section-title">Same Alvonia UI. Different platforms.</h2>
+      </div>
+      <div class="apps-grid">
+        <div class="app-card">
+          <div class="app-platform">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="#6366f1">
+              <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-13.051-1.8"/>
+            </svg>
+            Windows Native
+          </div>
+          <h3 class="app-name">RecordIt WinUI</h3>
+          <p class="app-desc">Built with WinUI 3 and Windows App SDK. Native Windows performance, Fluent Design, MSIX installer, and Microsoft Store-ready.</p>
+          <ul class="app-features">
+            <li>✓ WinUI 3 (Windows App SDK)</li>
+            <li>✓ Windows 10/11 native</li>
+            <li>✓ MSIX installer</li>
+            <li>✓ Hardware-accelerated recording</li>
+            <li>✓ Windows Graphics Capture API</li>
+            <li>✓ System tray integration</li>
+          </ul>
+          <a href="installation.html#winui" class="btn btn-primary">Download WinUI App</a>
+        </div>
+        <div class="app-card">
+          <div class="app-platform" style="color: #06b6d4">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="#06b6d4">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+            Cross-Platform
+          </div>
+          <h3 class="app-name">RecordIt Alvonia</h3>
+          <p class="app-desc">Built with Electron + React. Identical Alvonia UI design system — same experience on Windows, macOS, and Linux.</p>
+          <ul class="app-features">
+            <li>✓ Electron + React + TypeScript</li>
+            <li>✓ Windows, macOS, Linux</li>
+            <li>✓ NSIS + AppImage installers</li>
+            <li>✓ Web-standard recording APIs</li>
+            <li>✓ Same UI as WinUI app</li>
+            <li>✓ System tray integration</li>
+          </ul>
+          <a href="installation.html#electron" class="btn btn-outline">Download Electron App</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Screenshots -->
+  <section class="section screenshots-section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-badge">Screenshots</div>
+        <h2 class="section-title">See RecordIt in action</h2>
+      </div>
+      <div class="screenshots-grid">
+        <div class="screenshot-card large">
+          <div class="ss-label">Screen Recorder</div>
+          <div class="ss-mockup recorder-mockup">
+            <div class="mock-toolbar">
+              <div class="mock-logo-sm">R</div>
+              <span>RecordIt</span>
+              <div style="margin-left:auto; display:flex; gap:4px;">
+                <div class="mock-dot"></div>
+                <div class="mock-dot"></div>
+                <div class="mock-dot red"></div>
+              </div>
+            </div>
+            <div class="mock-body">
+              <div class="mock-sidebar-sm">
+                <div class="mock-sb-item active"></div>
+                <div class="mock-sb-item"></div>
+                <div class="mock-sb-item"></div>
+              </div>
+              <div class="mock-content">
+                <div class="mock-section-title">Screen Recorder</div>
+                <div class="mock-sources">
+                  <div class="mock-source sel">🖥️<br/><small>Screen 1</small></div>
+                  <div class="mock-source">🪟<br/><small>Window</small></div>
+                  <div class="mock-source">📺<br/><small>Screen 2</small></div>
+                </div>
+                <div class="mock-rec-btn">⏺ Start Recording</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="screenshot-card">
+          <div class="ss-label">Whiteboard</div>
+          <div class="ss-mockup whiteboard-mockup">
+            <div class="mock-toolbar">
+              <div class="mock-tool-group">
+                <div class="mock-tool active">✏️</div>
+                <div class="mock-tool">📐</div>
+                <div class="mock-tool">⬜</div>
+              </div>
+              <div class="mock-colors">
+                <div style="background:#6366f1; width:14px; height:14px; border-radius:3px;"></div>
+                <div style="background:#ef4444; width:14px; height:14px; border-radius:3px;"></div>
+                <div style="background:#22c55e; width:14px; height:14px; border-radius:3px;"></div>
+              </div>
+            </div>
+            <div class="mock-canvas">
+              <svg viewBox="0 0 200 120" width="100%" height="100%">
+                <path d="M20,80 Q60,20 100,60 Q140,100 180,40" fill="none" stroke="#6366f1" stroke-width="3" stroke-linecap="round"/>
+                <rect x="40" y="50" width="50" height="35" fill="none" stroke="#ef4444" stroke-width="2"/>
+                <text x="15" y="15" fill="#f5f5f5" font-size="10" font-family="Inter">Architecture Plan</text>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="screenshot-card">
+          <div class="ss-label">Library</div>
+          <div class="ss-mockup library-mockup">
+            <div class="mock-header">
+              <div class="mock-section-title-sm">Library</div>
+              <div class="mock-search">🔍 Search...</div>
+            </div>
+            <div class="mock-lib-grid">
+              <div class="mock-lib-item">
+                <div class="mock-lib-thumb">▶️</div>
+                <div class="mock-lib-info">
+                  <div class="mock-lib-name">Product Demo</div>
+                  <div class="mock-lib-meta">5:32 · 124 MB</div>
+                </div>
+              </div>
+              <div class="mock-lib-item">
+                <div class="mock-lib-thumb">🎨</div>
+                <div class="mock-lib-info">
+                  <div class="mock-lib-name">Architecture Board</div>
+                  <div class="mock-lib-meta">2.1 MB</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="section cta-section">
+    <div class="container">
+      <div class="cta-box">
+        <h2 class="cta-title">Ready to start recording?</h2>
+        <p class="cta-subtitle">Download RecordIt for free. No account required.</p>
+        <div class="cta-actions">
+          <a href="installation.html#windows" class="btn btn-primary btn-lg">
+            Download for Windows
+          </a>
+          <a href="https://github.com/dotnetappdev/recordit" class="btn btn-outline btn-lg" target="_blank">
+            View on GitHub
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <div class="nav-logo">
+            <div class="nav-logo-icon">R</div>
+            <span>RecordIt</span>
+          </div>
+          <p class="footer-desc">Professional screen recording and whiteboard app powered by Alvonia UI.</p>
+        </div>
+        <div class="footer-links">
+          <div class="footer-col">
+            <h4>Product</h4>
+            <a href="features.html">Features</a>
+            <a href="installation.html">Download</a>
+            <a href="docs.html">Documentation</a>
+          </div>
+          <div class="footer-col">
+            <h4>Platforms</h4>
+            <a href="installation.html#winui">Windows (WinUI 3)</a>
+            <a href="installation.html#electron">Cross-Platform</a>
+            <a href="installation.html#msix">MSIX Package</a>
+          </div>
+          <div class="footer-col">
+            <h4>Resources</h4>
+            <a href="https://github.com/dotnetappdev/recordit" target="_blank">GitHub</a>
+            <a href="docs.html#api">API Reference</a>
+            <a href="docs.html#changelog">Changelog</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2024 Alvonia. Built with ❤️ using Alvonia UI, WinUI 3, and Electron.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

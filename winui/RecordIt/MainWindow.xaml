@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="RecordIt.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="RecordIt"
+    MinWidth="900"
+    MinHeight="600">
+
+    <Grid Background="{StaticResource BgBaseBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Custom Title Bar -->
+        <Grid x:Name="TitleBar"
+              Grid.Row="0"
+              Height="40"
+              Background="{StaticResource BgSurfaceBrush}"
+              BorderBrush="{StaticResource BorderDefaultBrush}"
+              BorderThickness="0,0,0,1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Logo + App Name -->
+            <StackPanel Grid.Column="0"
+                        Orientation="Horizontal"
+                        Spacing="8"
+                        Margin="12,0,0,0"
+                        VerticalAlignment="Center">
+                <Border Width="24" Height="24"
+                        Background="{StaticResource BrandPrimaryBrush}"
+                        CornerRadius="4">
+                    <TextBlock Text="R" Foreground="White" FontWeight="Bold"
+                               FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+                <TextBlock Text="RecordIt"
+                           Foreground="{StaticResource TextPrimaryBrush}"
+                           FontWeight="SemiBold"
+                           FontSize="15"
+                           VerticalAlignment="Center" />
+            </StackPanel>
+
+            <!-- Recording Indicator (center) -->
+            <StackPanel x:Name="RecordingIndicator"
+                        Grid.Column="1"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="8"
+                        Visibility="Collapsed">
+                <Ellipse x:Name="RecordingDot"
+                         Width="8" Height="8"
+                         Fill="{StaticResource RecordingBrush}" />
+                <TextBlock x:Name="RecordingTimeText"
+                           Text="00:00"
+                           Foreground="{StaticResource RecordingBrush}"
+                           FontWeight="SemiBold"
+                           FontSize="13"
+                           FontFamily="Cascadia Code, Consolas" />
+                <Border Background="#1AEF4444"
+                        BorderBrush="#4DEF4444"
+                        BorderThickness="1"
+                        CornerRadius="10"
+                        Padding="6,2">
+                    <TextBlock Text="REC"
+                               Foreground="{StaticResource RecordingBrush}"
+                               FontWeight="ExtraBold"
+                               FontSize="10" />
+                </Border>
+            </StackPanel>
+
+            <!-- Title bar right controls -->
+            <StackPanel Grid.Column="2"
+                        Orientation="Horizontal"
+                        Spacing="2"
+                        Margin="0,0,8,0"
+                        VerticalAlignment="Center">
+                <Button x:Name="ThemeToggleBtn"
+                        Style="{StaticResource AlvoniaGhostButtonStyle}"
+                        Width="32" Height="28"
+                        Padding="0"
+                        Click="ThemeToggleBtn_Click"
+                        ToolTipService.ToolTip="Toggle Theme">
+                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE793;" FontSize="14"
+                              Foreground="{StaticResource TextSecondaryBrush}" />
+                </Button>
+                <Button x:Name="MinimizeBtn"
+                        Style="{StaticResource AlvoniaGhostButtonStyle}"
+                        Width="32" Height="28"
+                        Padding="0"
+                        Click="MinimizeBtn_Click">
+                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE921;" FontSize="12"
+                              Foreground="{StaticResource TextSecondaryBrush}" />
+                </Button>
+                <Button x:Name="MaximizeBtn"
+                        Style="{StaticResource AlvoniaGhostButtonStyle}"
+                        Width="32" Height="28"
+                        Padding="0"
+                        Click="MaximizeBtn_Click">
+                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE922;" FontSize="12"
+                              Foreground="{StaticResource TextSecondaryBrush}" />
+                </Button>
+                <Button x:Name="CloseBtn"
+                        Style="{StaticResource AlvoniaGhostButtonStyle}"
+                        Width="32" Height="28"
+                        Padding="0"
+                        Click="CloseBtn_Click">
+                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8BB;" FontSize="12"
+                              Foreground="{StaticResource TextSecondaryBrush}" />
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- Main Body -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="56" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Sidebar -->
+            <Border Grid.Column="0"
+                    Background="{StaticResource BgSurfaceBrush}"
+                    BorderBrush="{StaticResource BorderDefaultBrush}"
+                    BorderThickness="0,0,1,0">
+                <StackPanel Spacing="2" Margin="8,8,8,8">
+                    <!-- Nav Items -->
+                    <Button x:Name="RecordNavBtn"
+                            Style="{StaticResource AlvoniaSidebarButtonStyle}"
+                            Click="NavigateToRecord"
+                            ToolTipService.ToolTip="Record">
+                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xEA69;" FontSize="18"
+                                  Foreground="{StaticResource BrandPrimaryBrush}" />
+                    </Button>
+                    <Button x:Name="WhiteboardNavBtn"
+                            Style="{StaticResource AlvoniaSidebarButtonStyle}"
+                            Click="NavigateToWhiteboard"
+                            ToolTipService.ToolTip="Whiteboard">
+                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xED63;" FontSize="18"
+                                  Foreground="{StaticResource TextTertiaryBrush}" />
+                    </Button>
+                    <Button x:Name="LibraryNavBtn"
+                            Style="{StaticResource AlvoniaSidebarButtonStyle}"
+                            Click="NavigateToLibrary"
+                            ToolTipService.ToolTip="Library">
+                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8B7;" FontSize="18"
+                                  Foreground="{StaticResource TextTertiaryBrush}" />
+                    </Button>
+
+                    <!-- Spacer -->
+                    <StackPanel.Children>
+                        <!-- Additional spacer element handled in code -->
+                    </StackPanel.Children>
+                </StackPanel>
+            </Border>
+
+            <!-- Content Frame -->
+            <Frame x:Name="ContentFrame"
+                   Grid.Column="1"
+                   Background="{StaticResource BgBaseBrush}"
+                   IsNavigationStackEnabled="True" />
+
+            <!-- Settings button at bottom of sidebar (overlaid) -->
+            <Button x:Name="SettingsNavBtn"
+                    Grid.Column="0"
+                    Style="{StaticResource AlvoniaSidebarButtonStyle}"
+                    VerticalAlignment="Bottom"
+                    Margin="8,0,8,8"
+                    Click="NavigateToSettings"
+                    ToolTipService.ToolTip="Settings">
+                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE713;" FontSize="18"
+                          Foreground="{StaticResource TextTertiaryBrush}" />
+            </Button>
+        </Grid>
+    </Grid>
+</Window>

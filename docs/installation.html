@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Installation – RecordIt</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <div class="nav-logo-icon">R</div>
+        <span>RecordIt</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="features.html">Features</a></li>
+        <li><a href="installation.html" class="active">Install</a></li>
+        <li><a href="docs.html">Docs</a></li>
+        <li><a href="https://github.com/dotnetappdev/recordit" class="btn btn-outline" target="_blank">GitHub</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div style="padding-top: 80px;">
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-badge">Download & Install</div>
+          <h1 class="section-title">Get RecordIt</h1>
+          <p class="section-subtitle">Choose the version that's right for your platform</p>
+        </div>
+
+        <!-- Requirements -->
+        <div class="feature-card" style="margin-bottom: 40px; max-width: 600px; margin-left: auto; margin-right: auto;">
+          <h3 class="feature-title">System Requirements</h3>
+          <ul style="list-style: none; margin-top: 12px; display: flex; flex-direction: column; gap: 6px;">
+            <li style="font-size: 14px; color: var(--text-2);">🖥️ <strong>OS:</strong> Windows 10 (1903+) or Windows 11</li>
+            <li style="font-size: 14px; color: var(--text-2);">💾 <strong>RAM:</strong> 4 GB minimum, 8 GB recommended</li>
+            <li style="font-size: 14px; color: var(--text-2);">🎮 <strong>GPU:</strong> DirectX 11 compatible (for hardware acceleration)</li>
+            <li style="font-size: 14px; color: var(--text-2);">💿 <strong>Storage:</strong> 200 MB for app + space for recordings</li>
+            <li style="font-size: 14px; color: var(--text-2);">🔷 <strong>Runtime:</strong> .NET 8 (for WinUI app) · Electron bundles Node.js</li>
+          </ul>
+        </div>
+
+        <!-- WinUI -->
+        <div id="winui" style="margin-bottom: 60px;">
+          <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+            <span class="tag tag-win">WinUI 3</span>
+            Windows Native App (MSIX)
+          </h2>
+          <div class="install-grid">
+            <div class="install-card">
+              <h3>MSIX Package <span class="tag tag-new" style="margin-left: 6px;">Recommended</span></h3>
+              <p>Native Windows installer via MSIX. Clean installation, auto-updates, and Microsoft Store integration. Best performance.</p>
+              <a href="https://github.com/dotnetappdev/recordit/releases/latest/download/RecordIt.msix"
+                 class="btn btn-primary">
+                ⬇ Download MSIX (x64)
+              </a>
+              <div class="code-block" style="margin-top: 16px;">
+# Install via winget
+winget install Alvonia.RecordIt</div>
+            </div>
+            <div class="install-card">
+              <h3>Build from Source</h3>
+              <p>Build the WinUI 3 app yourself using Visual Studio 2022 with the Windows App SDK workload.</p>
+              <div class="code-block">
+git clone https://github.com/dotnetappdev/recordit
+cd recordit/winui
+# Open RecordIt.sln in Visual Studio 2022
+# Build → RecordIt.Package (x64)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Electron -->
+        <div id="electron" style="margin-bottom: 60px;">
+          <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+            <span class="tag tag-cross">Cross-Platform</span>
+            Electron App (Alvonia UI)
+          </h2>
+          <div class="install-grid">
+            <div class="install-card">
+              <h3>Windows (NSIS / AppX)</h3>
+              <p>Installer for Windows via NSIS (.exe) or AppX (.appx). Includes auto-updater.</p>
+              <a href="https://github.com/dotnetappdev/recordit/releases/latest/download/RecordIt-Setup-1.0.0.exe"
+                 class="btn btn-primary" style="margin-bottom: 8px; width: 100%;">
+                ⬇ Download for Windows (.exe)
+              </a>
+              <a href="https://github.com/dotnetappdev/recordit/releases/latest/download/RecordIt-1.0.0.appx"
+                 class="btn btn-outline" style="width: 100%;">
+                ⬇ AppX Package
+              </a>
+            </div>
+            <div class="install-card">
+              <h3>macOS (DMG)</h3>
+              <p>Universal binary for macOS. Compatible with Apple Silicon (M1/M2) and Intel Macs.</p>
+              <a href="https://github.com/dotnetappdev/recordit/releases/latest/download/RecordIt-1.0.0.dmg"
+                 class="btn btn-outline" style="width: 100%;">
+                ⬇ Download for macOS
+              </a>
+            </div>
+            <div class="install-card">
+              <h3>Linux (AppImage)</h3>
+              <p>Portable AppImage that runs on any Linux distribution. No installation required.</p>
+              <a href="https://github.com/dotnetappdev/recordit/releases/latest/download/RecordIt-1.0.0.AppImage"
+                 class="btn btn-outline" style="width: 100%;">
+                ⬇ Download AppImage
+              </a>
+              <div class="code-block">
+chmod +x RecordIt-1.0.0.AppImage
+./RecordIt-1.0.0.AppImage</div>
+            </div>
+            <div class="install-card">
+              <h3>Build from Source</h3>
+              <p>Build the Electron app yourself. Requires Node.js 18+ and npm.</p>
+              <div class="code-block">
+git clone https://github.com/dotnetappdev/recordit
+cd recordit/alvonia-ui
+npm install
+npm run electron:dev    # Development
+npm run electron:build  # Production build</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MSIX details -->
+        <div id="msix" style="margin-bottom: 60px;">
+          <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 20px;">MSIX Installation Details</h2>
+          <div class="feature-card">
+            <h3 class="feature-title" style="margin-bottom: 16px;">Installing the MSIX Package</h3>
+            <ol style="padding-left: 20px; display: flex; flex-direction: column; gap: 10px;">
+              <li style="font-size: 14px; color: var(--text-2);">Download <code style="background: var(--bg-4); padding: 1px 6px; border-radius: 4px; font-family: monospace;">RecordIt.msix</code> from the releases page</li>
+              <li style="font-size: 14px; color: var(--text-2);">Double-click the file to open the Windows App Installer</li>
+              <li style="font-size: 14px; color: var(--text-2);">Click <strong>"Install"</strong> (you may need to trust the certificate first)</li>
+              <li style="font-size: 14px; color: var(--text-2);">RecordIt will appear in your Start Menu and taskbar</li>
+            </ol>
+
+            <h3 class="feature-title" style="margin-top: 24px; margin-bottom: 16px;">Trusting the Certificate (Dev Builds)</h3>
+            <p style="font-size: 14px; color: var(--text-2); margin-bottom: 12px;">For development/unsigned builds, you'll need to trust the certificate:</p>
+            <div class="code-block">
+# PowerShell (as Administrator)
+$cert = Get-PfxCertificate -FilePath RecordIt.Package_TemporaryKey.pfx
+Import-Certificate -CertStoreLocation Cert:\LocalMachine\Root -Cert $cert</div>
+
+            <h3 class="feature-title" style="margin-top: 24px; margin-bottom: 12px;">Required Capabilities</h3>
+            <ul style="list-style: none; display: flex; flex-direction: column; gap: 6px;">
+              <li style="font-size: 14px; color: var(--text-2);">🎙️ <strong>Microphone</strong> — For audio recording</li>
+              <li style="font-size: 14px; color: var(--text-2);">📹 <strong>Webcam</strong> — For camera overlay</li>
+              <li style="font-size: 14px; color: var(--text-2);">🖥️ <strong>Graphics Capture</strong> — For screen recording</li>
+              <li style="font-size: 14px; color: var(--text-2);">🌐 <strong>Internet Client</strong> — For future cloud features</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>© 2024 Alvonia · <a href="index.html">RecordIt</a> · Built with Alvonia UI, WinUI 3, and Electron</p>
+      </div>
+    </div>
+  </footer>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

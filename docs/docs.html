@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Documentation – RecordIt</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <div class="nav-logo-icon">R</div>
+        <span>RecordIt</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="features.html">Features</a></li>
+        <li><a href="installation.html">Install</a></li>
+        <li><a href="docs.html" class="active">Docs</a></li>
+        <li><a href="https://github.com/dotnetappdev/recordit" class="btn btn-outline" target="_blank">GitHub</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="docs-layout">
+    <!-- Sidebar -->
+    <aside class="docs-sidebar">
+      <div class="docs-nav-group">
+        <div class="docs-nav-group-title">Getting Started</div>
+        <a href="#intro" class="docs-nav-link active">Introduction</a>
+        <a href="#quickstart" class="docs-nav-link">Quick Start</a>
+        <a href="#architecture" class="docs-nav-link">Architecture</a>
+      </div>
+      <div class="docs-nav-group">
+        <div class="docs-nav-group-title">Features</div>
+        <a href="#recording" class="docs-nav-link">Screen Recording</a>
+        <a href="#whiteboard" class="docs-nav-link">Whiteboard</a>
+        <a href="#library" class="docs-nav-link">Library</a>
+        <a href="#settings" class="docs-nav-link">Settings</a>
+      </div>
+      <div class="docs-nav-group">
+        <div class="docs-nav-group-title">Development</div>
+        <a href="#alvonia-ui" class="docs-nav-link">Alvonia UI System</a>
+        <a href="#winui" class="docs-nav-link">WinUI 3 App</a>
+        <a href="#electron" class="docs-nav-link">Electron App</a>
+        <a href="#msix" class="docs-nav-link">MSIX Packaging</a>
+      </div>
+      <div class="docs-nav-group">
+        <div class="docs-nav-group-title">Reference</div>
+        <a href="#shortcuts" class="docs-nav-link">Keyboard Shortcuts</a>
+        <a href="#changelog" class="docs-nav-link">Changelog</a>
+        <a href="#contributing" class="docs-nav-link">Contributing</a>
+      </div>
+    </aside>
+
+    <!-- Content -->
+    <main class="docs-content">
+      <div id="intro">
+        <h1 class="docs-h1">RecordIt Documentation</h1>
+        <p class="docs-subtitle">Professional screen recording and whiteboard for Windows and beyond</p>
+
+        <p class="docs-p">RecordIt is a full-featured screen recorder and collaborative whiteboard application.
+          It ships as two apps with an <strong>identical Alvonia UI</strong> design system:</p>
+        <ul class="docs-ul">
+          <li><strong>RecordIt WinUI</strong> — Native Windows app built with WinUI 3 and Windows App SDK</li>
+          <li><strong>RecordIt Alvonia</strong> — Cross-platform Electron + React app for Windows, macOS, and Linux</li>
+        </ul>
+      </div>
+
+      <div id="quickstart">
+        <h2 class="docs-h2">Quick Start</h2>
+        <p class="docs-p">The fastest way to get started:</p>
+        <div class="code-block">
+# Clone the repository
+git clone https://github.com/dotnetappdev/recordit.git
+cd recordit
+
+# Install Electron app dependencies
+cd alvonia-ui
+npm install
+
+# Start in development mode
+npm run electron:dev</div>
+        <p class="docs-p">Or for the WinUI 3 app, open <code style="background: var(--bg-4); padding: 1px 6px; border-radius: 4px; font-family: monospace;">winui/RecordIt.sln</code> in Visual Studio 2022 and build the solution.</p>
+      </div>
+
+      <div id="architecture">
+        <h2 class="docs-h2">Architecture Overview</h2>
+        <p class="docs-p">The repository is organized into three main areas:</p>
+        <div class="code-block">
+recordit/
+├── alvonia-ui/          # Electron + React app (cross-platform)
+│   ├── electron/        # Main process + preload scripts
+│   ├── src/             # React UI (TypeScript)
+│   │   ├── components/  # Page and UI components
+│   │   └── styles/      # Alvonia UI CSS design system
+│   └── package.json
+├── winui/               # WinUI 3 C# app (Windows-native)
+│   ├── RecordIt/        # Main WinUI 3 project
+│   │   ├── Pages/       # XAML pages (Record, Whiteboard, Library, Settings)
+│   │   ├── Services/    # Screen recording service
+│   │   └── Styles/      # AlvoniaTheme.xaml (XAML design system)
+│   └── RecordIt.Package/ # MSIX packaging project
+└── docs/                # GitHub Pages static documentation site</div>
+      </div>
+
+      <div id="recording">
+        <h2 class="docs-h2">Screen Recording</h2>
+        <p class="docs-p">RecordIt uses platform-appropriate APIs for screen capture:</p>
+        <ul class="docs-ul">
+          <li><strong>WinUI 3:</strong> Windows Graphics Capture API (<code>GraphicsCaptureItem</code>), Media Foundation encoding</li>
+          <li><strong>Electron:</strong> Chromium's <code>desktopCapturer</code> API, Web MediaRecorder API</li>
+        </ul>
+        <p class="docs-p">Both support selecting screens, windows, or regions, recording audio from the microphone, and exporting to MP4 or WebM.</p>
+      </div>
+
+      <div id="whiteboard">
+        <h2 class="docs-h2">Whiteboard</h2>
+        <p class="docs-p">The whiteboard provides an MS Teams-style collaborative canvas experience:</p>
+        <ul class="docs-ul">
+          <li>Pen, highlighter, eraser with configurable brush sizes</li>
+          <li>Shape tools: line, rectangle, ellipse, triangle</li>
+          <li>Text and sticky note tools</li>
+          <li>10-color palette + custom color picker</li>
+          <li>Participants panel showing active collaborators</li>
+          <li>Zoom in/out controls (25%–400%)</li>
+          <li>Export canvas to PNG</li>
+        </ul>
+        <p class="docs-p"><strong>Electron implementation:</strong> Uses HTML5 Canvas with React for rendering. All drawing operations are immediate with no framework overhead.</p>
+        <p class="docs-p"><strong>WinUI 3 implementation:</strong> Uses WinUI Canvas with XAML shapes for vector-quality rendering.</p>
+      </div>
+
+      <div id="alvonia-ui">
+        <h2 class="docs-h2">Alvonia UI Design System</h2>
+        <p class="docs-p">Alvonia UI is the shared design language powering both apps. Key design tokens:</p>
+        <div class="code-block">
+/* Color tokens */
+--color-brand-primary:   #6366f1   /* Indigo */
+--color-brand-secondary: #8b5cf6   /* Violet */
+--color-brand-accent:    #06b6d4   /* Cyan */
+--color-bg-base:         #0f0f0f
+--color-bg-surface:      #1a1a1a
+--color-text-primary:    #f5f5f5
+--color-recording:       #ef4444
+
+/* Spacing scale: 4, 8, 12, 16, 20, 24, 32... */
+/* Border radius: 4, 8, 12, 16, 9999 (full) */
+/* Typography: Inter, 11–28px scale */</div>
+        <p class="docs-p">In XAML, these are defined in <code style="background: var(--bg-4); padding: 1px 6px; border-radius: 4px; font-family: monospace;">Styles/AlvoniaTheme.xaml</code> as
+          <code>Color</code>, <code>SolidColorBrush</code>, and <code>Style</code> resources.</p>
+      </div>
+
+      <div id="msix">
+        <h2 class="docs-h2">MSIX Packaging</h2>
+        <p class="docs-p">The <code style="background: var(--bg-4); padding: 1px 6px; border-radius: 4px; font-family: monospace;">RecordIt.Package</code> project handles MSIX creation:</p>
+        <div class="code-block">
+# Build MSIX from command line
+cd winui
+msbuild RecordIt.Package\RecordIt.Package.wapproj ^
+  /p:Configuration=Release /p:Platform=x64 ^
+  /p:UapAppxPackageBuildMode=StoreUpload</div>
+        <p class="docs-p">For the Electron app, MSIX/AppX is generated by electron-builder:</p>
+        <div class="code-block">
+cd alvonia-ui
+npm run electron:build:win   # Builds NSIS + AppX</div>
+      </div>
+
+      <div id="shortcuts">
+        <h2 class="docs-h2">Keyboard Shortcuts</h2>
+        <div class="feature-card">
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr>
+                <th style="text-align: left; padding: 8px 12px; font-size: 12px; color: var(--text-3); border-bottom: 1px solid var(--border);">Action</th>
+                <th style="text-align: right; padding: 8px 12px; font-size: 12px; color: var(--text-3); border-bottom: 1px solid var(--border);">Shortcut</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td style="padding: 10px 12px; font-size: 14px; border-bottom: 1px solid var(--border);">Start/Stop Recording</td><td style="text-align: right; padding: 10px 12px; font-family: monospace; font-size: 13px; border-bottom: 1px solid var(--border);">Ctrl+Shift+R</td></tr>
+              <tr><td style="padding: 10px 12px; font-size: 14px; border-bottom: 1px solid var(--border);">Pause Recording</td><td style="text-align: right; padding: 10px 12px; font-family: monospace; font-size: 13px; border-bottom: 1px solid var(--border);">Ctrl+Shift+P</td></tr>
+              <tr><td style="padding: 10px 12px; font-size: 14px; border-bottom: 1px solid var(--border);">Open Whiteboard</td><td style="text-align: right; padding: 10px 12px; font-family: monospace; font-size: 13px; border-bottom: 1px solid var(--border);">Ctrl+Shift+W</td></tr>
+              <tr><td style="padding: 10px 12px; font-size: 14px; border-bottom: 1px solid var(--border);">Take Screenshot</td><td style="text-align: right; padding: 10px 12px; font-family: monospace; font-size: 13px; border-bottom: 1px solid var(--border);">Ctrl+Shift+S</td></tr>
+              <tr><td style="padding: 10px 12px; font-size: 14px; border-bottom: 1px solid var(--border);">Minimize to Tray</td><td style="text-align: right; padding: 10px 12px; font-family: monospace; font-size: 13px; border-bottom: 1px solid var(--border);">Ctrl+M</td></tr>
+              <tr><td style="padding: 10px 12px; font-size: 14px; border-bottom: 1px solid var(--border);">Undo (Whiteboard)</td><td style="text-align: right; padding: 10px 12px; font-family: monospace; font-size: 13px; border-bottom: 1px solid var(--border);">Ctrl+Z</td></tr>
+              <tr><td style="padding: 10px 12px; font-size: 14px;">Redo (Whiteboard)</td><td style="text-align: right; padding: 10px 12px; font-family: monospace; font-size: 13px;">Ctrl+Y</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="changelog">
+        <h2 class="docs-h2">Changelog</h2>
+        <div class="feature-card">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+            <span class="tag tag-new">v1.0.0</span>
+            <span style="font-size: 13px; color: var(--text-3);">March 2024</span>
+          </div>
+          <ul class="docs-ul">
+            <li>Initial release of RecordIt with Alvonia UI</li>
+            <li>Screen recording with source selection (WinUI 3 + Electron)</li>
+            <li>MS Teams-style whiteboard with full drawing toolkit</li>
+            <li>Recording library with search and filtering</li>
+            <li>MSIX installer for Windows</li>
+            <li>Dark and light theme support</li>
+            <li>GitHub Pages documentation site</li>
+          </ul>
+        </div>
+      </div>
+
+      <div id="contributing">
+        <h2 class="docs-h2">Contributing</h2>
+        <p class="docs-p">Contributions are welcome! Please follow these steps:</p>
+        <div class="code-block">
+# Fork the repo, then:
+git clone https://github.com/YOUR_USERNAME/recordit.git
+cd recordit
+git checkout -b feature/my-feature
+
+# Make your changes, commit, and open a PR
+git commit -m "feat: add amazing feature"
+git push origin feature/my-feature</div>
+        <p class="docs-p">Please ensure your changes maintain UI parity between the WinUI 3 and Electron apps, and follow the Alvonia UI design system tokens.</p>
+      </div>
+    </main>
+  </div>
+
+  <script src="assets/js/main.js"></script>
+</body>
+</html>
