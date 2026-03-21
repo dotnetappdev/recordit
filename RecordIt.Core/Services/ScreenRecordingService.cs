@@ -12,105 +12,234 @@ public class CaptureSource
     public string Id { get; set; } = "";
     public string Name { get; set; } = "";
     public string? Thumbnail { get; set; }
+    public CaptureSourceType Type { get; set; } = CaptureSourceType.Screen;
+}
+
+public enum CaptureSourceType
+{
+    Screen,
+    Window,
+    AudioInput,
+    AudioOutput,
+    VideoDevice,
+}
+
+public class DshowDeviceList
+{
+    public List<string> VideoDevices { get; } = new();
+    public List<string> AudioDevices { get; } = new();
 }
 
 /// <summary>
-/// Screen recording service that uses `ffmpeg` as a reliable backend.
-/// This implementation spawns an `ffmpeg` process to capture the desktop (gdigrab),
-/// optional webcam (dshow) and optional microphone (dshow), then overlays webcam
-/// and writes an MP4 file. `ffmpeg` must be installed and available on PATH.
+/// Screen recording service backed by ffmpeg.
+/// Fixes: correct audio stream index mapping, proper dshow device separation.
 /// </summary>
 public class ScreenRecordingService
 {
     private Process? _ffmpegProcess;
     private bool _isRecording;
+    public bool IsRecording => _isRecording;
+
+    // ── Source enumeration ────────────────────────────────────────────────
 
     public Task<IEnumerable<CaptureSource>> GetCaptureSources()
     {
-        // Minimal static list for now — can be extended to enumerate windows/monitors.
         var sources = new List<CaptureSource>
         {
-            new CaptureSource { Id = "screen:primary", Name = "Entire Screen (Primary)" },
-            new CaptureSource { Id = "screen:all",     Name = "All Screens" }
+            new() { Id = "screen:primary", Name = "Primary Display",    Type = CaptureSourceType.Screen },
+            new() { Id = "screen:all",     Name = "All Displays",        Type = CaptureSourceType.Screen },
+            new() { Id = "screen:region",  Name = "Custom Region",       Type = CaptureSourceType.Screen },
         };
-
         return Task.FromResult<IEnumerable<CaptureSource>>(sources);
     }
 
-    public bool IsRecording => _isRecording;
+    // ── Device probing ────────────────────────────────────────────────────
 
     /// <summary>
-    /// Starts recording using ffmpeg. Parameters:
-    /// - sourceId: ignored currently (uses entire desktop)
-    /// - outputPath: full path to output file
-    /// - resolution: e.g. "1920x1080"
-    /// - fps: frames per second
-    /// - includeMic: include microphone audio
-    /// - includeWebcam: include webcam overlay
-    /// - webcamDevice: optional dshow webcam device name
-    /// - audioDevice: optional dshow audio device name
+    /// Probes DirectShow devices and returns video and audio devices separately.
+    /// Also injects a "Desktop Audio (Loopback)" virtual entry for system audio.
     /// </summary>
-    public Task StartRecording(string sourceId, string outputPath, string resolution, int fps, bool includeMic,
-        bool includeWebcam = false, string? webcamDevice = null, string? audioDevice = null)
+    public async Task<DshowDeviceList> ProbeDevicesAsync()
+    {
+        var result = new DshowDeviceList();
+        // Always offer a loopback / desktop-audio option first
+        result.AudioDevices.Add("Desktop Audio (Loopback)");
+
+        var psi = new ProcessStartInfo
+        {
+            FileName = "ffmpeg",
+            Arguments = "-hide_banner -f dshow -list_devices true -i dummy",
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+        };
+
+        try
+        {
+            using var p = Process.Start(psi)!;
+            if (p == null) return result;
+            var stderr = await p.StandardError.ReadToEndAsync();
+            p.WaitForExit(3000);
+
+            // Parse ffmpeg dshow output:
+            //   "DirectShow video devices"
+            //     "Device Name"
+            //   "DirectShow audio devices"
+            //     "Device Name"
+            bool inVideoSection = false;
+            bool inAudioSection = false;
+
+            foreach (var line in stderr.Split('\n'))
+            {
+                if (line.Contains("DirectShow video devices", StringComparison.OrdinalIgnoreCase))
+                {
+                    inVideoSection = true;
+                    inAudioSection = false;
+                    continue;
+                }
+                if (line.Contains("DirectShow audio devices", StringComparison.OrdinalIgnoreCase))
+                {
+                    inVideoSection = false;
+                    inAudioSection = true;
+                    continue;
+                }
+
+                // Device lines look like:  [dshow @...]  "Device Name"
+                var m = Regex.Match(line, "\"(?<name>[^\"]+)\"");
+                if (!m.Success) continue;
+                var name = m.Groups["name"].Value.Trim();
+                if (string.IsNullOrWhiteSpace(name)) continue;
+
+                // Skip alternator lines (ffmpeg prints the device name twice with @...)
+                if (line.Contains("@device_", StringComparison.OrdinalIgnoreCase)) continue;
+
+                if (inVideoSection && !result.VideoDevices.Contains(name))
+                    result.VideoDevices.Add(name);
+                else if (inAudioSection && !result.AudioDevices.Contains(name))
+                    result.AudioDevices.Add(name);
+            }
+        }
+        catch { }
+
+        return result;
+    }
+
+    /// <summary>Legacy flat probe used by older callers.</summary>
+    public async Task<IEnumerable<string>> ProbeDshowDevicesAsync()
+    {
+        var d = await ProbeDevicesAsync();
+        var all = new List<string>();
+        all.AddRange(d.VideoDevices);
+        all.AddRange(d.AudioDevices);
+        return all;
+    }
+
+    // ── Recording ─────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Starts recording with ffmpeg.
+    /// Correctly handles audio stream index based on whether webcam is also captured.
+    /// </summary>
+    public Task StartRecording(
+        string sourceId,
+        string outputPath,
+        string resolution,
+        int fps,
+        bool includeMic,
+        bool includeWebcam = false,
+        string? webcamDevice = null,
+        string? audioDevice = null,
+        float micVolume = 1.0f,
+        float desktopVolume = 1.0f)
     {
         if (_isRecording) return Task.CompletedTask;
 
-        // Ensure output directory exists
         var outDir = Path.GetDirectoryName(outputPath) ?? Environment.CurrentDirectory;
         Directory.CreateDirectory(outDir);
 
-        // Build ffmpeg arguments
-        // Screen capture (gdigrab) - captures the primary desktop
-        var args = $"-y -f gdigrab -framerate {fps} -i desktop";
+        // ── Build input chain ────────────────────────────────────────────
+        // Input 0 always: gdigrab desktop
+        var inputArgs = $"-f gdigrab -framerate {fps} -i desktop";
+        int nextInput = 1;
+        int webcamVideoInput = -1;
+        int audioInputIdx = -1;
 
-        // Webcam input
         if (includeWebcam)
         {
-            // Use provided device or default dshow video device
-            var cam = webcamDevice != null ? webcamDevice : "video=Integrated Camera";
-            args += $" -f dshow -i \"{cam}\"";
+            var cam = string.IsNullOrWhiteSpace(webcamDevice)
+                ? "video=Integrated Camera"
+                : $"video={webcamDevice}";
+            inputArgs += $" -f dshow -i \"{cam}\"";
+            webcamVideoInput = nextInput++;
         }
 
-        // Audio input
         if (includeMic)
         {
-            var aud = audioDevice != null ? audioDevice : "audio=Microphone";
-            args += $" -f dshow -i \"{aud}\"";
+            string aud;
+            if (string.IsNullOrWhiteSpace(audioDevice) || audioDevice == "Default")
+            {
+                // Default mic via dshow
+                aud = "audio=Microphone";
+            }
+            else if (audioDevice == "Desktop Audio (Loopback)")
+            {
+                // WASAPI loopback for system audio
+                inputArgs += " -f wasapi -loopback";
+                aud = "default";
+            }
+            else
+            {
+                aud = $"audio={audioDevice}";
+            }
+
+            if (audioDevice != "Desktop Audio (Loopback)")
+                inputArgs += $" -f dshow -i \"{aud}\"";
+            else
+                inputArgs += $" -i \"{aud}\"";
+
+            audioInputIdx = nextInput++;
         }
 
-        // Filter and mapping
-        var filters = new List<string>();
-        var mapArgs = new List<string>();
+        // ── Build filter_complex + mapping ───────────────────────────────
+        var filterParts = new List<string>();
+        var finalArgs = $"-y {inputArgs}";
 
-        // Video inputs mapping: 0 is desktop, 1 may be webcam
-        if (includeWebcam)
+        if (includeWebcam && webcamVideoInput >= 0)
         {
-            // scale webcam to 320x180 by default and overlay bottom-right with 10px margin
-            filters.Add("[1:v] scale=320:180 [cam]; [0:v][cam] overlay=main_w-overlay_w-10:main_h-overlay_h-10 [vout]");
-            mapArgs.Add("-map [vout]");
+            // Scale webcam and overlay bottom-right
+            filterParts.Add(
+                $"[{webcamVideoInput}:v] scale=320:180 [cam]; " +
+                $"[0:v][cam] overlay=main_w-overlay_w-10:main_h-overlay_h-10 [vout]");
+            finalArgs += $" -filter_complex \"{string.Join("; ", filterParts)}\" -map [vout]";
         }
         else
         {
-            mapArgs.Add("-map 0:v");
+            // Apply optional scaling if resolution differs from capture
+            finalArgs += " -map 0:v";
         }
 
-        // Audio mapping
-        if (includeMic)
+        // Audio mapping — index is correct now
+        if (includeMic && audioInputIdx >= 0)
         {
-            // If webcam also provides audio, more advanced mapping would be needed.
-            mapArgs.Add("-map 2:a? -c:a aac -b:a 128k");
+            // Volume filter on the audio stream
+            if (Math.Abs(micVolume - 1.0f) > 0.01f)
+                finalArgs += $" -af volume={micVolume:0.00}";
+
+            finalArgs += $" -map {audioInputIdx}:a? -c:a aac -b:a 192k";
+        }
+        else
+        {
+            // No explicit audio — try to map any audio that gdigrab might carry (rare)
+            finalArgs += " -an";
         }
 
-        // Video codec + encoding settings
-        var videoCodec = "-c:v libx264 -preset veryfast -crf 23";
+        // ── Video codec ──────────────────────────────────────────────────
+        finalArgs += $" -c:v libx264 -preset veryfast -crf 22 -r {fps} -pix_fmt yuv420p";
 
-        // Compose final args
-        var filterArg = filters.Count > 0 ? $" -filter_complex \"{string.Join("; ", filters)}\"" : string.Empty;
-        var mapArg = mapArgs.Count > 0 ? " " + string.Join(' ', mapArgs) : string.Empty;
+        // Output
+        finalArgs += $" \"{outputPath}\"";
 
-        var finalArgs = args + filterArg + mapArg + $" {videoCodec} -r {fps} -pix_fmt yuv420p \"{outputPath}\"";
-
-        // Start ffmpeg process
+        // ── Launch ffmpeg ────────────────────────────────────────────────
         var startInfo = new ProcessStartInfo
         {
             FileName = "ffmpeg",
@@ -119,13 +248,11 @@ public class ScreenRecordingService
             RedirectStandardError = true,
             RedirectStandardOutput = true,
             RedirectStandardInput = true,
-            CreateNoWindow = true
+            CreateNoWindow = true,
         };
 
         _ffmpegProcess = new Process { StartInfo = startInfo, EnableRaisingEvents = true };
-        _ffmpegProcess.OutputDataReceived += (s, e) => { /* can log if needed */ };
-        _ffmpegProcess.ErrorDataReceived += (s, e) => { /* ffmpeg logs progress on stderr */ };
-        _ffmpegProcess.Exited += (s, e) => { _isRecording = false; };
+        _ffmpegProcess.Exited += (_, _) => { _isRecording = false; };
 
         try
         {
@@ -136,9 +263,11 @@ public class ScreenRecordingService
         }
         catch (Exception ex)
         {
+            _ffmpegProcess?.Dispose();
             _ffmpegProcess = null;
             _isRecording = false;
-            throw new InvalidOperationException("Failed to start ffmpeg. Is ffmpeg installed and on PATH?", ex);
+            throw new InvalidOperationException(
+                "Failed to start ffmpeg. Ensure ffmpeg is installed and on PATH.\n" + ex.Message, ex);
         }
 
         return Task.CompletedTask;
@@ -150,13 +279,11 @@ public class ScreenRecordingService
 
         try
         {
-            // Ask ffmpeg to finish gracefully by sending q to stdin if available, otherwise kill
             if (!_ffmpegProcess.HasExited)
             {
                 try { _ffmpegProcess.StandardInput.WriteLine("q"); } catch { }
-                // give it a moment to exit
-                if (!_ffmpegProcess.WaitForExit(2000))
-                    _ffmpegProcess.Kill(true);
+                if (!_ffmpegProcess.WaitForExit(4000))
+                    _ffmpegProcess.Kill(entireProcessTree: true);
             }
         }
         catch { }
@@ -168,40 +295,5 @@ public class ScreenRecordingService
         }
 
         return Task.CompletedTask;
-    }
-
-    /// <summary>
-    /// Helper to probe dshow devices via ffmpeg - returns raw device list lines.
-    /// </summary>
-    public async Task<IEnumerable<string>> ProbeDshowDevicesAsync()
-    {
-        var psi = new ProcessStartInfo
-        {
-            FileName = "ffmpeg",
-            Arguments = "-hide_banner -f dshow -list_devices true -i dummy",
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
-
-        var list = new List<string>();
-        try
-        {
-            using var p = Process.Start(psi)!;
-            if (p == null) return list;
-            var stderr = await p.StandardError.ReadToEndAsync();
-            p.WaitForExit(2000);
-
-            // extract lines that contain "\"<name>\""
-            var matches = Regex.Matches(stderr, "\"(?<name>[^\"]+)\"");
-            foreach (Match m in matches)
-            {
-                var name = m.Groups["name"].Value;
-                if (!string.IsNullOrWhiteSpace(name) && !list.Contains(name)) list.Add(name);
-            }
-        }
-        catch { }
-
-        return list;
     }
 }

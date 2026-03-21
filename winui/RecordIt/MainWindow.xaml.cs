@@ -105,29 +105,23 @@ public sealed partial class MainWindow : Window
         _recordingSeconds = 0;
     }
 
-    private void NavigateToRecord(object sender, RoutedEventArgs e)
+    /// <summary>Programmatic navigation used by child pages (e.g. RecordPage menu).</summary>
+    public void NavigateTo(string page)
     {
-        ContentFrame.Navigate(typeof(RecordPage));
-        UpdateSidebarState("record");
+        switch (page)
+        {
+            case "record":     ContentFrame.Navigate(typeof(RecordPage));     break;
+            case "whiteboard": ContentFrame.Navigate(typeof(WhiteboardPage)); break;
+            case "library":    ContentFrame.Navigate(typeof(LibraryPage));    break;
+            case "settings":   ContentFrame.Navigate(typeof(SettingsPage));   break;
+        }
+        UpdateSidebarState(page);
     }
 
-    private void NavigateToWhiteboard(object sender, RoutedEventArgs e)
-    {
-        ContentFrame.Navigate(typeof(WhiteboardPage));
-        UpdateSidebarState("whiteboard");
-    }
-
-    private void NavigateToLibrary(object sender, RoutedEventArgs e)
-    {
-        ContentFrame.Navigate(typeof(LibraryPage));
-        UpdateSidebarState("library");
-    }
-
-    private void NavigateToSettings(object sender, RoutedEventArgs e)
-    {
-        ContentFrame.Navigate(typeof(SettingsPage));
-        UpdateSidebarState("settings");
-    }
+    private void NavigateToRecord(object sender, RoutedEventArgs e)    => NavigateTo("record");
+    private void NavigateToWhiteboard(object sender, RoutedEventArgs e)=> NavigateTo("whiteboard");
+    private void NavigateToLibrary(object sender, RoutedEventArgs e)   => NavigateTo("library");
+    private void NavigateToSettings(object sender, RoutedEventArgs e)  => NavigateTo("settings");
 
     private void UpdateSidebarState(string page)
     {
