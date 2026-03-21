@@ -2,10 +2,166 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="RecordIt.Avalonia.MainWindow"
-        Title="RecordIt" Width="1024" Height="720">
+        Title="RecordIt"
+        MinWidth="1024"
+        MinHeight="640"
+        Width="1280"
+        Height="720"
+        Background="{StaticResource BgBaseBrush}">
 
-  <Grid>
-    <TextBlock Text="RecordIt (Avalonia)" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20"/>
+  <Grid RowDefinitions="40,*">
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         Custom Title Bar
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <Border Grid.Row="0"
+            Background="{StaticResource BgSurfaceBrush}"
+            BorderBrush="{StaticResource BorderDefaultBrush}"
+            BorderThickness="0,0,0,1">
+      <Grid ColumnDefinitions="Auto,*,Auto">
+
+        <!-- Logo + App Name -->
+        <StackPanel Grid.Column="0"
+                    Orientation="Horizontal"
+                    Spacing="8"
+                    Margin="12,0,0,0"
+                    VerticalAlignment="Center">
+          <Border Width="24" Height="24"
+                  Background="{StaticResource BrandPrimaryBrush}"
+                  CornerRadius="4">
+            <TextBlock Text="R" Foreground="White"
+                       FontWeight="Bold" FontSize="13"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center" />
+          </Border>
+          <TextBlock Text="RecordIt"
+                     Foreground="{StaticResource TextPrimaryBrush}"
+                     FontWeight="SemiBold"
+                     FontSize="15"
+                     VerticalAlignment="Center" />
+        </StackPanel>
+
+        <!-- Recording Indicator (center) -->
+        <StackPanel x:Name="RecordingIndicator"
+                    Grid.Column="1"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Spacing="8"
+                    IsVisible="False">
+          <Ellipse Width="8" Height="8" Fill="{StaticResource RecordingBrush}" />
+          <TextBlock x:Name="RecordingTimeText"
+                     Text="00:00"
+                     Foreground="{StaticResource RecordingBrush}"
+                     FontWeight="SemiBold"
+                     FontSize="13"
+                     FontFamily="Cascadia Code,Consolas,monospace" />
+          <Border Background="#1AEF4444"
+                  BorderBrush="#4DEF4444"
+                  BorderThickness="1"
+                  CornerRadius="10"
+                  Padding="6,2">
+            <TextBlock Text="REC"
+                       Foreground="{StaticResource RecordingBrush}"
+                       FontWeight="ExtraBold"
+                       FontSize="10" />
+          </Border>
+        </StackPanel>
+
+        <!-- Title bar right controls -->
+        <StackPanel Grid.Column="2"
+                    Orientation="Horizontal"
+                    Spacing="2"
+                    Margin="0,0,8,0"
+                    VerticalAlignment="Center">
+          <Button x:Name="ThemeToggleBtn"
+                  Classes="ghost"
+                  Width="32" Height="28"
+                  Padding="0"
+                  Content="🌙"
+                  FontSize="14"
+                  Click="ThemeToggleBtn_Click"
+                  ToolTip.Tip="Toggle Theme" />
+          <Button Classes="ghost"
+                  Width="32" Height="28"
+                  Padding="0"
+                  Content="—"
+                  Click="MinimizeBtn_Click" />
+          <Button Classes="ghost"
+                  Width="32" Height="28"
+                  Padding="0"
+                  Content="□"
+                  Click="MaximizeBtn_Click" />
+          <Button Classes="ghost"
+                  Width="32" Height="28"
+                  Padding="0"
+                  Content="✕"
+                  Click="CloseBtn_Click" />
+        </StackPanel>
+
+      </Grid>
+    </Border>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         Main Body
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <Grid Grid.Row="1" ColumnDefinitions="56,*">
+
+      <!-- Sidebar -->
+      <Border Grid.Column="0"
+              Background="{StaticResource BgSurfaceBrush}"
+              BorderBrush="{StaticResource BorderDefaultBrush}"
+              BorderThickness="0,0,1,0">
+        <Grid RowDefinitions="*,Auto">
+
+          <!-- Nav items -->
+          <StackPanel Grid.Row="0" Spacing="2" Margin="8">
+            <Button x:Name="RecordNavBtn"
+                    Classes="sidebar"
+                    Click="RecordNavBtn_Click"
+                    ToolTip.Tip="Studio">
+              <TextBlock Text="⏺"
+                         FontSize="18"
+                         Foreground="{StaticResource BrandPrimaryBrush}" />
+            </Button>
+            <Button x:Name="WhiteboardNavBtn"
+                    Classes="sidebar"
+                    Click="WhiteboardNavBtn_Click"
+                    ToolTip.Tip="Whiteboard">
+              <TextBlock Text="✏"
+                         FontSize="18"
+                         Foreground="{StaticResource TextTertiaryBrush}" />
+            </Button>
+            <Button x:Name="LibraryNavBtn"
+                    Classes="sidebar"
+                    Click="LibraryNavBtn_Click"
+                    ToolTip.Tip="Library">
+              <TextBlock Text="📁"
+                         FontSize="18"
+                         Foreground="{StaticResource TextTertiaryBrush}" />
+            </Button>
+          </StackPanel>
+
+          <!-- Settings at bottom -->
+          <Button Grid.Row="1"
+                  x:Name="SettingsNavBtn"
+                  Classes="sidebar"
+                  Click="SettingsNavBtn_Click"
+                  ToolTip.Tip="Settings"
+                  Margin="8,0,8,8">
+            <TextBlock Text="⚙"
+                       FontSize="18"
+                       Foreground="{StaticResource TextTertiaryBrush}" />
+          </Button>
+
+        </Grid>
+      </Border>
+
+      <!-- Content area -->
+      <ContentControl x:Name="ContentPanel"
+                      Grid.Column="1"
+                      Background="{StaticResource BgBaseBrush}" />
+
+    </Grid>
   </Grid>
-
 </Window>

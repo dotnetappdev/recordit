@@ -1,0 +1,234 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       Alvonia Color Resources
+  ═══════════════════════════════════════════════════════════════════════ -->
+  <Styles.Resources>
+    <ResourceDictionary>
+
+      <!-- Brand -->
+      <SolidColorBrush x:Key="BrandPrimaryBrush"     Color="#6366F1" />
+      <SolidColorBrush x:Key="BrandSecondaryBrush"   Color="#8B5CF6" />
+      <SolidColorBrush x:Key="BrandAccentBrush"      Color="#06B6D4" />
+      <SolidColorBrush x:Key="RecordingBrush"        Color="#EF4444" />
+      <SolidColorBrush x:Key="SuccessBrush"          Color="#22C55E" />
+      <SolidColorBrush x:Key="WarningBrush"          Color="#F59E0B" />
+      <SolidColorBrush x:Key="ErrorBrush"            Color="#EF4444" />
+
+      <!-- Background layers - dark theme -->
+      <SolidColorBrush x:Key="BgBaseBrush"           Color="#0D0D0D" />
+      <SolidColorBrush x:Key="BgSurfaceBrush"        Color="#161616" />
+      <SolidColorBrush x:Key="BgElevatedBrush"       Color="#1E1E1E" />
+      <SolidColorBrush x:Key="BgOverlayBrush"        Color="#242424" />
+      <SolidColorBrush x:Key="BgHoverBrush"          Color="#2C2C2C" />
+      <SolidColorBrush x:Key="BgActiveBrush"         Color="#363636" />
+      <SolidColorBrush x:Key="BgPanelBrush"          Color="#131313" />
+      <SolidColorBrush x:Key="BgPanelHeaderBrush"    Color="#1A1A1A" />
+
+      <!-- Text -->
+      <SolidColorBrush x:Key="TextPrimaryBrush"      Color="#F0F0F0" />
+      <SolidColorBrush x:Key="TextSecondaryBrush"    Color="#9E9E9E" />
+      <SolidColorBrush x:Key="TextTertiaryBrush"     Color="#666666" />
+      <SolidColorBrush x:Key="TextDisabledBrush"     Color="#444444" />
+
+      <!-- Borders -->
+      <SolidColorBrush x:Key="BorderDefaultBrush"    Color="#252525" />
+      <SolidColorBrush x:Key="BorderStrongBrush"     Color="#383838" />
+      <SolidColorBrush x:Key="BorderFocusBrush"      Color="#6366F1" />
+      <SolidColorBrush x:Key="BorderPanelBrush"      Color="#202020" />
+
+      <!-- VU Meter Colors -->
+      <SolidColorBrush x:Key="VuGreenBrush"          Color="#22C55E" />
+      <SolidColorBrush x:Key="VuYellowBrush"         Color="#FBBF24" />
+      <SolidColorBrush x:Key="VuRedBrush"            Color="#EF4444" />
+
+      <!-- VU Gradient Brush (green → yellow → red, bottom to top) -->
+      <LinearGradientBrush x:Key="VuGradientBrush" StartPoint="0%,100%" EndPoint="0%,0%">
+        <GradientStop Color="#22C55E" Offset="0.0" />
+        <GradientStop Color="#22C55E" Offset="0.6" />
+        <GradientStop Color="#FBBF24" Offset="0.75" />
+        <GradientStop Color="#EF4444" Offset="1.0" />
+      </LinearGradientBrush>
+
+    </ResourceDictionary>
+  </Styles.Resources>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       Button Classes
+  ═══════════════════════════════════════════════════════════════════════ -->
+
+  <!-- Primary action button -->
+  <Style Selector="Button.primary">
+    <Setter Property="Background"      Value="{StaticResource BrandPrimaryBrush}" />
+    <Setter Property="Foreground"      Value="White" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius"    Value="8" />
+    <Setter Property="Padding"         Value="16,8" />
+    <Setter Property="FontWeight"      Value="SemiBold" />
+    <Setter Property="Cursor"          Value="Hand" />
+  </Style>
+
+  <!-- Ghost / tertiary button -->
+  <Style Selector="Button.ghost">
+    <Setter Property="Background"      Value="Transparent" />
+    <Setter Property="Foreground"      Value="{StaticResource TextSecondaryBrush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius"    Value="8" />
+    <Setter Property="Padding"         Value="10,5" />
+    <Setter Property="Cursor"          Value="Hand" />
+  </Style>
+
+  <!-- Red record button -->
+  <Style Selector="Button.record">
+    <Setter Property="Background"          Value="{StaticResource RecordingBrush}" />
+    <Setter Property="Foreground"          Value="White" />
+    <Setter Property="BorderThickness"     Value="0" />
+    <Setter Property="CornerRadius"        Value="8" />
+    <Setter Property="Padding"             Value="14,8" />
+    <Setter Property="FontWeight"          Value="SemiBold" />
+    <Setter Property="FontSize"            Value="13" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="Cursor"              Value="Hand" />
+  </Style>
+
+  <!-- OBS-style panel toolbar icon button -->
+  <Style Selector="Button.obs-toolbar">
+    <Setter Property="Background"      Value="Transparent" />
+    <Setter Property="Foreground"      Value="{StaticResource TextSecondaryBrush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius"    Value="6" />
+    <Setter Property="Width"           Value="24" />
+    <Setter Property="Height"          Value="24" />
+    <Setter Property="Padding"         Value="0" />
+    <Setter Property="FontSize"        Value="12" />
+    <Setter Property="Cursor"          Value="Hand" />
+  </Style>
+
+  <!-- Sidebar nav button -->
+  <Style Selector="Button.sidebar">
+    <Setter Property="Background"      Value="Transparent" />
+    <Setter Property="Foreground"      Value="{StaticResource TextTertiaryBrush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius"    Value="8" />
+    <Setter Property="Width"           Value="40" />
+    <Setter Property="Height"          Value="40" />
+    <Setter Property="Padding"         Value="0" />
+    <Setter Property="Cursor"          Value="Hand" />
+  </Style>
+
+  <!-- Controls panel big button -->
+  <Style Selector="Button.controls-panel">
+    <Setter Property="Background"          Value="{StaticResource BgElevatedBrush}" />
+    <Setter Property="Foreground"          Value="{StaticResource TextPrimaryBrush}" />
+    <Setter Property="BorderBrush"         Value="{StaticResource BorderDefaultBrush}" />
+    <Setter Property="BorderThickness"     Value="1" />
+    <Setter Property="CornerRadius"        Value="8" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="Padding"             Value="12,9" />
+    <Setter Property="FontSize"            Value="12" />
+    <Setter Property="Cursor"              Value="Hand" />
+  </Style>
+
+  <!-- Whiteboard tool button -->
+  <Style Selector="Button.wb-tool">
+    <Setter Property="Background"      Value="Transparent" />
+    <Setter Property="Foreground"      Value="{StaticResource TextSecondaryBrush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius"    Value="8" />
+    <Setter Property="Width"           Value="36" />
+    <Setter Property="Height"          Value="36" />
+    <Setter Property="Padding"         Value="0" />
+    <Setter Property="Cursor"          Value="Hand" />
+  </Style>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       ToggleButton Classes
+  ═══════════════════════════════════════════════════════════════════════ -->
+
+  <Style Selector="ToggleButton.mute">
+    <Setter Property="Background"        Value="Transparent" />
+    <Setter Property="Foreground"        Value="{StaticResource TextSecondaryBrush}" />
+    <Setter Property="BorderThickness"   Value="1" />
+    <Setter Property="BorderBrush"       Value="{StaticResource BorderDefaultBrush}" />
+    <Setter Property="CornerRadius"      Value="6" />
+    <Setter Property="Width"             Value="28" />
+    <Setter Property="Height"            Value="24" />
+    <Setter Property="Padding"           Value="0" />
+    <Setter Property="FontSize"          Value="11" />
+    <Setter Property="Cursor"            Value="Hand" />
+  </Style>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       TextBlock Classes
+  ═══════════════════════════════════════════════════════════════════════ -->
+
+  <!-- Panel header label — indigo, uppercase tracking (VS Code / Figma style) -->
+  <Style Selector="TextBlock.panel-header">
+    <Setter Property="FontSize"      Value="10" />
+    <Setter Property="FontWeight"    Value="SemiBold" />
+    <Setter Property="Foreground"    Value="{StaticResource BrandPrimaryBrush}" />
+    <Setter Property="LetterSpacing" Value="1" />
+  </Style>
+
+  <Style Selector="TextBlock.page-title">
+    <Setter Property="FontSize"   Value="20" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+  </Style>
+
+  <Style Selector="TextBlock.section-label">
+    <Setter Property="FontSize"      Value="9" />
+    <Setter Property="FontWeight"    Value="SemiBold" />
+    <Setter Property="Foreground"    Value="{StaticResource TextTertiaryBrush}" />
+    <Setter Property="LetterSpacing" Value="0.8" />
+  </Style>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       ComboBox
+  ═══════════════════════════════════════════════════════════════════════ -->
+
+  <Style Selector="ComboBox.alvonia">
+    <Setter Property="Background"   Value="{StaticResource BgElevatedBrush}" />
+    <Setter Property="Foreground"   Value="{StaticResource TextPrimaryBrush}" />
+    <Setter Property="BorderBrush"  Value="{StaticResource BorderDefaultBrush}" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding"      Value="8,4" />
+    <Setter Property="FontSize"     Value="12" />
+  </Style>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       Border Classes
+  ═══════════════════════════════════════════════════════════════════════ -->
+
+  <Style Selector="Border.obs-panel">
+    <Setter Property="Background"      Value="{StaticResource BgPanelBrush}" />
+    <Setter Property="BorderBrush"     Value="{StaticResource BorderPanelBrush}" />
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+
+  <Style Selector="Border.obs-panel-header">
+    <Setter Property="Background"      Value="{StaticResource BgPanelHeaderBrush}" />
+    <Setter Property="BorderBrush"     Value="{StaticResource BorderPanelBrush}" />
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
+    <Setter Property="Padding"         Value="10,0,8,0" />
+    <Setter Property="Height"          Value="32" />
+  </Style>
+
+  <Style Selector="Border.obs-panel-toolbar">
+    <Setter Property="Background"      Value="{StaticResource BgBaseBrush}" />
+    <Setter Property="BorderBrush"     Value="{StaticResource BorderPanelBrush}" />
+    <Setter Property="BorderThickness" Value="0,1,0,0" />
+    <Setter Property="Padding"         Value="4,4" />
+    <Setter Property="Height"          Value="30" />
+  </Style>
+
+  <Style Selector="Border.alvonia-card">
+    <Setter Property="Background"       Value="{StaticResource BgSurfaceBrush}" />
+    <Setter Property="BorderBrush"      Value="{StaticResource BorderDefaultBrush}" />
+    <Setter Property="BorderThickness"  Value="1" />
+    <Setter Property="CornerRadius"     Value="12" />
+    <Setter Property="Padding"          Value="20" />
+  </Style>
+
+</Styles>

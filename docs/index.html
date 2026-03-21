@@ -33,13 +33,14 @@
 
   <!-- Hero -->
   <section class="hero">
-    <div class="hero-badge">Alvonia UI · WinUI 3 · Electron</div>
+    <div class="hero-badge">Alvonia UI · WinUI 3 · Avalonia · Electron</div>
     <h1 class="hero-title">
-      Record. Draw. <span class="gradient-text">Collaborate.</span>
+      Studio-Grade Recording. <span class="gradient-text">Your Way.</span>
     </h1>
     <p class="hero-subtitle">
-      RecordIt combines professional screen recording with a powerful MS Teams-style
-      whiteboard — available as a native Windows app and cross-platform desktop client.
+      RecordIt brings an OBS-inspired dockable studio interface — Scenes, Sources, Audio Mixer,
+      and Controls — wrapped in Alvonia UI's modern Windows 11 design. Includes a full
+      MS Teams-style whiteboard and ships on Windows, macOS, and Linux.
     </p>
     <div class="hero-actions">
       <a href="installation.html#windows" class="btn btn-primary btn-lg">
@@ -58,7 +59,7 @@
       <span>macOS & Linux via Electron</span>
     </div>
 
-    <!-- App Screenshot Mockup -->
+    <!-- App Screenshot Mockup — OBS-style studio layout -->
     <div class="hero-screenshot">
       <div class="screenshot-browser">
         <div class="screenshot-titlebar">
@@ -66,43 +67,70 @@
             <div class="screenshot-logo-icon">R</div>
             <span>RecordIt</span>
           </div>
+          <div style="display:flex; gap:6px; align-items:center; font-size:11px; color:#6366f1; font-weight:600;">
+            <span style="width:8px;height:8px;border-radius:50%;background:#6366f1;display:inline-block;"></span>
+            Studio
+          </div>
           <div class="screenshot-controls">
             <div class="ctrl-btn ctrl-min"></div>
             <div class="ctrl-btn ctrl-max"></div>
             <div class="ctrl-btn ctrl-close"></div>
           </div>
         </div>
-        <div class="screenshot-body">
-          <div class="screenshot-sidebar">
-            <div class="ss-nav-item active">&#x1F4F9;</div>
-            <div class="ss-nav-item">&#x270F;&#xFE0F;</div>
-            <div class="ss-nav-item">&#x1F4C1;</div>
-            <div class="ss-spacer"></div>
-            <div class="ss-nav-item">&#x2699;&#xFE0F;</div>
+        <div class="screenshot-body" style="flex-direction:column; gap:0;">
+          <!-- Menu bar -->
+          <div style="background:#0d0d0d; border-bottom:1px solid #252525; padding:2px 8px; display:flex; gap:12px; font-size:11px; color:#9e9e9e;">
+            <span>File</span><span>Edit</span><span>View</span><span>Docks</span><span>Tools</span><span>Help</span>
           </div>
-          <div class="screenshot-content">
-            <div class="ss-page-header">
-              <div>
-                <div class="ss-title">Screen Recorder</div>
-                <div class="ss-subtitle">Capture your screen, window, or application</div>
+          <!-- Preview -->
+          <div style="flex:1; background:#080808; display:flex; align-items:center; justify-content:center; position:relative; min-height:90px;">
+            <span style="font-size:10px; color:#333; letter-spacing:2px;">PREVIEW</span>
+            <div style="position:absolute; top:6px; left:8px; display:flex; gap:4px;">
+              <div style="background:#1e1e1e; border-radius:4px; padding:2px 6px; font-size:9px; color:#6366f1; border:1px solid #252525;">Scene 1</div>
+              <div style="background:#1e1e1e; border-radius:4px; padding:2px 6px; font-size:9px; color:#666; border:1px solid #252525;">Scene 2</div>
+            </div>
+          </div>
+          <!-- Docked panels -->
+          <div style="height:110px; background:#131313; border-top:1px solid #202020; display:flex;">
+            <!-- Scenes -->
+            <div style="flex:1; border-right:1px solid #202020; overflow:hidden;">
+              <div style="background:#1a1a1a; border-bottom:1px solid #202020; padding:0 8px; height:22px; display:flex; align-items:center; font-size:9px; color:#6366f1; font-weight:600; letter-spacing:1px;">SCENES</div>
+              <div style="padding:4px 6px; font-size:9px; color:#f0f0f0; background:rgba(99,102,241,0.08); margin:4px; border-radius:4px;">📹 Scene 1</div>
+              <div style="padding:4px 6px; font-size:9px; color:#666; margin:0 4px; border-radius:4px;">📷 Scene 2</div>
+            </div>
+            <!-- Sources -->
+            <div style="flex:1; border-right:1px solid #202020; overflow:hidden;">
+              <div style="background:#1a1a1a; border-bottom:1px solid #202020; padding:0 8px; height:22px; display:flex; align-items:center; font-size:9px; color:#6366f1; font-weight:600; letter-spacing:1px;">SOURCES</div>
+              <div style="padding:4px 6px; font-size:9px; color:#f0f0f0; margin:4px 4px 0; border-radius:4px; background:rgba(99,102,241,0.06);">🖥️ Display 1</div>
+              <div style="padding:4px 6px; font-size:9px; color:#9e9e9e; margin:2px 4px; border-radius:4px;">🎙 Microphone</div>
+            </div>
+            <!-- Audio Mixer -->
+            <div style="flex:1.4; border-right:1px solid #202020; overflow:hidden;">
+              <div style="background:#1a1a1a; border-bottom:1px solid #202020; padding:0 8px; height:22px; display:flex; align-items:center; font-size:9px; color:#6366f1; font-weight:600; letter-spacing:1px;">AUDIO MIXER</div>
+              <div style="display:flex; gap:6px; padding:6px 6px; height:80px;">
+                <!-- Desktop channel -->
+                <div style="display:flex; flex-direction:column; align-items:center; gap:2px; font-size:8px; color:#9e9e9e;">
+                  <div style="width:8px; flex:1; background:#1e1e1e; border-radius:2px; position:relative; overflow:hidden;">
+                    <div style="position:absolute; bottom:0; width:100%; height:55%; background:linear-gradient(to top,#22c55e,#fbbf24 75%,#ef4444);"></div>
+                  </div>
+                  <span>Desktop</span>
+                </div>
+                <!-- Mic channel -->
+                <div style="display:flex; flex-direction:column; align-items:center; gap:2px; font-size:8px; color:#9e9e9e;">
+                  <div style="width:8px; flex:1; background:#1e1e1e; border-radius:2px; position:relative; overflow:hidden;">
+                    <div style="position:absolute; bottom:0; width:100%; height:30%; background:linear-gradient(to top,#22c55e,#fbbf24);"></div>
+                  </div>
+                  <span>Mic</span>
+                </div>
               </div>
             </div>
-            <div class="ss-sources">
-              <div class="ss-source selected">
-                <div class="ss-source-thumb">🖥️</div>
-                <div class="ss-source-name">Entire Screen</div>
+            <!-- Controls -->
+            <div style="flex:1; overflow:hidden;">
+              <div style="background:#1a1a1a; border-bottom:1px solid #202020; padding:0 8px; height:22px; display:flex; align-items:center; font-size:9px; color:#6366f1; font-weight:600; letter-spacing:1px;">CONTROLS</div>
+              <div style="padding:6px 6px; display:flex; flex-direction:column; gap:4px;">
+                <div style="background:#ef4444; border-radius:5px; padding:4px 8px; font-size:9px; color:#fff; font-weight:600; text-align:center;">⏺ Start Recording</div>
+                <div style="background:#1e1e1e; border-radius:5px; padding:4px 8px; font-size:9px; color:#9e9e9e; text-align:center; border:1px solid #252525;">▶ Start Preview</div>
               </div>
-              <div class="ss-source">
-                <div class="ss-source-thumb">🪟</div>
-                <div class="ss-source-name">App Window</div>
-              </div>
-              <div class="ss-source">
-                <div class="ss-source-thumb">📺</div>
-                <div class="ss-source-name">Display 2</div>
-              </div>
-            </div>
-            <div class="ss-controls">
-              <button class="ss-record-btn">⏺ Start Recording</button>
             </div>
           </div>
         </div>
@@ -116,17 +144,36 @@
       <div class="section-header">
         <div class="section-badge">Features</div>
         <h2 class="section-title">Everything you need to record and collaborate</h2>
-        <p class="section-subtitle">Built with Alvonia UI — identical experience on Windows native and Electron</p>
+        <p class="section-subtitle">OBS-inspired studio interface with Alvonia UI — three apps, one design</p>
       </div>
       <div class="features-grid">
         <div class="feature-card">
           <div class="feature-icon" style="background: rgba(99,102,241,0.15); color: #6366f1">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">OBS-Style Studio</h3>
+          <p class="feature-desc">5 dockable panels — Scenes, Sources, Audio Mixer, Options, and Controls — with a full menu bar and live preview. Built for professionals.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background: rgba(34,197,94,0.15); color: #22c55e">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+              <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">Metered Audio Mixer</h3>
+          <p class="feature-desc">Real-time VU meters per channel via Core Audio, per-channel volume faders, mute buttons, and WASAPI loopback for desktop audio.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background: rgba(239,68,68,0.15); color: #ef4444">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4" fill="currentColor"/>
             </svg>
           </div>
-          <h3 class="feature-title">HD Screen Recording</h3>
-          <p class="feature-desc">Capture at up to 4K resolution with 60fps. Record screen, window, or specific app regions with hardware acceleration.</p>
+          <h3 class="feature-title">4K Screen Recording</h3>
+          <p class="feature-desc">Capture at up to 4K at 60 fps with ffmpeg's libx264 codec. Desktop audio via WASAPI loopback — no virtual cables needed.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon" style="background: rgba(139,92,246,0.15); color: #8b5cf6">
@@ -135,34 +182,16 @@
             </svg>
           </div>
           <h3 class="feature-title">Teams-Style Whiteboard</h3>
-          <p class="feature-desc">Collaborative whiteboard with pen, shapes, text, sticky notes, and real-time participant cursors — just like MS Teams.</p>
+          <p class="feature-desc">Collaborative whiteboard with pen, shapes, text, sticky notes, zoom (25–400%), and real-time participant cursors — just like MS Teams.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon" style="background: rgba(6,182,212,0.15); color: #06b6d4">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/>
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
             </svg>
           </div>
-          <h3 class="feature-title">Dual App Parity</h3>
-          <p class="feature-desc">100% identical UI and features between the WinUI 3 Windows app and the Electron cross-platform app — Alvonia UI everywhere.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon" style="background: rgba(34,197,94,0.15); color: #22c55e">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/>
-            </svg>
-          </div>
-          <h3 class="feature-title">MSIX Installer</h3>
-          <p class="feature-desc">Clean Windows installation via MSIX package. Microsoft Store-ready with auto-updates, system tray, and startup integration.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon" style="background: rgba(239,68,68,0.15); color: #ef4444">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 2a3 3 0 013 3v7a3 3 0 01-6 0V5a3 3 0 013-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/>
-            </svg>
-          </div>
-          <h3 class="feature-title">Audio & Camera</h3>
-          <p class="feature-desc">Record with microphone audio, system sounds, and webcam overlay. Fine-grained audio mixing controls.</p>
+          <h3 class="feature-title">Three-App Parity</h3>
+          <p class="feature-desc">Identical studio layout across WinUI 3, Avalonia UI (.NET cross-platform), and Electron. Same Alvonia UI design tokens everywhere.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b">
@@ -171,7 +200,7 @@
             </svg>
           </div>
           <h3 class="feature-title">Recording Library</h3>
-          <p class="feature-desc">Browse, preview, and manage all your recordings. Search, filter, and organize video and whiteboard content in one place.</p>
+          <p class="feature-desc">Browse, preview, and manage all your recordings. Search, filter by type, and track storage usage in a clean thumbnail grid.</p>
         </div>
       </div>
     </div>
@@ -181,10 +210,10 @@
   <section class="section apps-section">
     <div class="container">
       <div class="section-header">
-        <div class="section-badge">Two Apps, One UI</div>
-        <h2 class="section-title">Same Alvonia UI. Different platforms.</h2>
+        <div class="section-badge">Three Apps, One UI</div>
+        <h2 class="section-title">Same Alvonia UI. Every platform.</h2>
       </div>
-      <div class="apps-grid">
+      <div class="apps-grid" style="grid-template-columns: repeat(3, 1fr);">
         <div class="app-card">
           <div class="app-platform">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="#6366f1">
@@ -193,32 +222,51 @@
             Windows Native
           </div>
           <h3 class="app-name">RecordIt WinUI</h3>
-          <p class="app-desc">Built with WinUI 3 and Windows App SDK. Native Windows performance, Fluent Design, MSIX installer, and Microsoft Store-ready.</p>
+          <p class="app-desc">Native Windows app built with WinUI 3 / Windows App SDK and .NET 10. Full OBS-style studio with Core Audio VU metering.</p>
           <ul class="app-features">
-            <li>✓ WinUI 3 (Windows App SDK)</li>
+            <li>✓ WinUI 3 / .NET 10 (C#)</li>
             <li>✓ Windows 10/11 native</li>
             <li>✓ MSIX installer</li>
-            <li>✓ Hardware-accelerated recording</li>
-            <li>✓ Windows Graphics Capture API</li>
+            <li>✓ Core Audio VU metering</li>
+            <li>✓ WASAPI loopback audio</li>
             <li>✓ System tray integration</li>
           </ul>
           <a href="installation.html#winui" class="btn btn-primary">Download WinUI App</a>
         </div>
         <div class="app-card">
-          <div class="app-platform" style="color: #06b6d4">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="#06b6d4">
+          <div class="app-platform" style="color: #8b5cf6">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="#8b5cf6">
               <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
             </svg>
-            Cross-Platform
+            .NET Cross-Platform
           </div>
-          <h3 class="app-name">RecordIt Alvonia</h3>
-          <p class="app-desc">Built with Electron + React. Identical Alvonia UI design system — same experience on Windows, macOS, and Linux.</p>
+          <h3 class="app-name">RecordIt Avalonia</h3>
+          <p class="app-desc">Cross-platform .NET app built with Avalonia UI 11. Identical OBS-style studio layout and Alvonia UI tokens on Windows, macOS, and Linux.</p>
+          <ul class="app-features">
+            <li>✓ Avalonia UI 11 / .NET (C#)</li>
+            <li>✓ Windows, macOS, Linux</li>
+            <li>✓ Same studio UI as WinUI</li>
+            <li>✓ Alvonia UI design tokens</li>
+            <li>✓ Cross-platform ffmpeg recording</li>
+            <li>✓ Native-feeling on each OS</li>
+          </ul>
+          <a href="installation.html#avalonia" class="btn btn-outline">Download Avalonia App</a>
+        </div>
+        <div class="app-card">
+          <div class="app-platform" style="color: #06b6d4">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="#06b6d4">
+              <circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8" stroke="white" stroke-width="2"/>
+            </svg>
+            Web-Tech Cross-Platform
+          </div>
+          <h3 class="app-name">RecordIt Electron</h3>
+          <p class="app-desc">Built with Electron + React + TypeScript. Identical Alvonia UI design system — same studio experience on Windows, macOS, and Linux.</p>
           <ul class="app-features">
             <li>✓ Electron + React + TypeScript</li>
             <li>✓ Windows, macOS, Linux</li>
             <li>✓ NSIS + AppImage installers</li>
             <li>✓ Web-standard recording APIs</li>
-            <li>✓ Same UI as WinUI app</li>
+            <li>✓ Same Alvonia UI as WinUI</li>
             <li>✓ System tray integration</li>
           </ul>
           <a href="installation.html#electron" class="btn btn-outline">Download Electron App</a>
@@ -236,31 +284,57 @@
       </div>
       <div class="screenshots-grid">
         <div class="screenshot-card large">
-          <div class="ss-label">Screen Recorder</div>
-          <div class="ss-mockup recorder-mockup">
-            <div class="mock-toolbar">
+          <div class="ss-label">Studio Interface</div>
+          <div class="ss-mockup recorder-mockup" style="display:flex; flex-direction:column; gap:0; padding:0; overflow:hidden;">
+            <div class="mock-toolbar" style="padding:4px 8px; font-size:10px;">
               <div class="mock-logo-sm">R</div>
-              <span>RecordIt</span>
-              <div style="margin-left:auto; display:flex; gap:4px;">
+              <span style="font-size:10px;">RecordIt</span>
+              <div style="margin-left:4px; font-size:9px; color:#666;">File · View · Docks</div>
+              <div style="margin-left:auto; display:flex; gap:4px; align-items:center;">
+                <span style="font-size:9px; color:#ef4444; font-weight:600;">● REC 0:12</span>
                 <div class="mock-dot"></div>
                 <div class="mock-dot"></div>
                 <div class="mock-dot red"></div>
               </div>
             </div>
-            <div class="mock-body">
-              <div class="mock-sidebar-sm">
-                <div class="mock-sb-item active"></div>
-                <div class="mock-sb-item"></div>
-                <div class="mock-sb-item"></div>
+            <!-- Preview area -->
+            <div style="flex:1; background:#060606; display:flex; align-items:center; justify-content:center; position:relative; min-height:60px;">
+              <span style="font-size:9px; color:#2a2a2a; letter-spacing:3px;">PREVIEW</span>
+              <div style="position:absolute; top:4px; left:6px; display:flex; gap:3px;">
+                <div style="background:#1e1e1e; padding:1px 5px; border-radius:3px; font-size:8px; color:#6366f1; border:1px solid #252525;">Scene 1</div>
+                <div style="background:#1e1e1e; padding:1px 5px; border-radius:3px; font-size:8px; color:#555; border:1px solid #252525;">Scene 2</div>
               </div>
-              <div class="mock-content">
-                <div class="mock-section-title">Screen Recorder</div>
-                <div class="mock-sources">
-                  <div class="mock-source sel">🖥️<br/><small>Screen 1</small></div>
-                  <div class="mock-source">🪟<br/><small>Window</small></div>
-                  <div class="mock-source">📺<br/><small>Screen 2</small></div>
+            </div>
+            <!-- Panels row -->
+            <div style="height:70px; background:#131313; border-top:1px solid #202020; display:flex; font-size:8px;">
+              <div style="flex:1; border-right:1px solid #202020;">
+                <div style="background:#1a1a1a; border-bottom:1px solid #202020; padding:0 5px; height:16px; display:flex; align-items:center; color:#6366f1; font-weight:700; letter-spacing:1px; font-size:7px;">SCENES</div>
+                <div style="padding:3px 4px; color:#f0f0f0; background:rgba(99,102,241,0.1); margin:3px; border-radius:3px;">📹 Scene 1</div>
+              </div>
+              <div style="flex:1; border-right:1px solid #202020;">
+                <div style="background:#1a1a1a; border-bottom:1px solid #202020; padding:0 5px; height:16px; display:flex; align-items:center; color:#6366f1; font-weight:700; letter-spacing:1px; font-size:7px;">SOURCES</div>
+                <div style="padding:3px 4px; color:#f0f0f0; margin:3px; border-radius:3px;">🖥️ Display 1</div>
+                <div style="padding:3px 4px; color:#666; margin:0 3px; border-radius:3px;">🎙 Mic</div>
+              </div>
+              <div style="flex:1.2; border-right:1px solid #202020;">
+                <div style="background:#1a1a1a; border-bottom:1px solid #202020; padding:0 5px; height:16px; display:flex; align-items:center; color:#6366f1; font-weight:700; letter-spacing:1px; font-size:7px;">AUDIO MIXER</div>
+                <div style="display:flex; gap:4px; padding:4px; height:46px;">
+                  <div style="display:flex; flex-direction:column; align-items:center; gap:1px;">
+                    <div style="width:6px; flex:1; background:#1e1e1e; border-radius:2px; position:relative; overflow:hidden;"><div style="position:absolute;bottom:0;width:100%;height:60%;background:linear-gradient(to top,#22c55e,#fbbf24 70%,#ef4444);"></div></div>
+                    <span style="color:#666;">D</span>
+                  </div>
+                  <div style="display:flex; flex-direction:column; align-items:center; gap:1px;">
+                    <div style="width:6px; flex:1; background:#1e1e1e; border-radius:2px; position:relative; overflow:hidden;"><div style="position:absolute;bottom:0;width:100%;height:35%;background:linear-gradient(to top,#22c55e,#fbbf24);"></div></div>
+                    <span style="color:#666;">M</span>
+                  </div>
                 </div>
-                <div class="mock-rec-btn">⏺ Start Recording</div>
+              </div>
+              <div style="flex:1;">
+                <div style="background:#1a1a1a; border-bottom:1px solid #202020; padding:0 5px; height:16px; display:flex; align-items:center; color:#6366f1; font-weight:700; letter-spacing:1px; font-size:7px;">CONTROLS</div>
+                <div style="padding:4px; display:flex; flex-direction:column; gap:3px;">
+                  <div style="background:#ef4444; border-radius:4px; padding:3px; color:#fff; font-weight:700; text-align:center; font-size:7px;">⏺ Stop REC</div>
+                  <div style="background:#1e1e1e; border-radius:4px; padding:3px; color:#9e9e9e; text-align:center; border:1px solid #252525; font-size:7px;">Settings</div>
+                </div>
               </div>
             </div>
           </div>
@@ -357,7 +431,8 @@
           <div class="footer-col">
             <h4>Platforms</h4>
             <a href="installation.html#winui">Windows (WinUI 3)</a>
-            <a href="installation.html#electron">Cross-Platform</a>
+            <a href="installation.html#avalonia">Avalonia (.NET)</a>
+            <a href="installation.html#electron">Electron</a>
             <a href="installation.html#msix">MSIX Package</a>
           </div>
           <div class="footer-col">
@@ -369,7 +444,7 @@
         </div>
       </div>
       <div class="footer-bottom">
-        <p>© 2024 Alvonia. Built with ❤️ using Alvonia UI, WinUI 3, and Electron.</p>
+        <p>© 2025 Alvonia · <a href="index.html">RecordIt</a> · Built with Alvonia UI, WinUI 3, Avalonia, and Electron</p>
       </div>
     </div>
   </footer>

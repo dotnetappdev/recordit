@@ -35,6 +35,8 @@
       </div>
       <div class="docs-nav-group">
         <div class="docs-nav-group-title">Features</div>
+        <a href="#studio-ui" class="docs-nav-link">Studio Interface</a>
+        <a href="#audio-mixer" class="docs-nav-link">Audio Mixer</a>
         <a href="#recording" class="docs-nav-link">Screen Recording</a>
         <a href="#whiteboard" class="docs-nav-link">Whiteboard</a>
         <a href="#library" class="docs-nav-link">Library</a>
@@ -88,32 +90,72 @@ npm run electron:dev</div>
 
       <div id="architecture">
         <h2 class="docs-h2">Architecture Overview</h2>
-        <p class="docs-p">The repository is organized into three main areas:</p>
+        <p class="docs-p">The repository contains three app implementations sharing one core library and design system:</p>
         <div class="code-block">
 recordit/
-├── alvonia-ui/          # Electron + React app (cross-platform)
-│   ├── electron/        # Main process + preload scripts
-│   ├── src/             # React UI (TypeScript)
-│   │   ├── components/  # Page and UI components
-│   │   └── styles/      # Alvonia UI CSS design system
-│   └── package.json
-├── winui/               # WinUI 3 C# app (Windows-native)
-│   ├── RecordIt/        # Main WinUI 3 project
-│   │   ├── Pages/       # XAML pages (Record, Whiteboard, Library, Settings)
-│   │   ├── Services/    # Screen recording service
-│   │   └── Styles/      # AlvoniaTheme.xaml (XAML design system)
-│   └── RecordIt.Package/ # MSIX packaging project
-└── docs/                # GitHub Pages static documentation site</div>
+├── winui/                    # WinUI 3 / .NET 10 (Windows-native)
+│   └── RecordIt/
+│       ├── Pages/            # RecordPage, WhiteboardPage, LibraryPage, SettingsPage
+│       ├── Services/
+│       │   └── AudioMeterService.cs   # Core Audio COM interop
+│       └── Styles/AlvoniaTheme.xaml   # XAML design tokens + styles
+├── RecordIt.Avalonia/        # Avalonia UI / .NET (cross-platform)
+│   └── ...                   # Mirrors WinUI pages and styles
+├── RecordIt.Core/            # Shared .NET core library
+│   ├── Services/
+│   │   └── ScreenRecordingService.cs  # ffmpeg backend
+│   └── Models/
+├── alvonia-ui/               # Electron + React (cross-platform)
+│   ├── src/components/       # Page components
+│   └── src/styles/global.css # Alvonia UI CSS tokens
+└── docs/                     # GitHub Pages static site</div>
+      </div>
+
+      <div id="studio-ui">
+        <h2 class="docs-h2">Studio Interface</h2>
+        <p class="docs-p">The recording page uses a 5-panel dockable layout inspired by professional broadcast software, with RecordIt's own Alvonia UI visual identity:</p>
+        <ul class="docs-ul">
+          <li><strong>Scenes panel</strong> — add/remove/reorder named scenes; quick-switch bar overlaid on the preview</li>
+          <li><strong>Sources panel</strong> — add capture sources (screen, window, camera, audio input, desktop audio) with icon-per-type list</li>
+          <li><strong>Audio Mixer panel</strong> — live VU meters + volume faders + mute per channel; + button to add any detected audio device</li>
+          <li><strong>Options panel</strong> — resolution, frame rate, camera overlay device, and mic device selectors</li>
+          <li><strong>Controls panel</strong> — Start/Stop Recording, Start/Stop Preview, Settings, Library buttons</li>
+        </ul>
+        <p class="docs-p">Panel visibility is toggled from <strong>View → Scenes / Sources / Audio Mixer / Transitions / Controls</strong>. All panels are present in both WinUI 3 and Avalonia versions.</p>
+      </div>
+
+      <div id="audio-mixer">
+        <h2 class="docs-h2">Audio Mixer</h2>
+        <p class="docs-p">The Audio Mixer provides real-time VU metering and per-channel volume control using Windows Core Audio:</p>
+        <div class="code-block">
+// AudioMeterService uses IAudioMeterInformation COM interface
+// Peak values polled at 50 ms via DispatcherTimer
+
+var dPeak = _audioMeter.GetDesktopPeak();   // IMMDeviceEnumerator → eRender endpoint
+var mPeak = _audioMeter.GetMicPeak();        // IMMDeviceEnumerator → eCapture endpoint</div>
+        <p class="docs-p">Each channel strip contains:</p>
+        <ul class="docs-ul">
+          <li>Channel name label with a colour-coded type dot (cyan = desktop, indigo = mic, violet = other)</li>
+          <li>Dual VU bars (L + R) with green → yellow → red gradient, height updated from peak value × container height</li>
+          <li>dB readout label (0.0 dB at full volume, −∞ dB at zero)</li>
+          <li>Horizontal volume slider (0.0 – 1.0, 0.01 step), value applied as <code>-af volume=X</code> in ffmpeg</li>
+          <li>Mute toggle button — zeros both VU bars when active</li>
+        </ul>
+        <p class="docs-p">Additional channels are added by clicking <strong>+</strong> in the Audio Mixer toolbar, which shows a dialog listing all detected dshow audio devices.</p>
       </div>
 
       <div id="recording">
         <h2 class="docs-h2">Screen Recording</h2>
-        <p class="docs-p">RecordIt uses platform-appropriate APIs for screen capture:</p>
+        <p class="docs-p">The WinUI 3 and Avalonia apps use <strong>ffmpeg</strong> via <code>ScreenRecordingService</code> in <code>RecordIt.Core</code>:</p>
         <ul class="docs-ul">
-          <li><strong>WinUI 3:</strong> Windows Graphics Capture API (<code>GraphicsCaptureItem</code>), Media Foundation encoding</li>
-          <li><strong>Electron:</strong> Chromium's <code>desktopCapturer</code> API, Web MediaRecorder API</li>
+          <li><strong>Video capture:</strong> <code>-f gdigrab -i desktop</code> (primary display) or all screens</li>
+          <li><strong>Desktop audio:</strong> <code>-f wasapi -loopback</code> for system audio without virtual audio cables</li>
+          <li><strong>Microphone:</strong> <code>-f dshow -i audio=&lt;device&gt;</code> with correct stream index tracking</li>
+          <li><strong>Webcam overlay:</strong> <code>-f dshow -i video=&lt;device&gt;</code> scaled to 320×180 and composited bottom-right</li>
+          <li><strong>Audio stream index fix:</strong> input index is now tracked dynamically — was previously hardcoded to 2 which caused silent recordings when no webcam was selected</li>
         </ul>
-        <p class="docs-p">Both support selecting screens, windows, or regions, recording audio from the microphone, and exporting to MP4 or WebM.</p>
+        <p class="docs-p">Device enumeration uses <code>ProbeDevicesAsync()</code> which parses ffmpeg's <code>-list_devices</code> output and returns separate <code>VideoDevices</code> and <code>AudioDevices</code> lists — previously all device names were mixed together.</p>
+        <p class="docs-p"><strong>Electron:</strong> Uses Chromium's <code>desktopCapturer</code> API with the Web MediaRecorder API for cross-platform capture.</p>
       </div>
 
       <div id="whiteboard">
@@ -192,6 +234,25 @@ npm run electron:build:win   # Builds NSIS + AppX</div>
 
       <div id="changelog">
         <h2 class="docs-h2">Changelog</h2>
+
+        <div class="feature-card" style="margin-bottom: 16px;">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+            <span class="tag tag-new">v1.1.0</span>
+            <span style="font-size: 13px; color: var(--text-3);">March 2025</span>
+          </div>
+          <ul class="docs-ul">
+            <li><strong>OBS-style studio UI</strong> — 5 dockable panels (Scenes, Sources, Audio Mixer, Options, Controls) with full menu bar</li>
+            <li><strong>Audio Mixer</strong> — real-time VU meters via Core Audio <code>IAudioMeterInformation</code>, per-channel volume faders and mute</li>
+            <li><strong>Recording fix</strong> — corrected audio stream index bug that caused silent recordings when no webcam was selected</li>
+            <li><strong>Device enumeration</strong> — separate video/audio device lists; Desktop Audio (WASAPI loopback) always offered; mic and webcam combos populated from real device names</li>
+            <li><strong>Add Source dialog</strong> — enumerates all capture types and all audio sources including desktop loopback and all detected microphones</li>
+            <li><strong>Scene management</strong> — add/remove/reorder scenes; quick-switch bar on the preview</li>
+            <li><strong>Avalonia parity</strong> — Avalonia UI app updated to match WinUI 3 studio layout and Alvonia UI design tokens</li>
+            <li><strong>RecordIt.Core</strong> — <code>DshowDeviceList</code> model separates video/audio devices; <code>ProbeDevicesAsync()</code> replaces flat device list</li>
+            <li>Updated README and GitHub Pages docs</li>
+          </ul>
+        </div>
+
         <div class="feature-card">
           <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
             <span class="tag tag-new">v1.0.0</span>

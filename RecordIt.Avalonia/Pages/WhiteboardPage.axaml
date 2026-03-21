@@ -1,0 +1,155 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="RecordIt.Avalonia.Pages.WhiteboardPage"
+             Background="{StaticResource BgBaseBrush}">
+
+  <Grid RowDefinitions="Auto,*,Auto">
+
+    <!-- Toolbar -->
+    <Border Grid.Row="0"
+            Background="{StaticResource BgSurfaceBrush}"
+            BorderBrush="{StaticResource BorderDefaultBrush}"
+            BorderThickness="0,0,0,1"
+            Padding="12,6">
+      <Grid ColumnDefinitions="Auto,*,Auto">
+
+        <!-- Drawing tools -->
+        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="4">
+          <TextBlock Text="TOOLS" Classes="section-label"
+                     VerticalAlignment="Center" Margin="0,0,8,0" />
+
+          <!-- Drawing group -->
+          <Button x:Name="PenBtn"     Classes="wb-tool" Content="✒" ToolTip.Tip="Pen"         Click="ToolBtn_Click" Tag="pen" />
+          <Button x:Name="HighlBtn"   Classes="wb-tool" Content="🖌" ToolTip.Tip="Highlighter"  Click="ToolBtn_Click" Tag="highlight" />
+          <Button x:Name="EraserBtn"  Classes="wb-tool" Content="⌫" ToolTip.Tip="Eraser"       Click="ToolBtn_Click" Tag="eraser" />
+
+          <!-- Separator -->
+          <Rectangle Width="1" Height="24" Fill="{StaticResource BorderDefaultBrush}" Margin="4,0" />
+
+          <!-- Shape group -->
+          <Button x:Name="LineBtn"    Classes="wb-tool" Content="╱" ToolTip.Tip="Line"         Click="ToolBtn_Click" Tag="line" />
+          <Button x:Name="RectBtn"    Classes="wb-tool" Content="▭" ToolTip.Tip="Rectangle"    Click="ToolBtn_Click" Tag="rect" />
+          <Button x:Name="EllipseBtn" Classes="wb-tool" Content="○" ToolTip.Tip="Ellipse"      Click="ToolBtn_Click" Tag="ellipse" />
+          <Button x:Name="TextBtn"    Classes="wb-tool" Content="T" ToolTip.Tip="Text"         Click="ToolBtn_Click" Tag="text" />
+          <Button x:Name="NoteBtn"    Classes="wb-tool" Content="📌" ToolTip.Tip="Sticky Note" Click="ToolBtn_Click" Tag="note" />
+
+          <!-- Separator -->
+          <Rectangle Width="1" Height="24" Fill="{StaticResource BorderDefaultBrush}" Margin="4,0" />
+
+          <!-- Color palette -->
+          <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+            <Border x:Name="Color1" Width="18" Height="18" CornerRadius="4" Background="#6366F1"
+                    PointerPressed="ColorSwatch_Click" Cursor="Hand" />
+            <Border x:Name="Color2" Width="18" Height="18" CornerRadius="4" Background="#EF4444"
+                    PointerPressed="ColorSwatch_Click" Cursor="Hand" />
+            <Border x:Name="Color3" Width="18" Height="18" CornerRadius="4" Background="#22C55E"
+                    PointerPressed="ColorSwatch_Click" Cursor="Hand" />
+            <Border x:Name="Color4" Width="18" Height="18" CornerRadius="4" Background="#F59E0B"
+                    PointerPressed="ColorSwatch_Click" Cursor="Hand" />
+            <Border x:Name="Color5" Width="18" Height="18" CornerRadius="4" Background="#06B6D4"
+                    PointerPressed="ColorSwatch_Click" Cursor="Hand" />
+            <Border x:Name="Color6" Width="18" Height="18" CornerRadius="4" Background="#F0F0F0"
+                    PointerPressed="ColorSwatch_Click" Cursor="Hand" />
+            <Border x:Name="Color7" Width="18" Height="18" CornerRadius="4" Background="#8B5CF6"
+                    PointerPressed="ColorSwatch_Click" Cursor="Hand" />
+            <Border x:Name="Color8" Width="18" Height="18" CornerRadius="4" Background="#EC4899"
+                    PointerPressed="ColorSwatch_Click" Cursor="Hand" />
+          </StackPanel>
+
+          <!-- Separator -->
+          <Rectangle Width="1" Height="24" Fill="{StaticResource BorderDefaultBrush}" Margin="4,0" />
+
+          <!-- Brush size -->
+          <TextBlock Text="Size:" FontSize="11"
+                     Foreground="{StaticResource TextTertiaryBrush}"
+                     VerticalAlignment="Center" />
+          <Slider x:Name="BrushSlider"
+                  Minimum="1" Maximum="32" Value="4"
+                  Width="80"
+                  VerticalAlignment="Center" />
+
+          <!-- Separator -->
+          <Rectangle Width="1" Height="24" Fill="{StaticResource BorderDefaultBrush}" Margin="4,0" />
+
+          <!-- Undo / Redo -->
+          <Button Classes="wb-tool" Content="↩" ToolTip.Tip="Undo (Ctrl+Z)"   Click="UndoBtn_Click" />
+          <Button Classes="wb-tool" Content="↪" ToolTip.Tip="Redo (Ctrl+Y)"   Click="RedoBtn_Click" />
+        </StackPanel>
+
+        <!-- Right: participants + actions -->
+        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+          <Border Background="{StaticResource BgElevatedBrush}"
+                  CornerRadius="16" Padding="10,4"
+                  BorderBrush="{StaticResource BorderDefaultBrush}"
+                  BorderThickness="1">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <TextBlock Text="👥" FontSize="13" VerticalAlignment="Center" />
+              <TextBlock x:Name="ParticipantsLabel"
+                         Text="1 participant"
+                         FontSize="12"
+                         Foreground="{StaticResource TextSecondaryBrush}"
+                         VerticalAlignment="Center" />
+            </StackPanel>
+          </Border>
+          <Button Classes="ghost" Content="🗑 Clear"   Click="ClearBtn_Click"  />
+          <Button Classes="primary" Content="💾 Save PNG" Click="SaveBtn_Click" />
+        </StackPanel>
+
+      </Grid>
+    </Border>
+
+    <!-- Canvas area -->
+    <Border Grid.Row="1" Background="#0A0A0A" ClipToBounds="True">
+      <Canvas x:Name="DrawingCanvas"
+              Background="Transparent"
+              PointerPressed="Canvas_PointerPressed"
+              PointerMoved="Canvas_PointerMoved"
+              PointerReleased="Canvas_PointerReleased">
+
+        <!-- Grid background dots (5-unit grid) -->
+        <Canvas.Background>
+          <DrawingBrush TileMode="Tile"
+                        DestinationRect="0,0,20,20"
+                        SourceRect="0,0,20,20">
+            <DrawingBrush.Drawing>
+              <GeometryDrawing Brush="#1A2A2A2A">
+                <GeometryDrawing.Geometry>
+                  <EllipseGeometry RadiusX="0.8" RadiusY="0.8" Center="0,0" />
+                </GeometryDrawing.Geometry>
+              </GeometryDrawing>
+            </DrawingBrush.Drawing>
+          </DrawingBrush>
+        </Canvas.Background>
+
+      </Canvas>
+    </Border>
+
+    <!-- Zoom controls -->
+    <Border Grid.Row="2"
+            Background="{StaticResource BgSurfaceBrush}"
+            BorderBrush="{StaticResource BorderDefaultBrush}"
+            BorderThickness="0,1,0,0"
+            Padding="16,6">
+      <Grid ColumnDefinitions="*,Auto,*">
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+          <Button Classes="ghost" Content="−" Width="28" Height="28" Padding="0"
+                  Click="ZoomOutBtn_Click" ToolTip.Tip="Zoom Out" />
+          <Border Background="{StaticResource BgElevatedBrush}"
+                  CornerRadius="6" Padding="10,4"
+                  BorderBrush="{StaticResource BorderDefaultBrush}"
+                  BorderThickness="1">
+            <TextBlock x:Name="ZoomLabel" Text="100%"
+                       FontSize="12" FontFamily="Consolas,monospace"
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       VerticalAlignment="Center" />
+          </Border>
+          <Button Classes="ghost" Content="+" Width="28" Height="28" Padding="0"
+                  Click="ZoomInBtn_Click" ToolTip.Tip="Zoom In" />
+          <Button Classes="ghost" Content="⊞ Fit" FontSize="11"
+                  Click="ZoomFitBtn_Click" ToolTip.Tip="Fit to window" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+  </Grid>
+</UserControl>
