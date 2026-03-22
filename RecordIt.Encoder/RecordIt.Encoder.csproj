@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>RecordIt.Encoder</AssemblyName>
+    <RootNamespace>RecordIt.Encoder</RootNamespace>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <!-- No reference to RecordIt.Core — encoder library is self-contained.
+       It receives ffmpegExe and writes back to RecordIt.Core.Services.VideoEncoderSettings
+       via the caller (app layer), keeping the dependency arrow one-way. -->
+</Project>

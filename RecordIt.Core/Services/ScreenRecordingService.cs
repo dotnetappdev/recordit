@@ -236,8 +236,8 @@ public class ScreenRecordingService
             finalArgs += " -an";
         }
 
-        // ── Video codec ──────────────────────────────────────────────────
-        finalArgs += $" -c:v libx264 -preset veryfast -crf 22 -r {fps} -pix_fmt yuv420p";
+        // ── Video codec (set in VideoEncoderSettings from the Encoder library) ─
+        finalArgs += $" {VideoEncoderSettings.BuildVideoArgs(fps)}";
 
         // Output
         finalArgs += $" \"{outputPath}\"";

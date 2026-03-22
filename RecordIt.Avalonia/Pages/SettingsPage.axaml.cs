@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
@@ -7,23 +8,30 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using RecordIt.Core.Services;
+using RecordIt.Encoder.Models;
+using RecordIt.Encoder.Services;
 
 namespace RecordIt.Avalonia.Pages;
 
 public partial class SettingsPage : UserControl
 {
     private readonly SettingsService _settings = new();
+    private IReadOnlyList<EncoderOption> _encoderOptions = [];
+    private bool _suppressEncoderEvents;
 
     public SettingsPage()
     {
         InitializeComponent();
 
-        // Output path default
         OutputPathBox.Text = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.MyVideos));
 
-        // FFmpeg path
         FfmpegPathBox.Text = _settings.Get("ffmpeg_path") ?? "";
+
+        var hwEnabled = _settings.Get("hardware_encoding");
+        HardwareEncodingToggle.IsChecked = hwEnabled == "1";
+
+        this.AttachedToVisualTree += async (_, _) => await LoadEncodersAsync();
     }
 
     private async void BrowseOutputBtn_Click(object? sender, RoutedEventArgs e)
@@ -36,11 +44,68 @@ public partial class SettingsPage : UserControl
 
     private void SaveBtn_Click(object? sender, RoutedEventArgs e)
     {
-        // Persist ffmpeg path (other settings can be added here)
         var path = FfmpegPathBox.Text?.Trim() ?? "";
         _settings.Set("ffmpeg_path", path);
         FfmpegLocator.Executable = path;
     }
+
+    // ─── Hardware encoding / GPU selector ────────────────────────────────────
+
+    private async Task LoadEncodersAsync()
+    {
+        EncoderStatusText.Text   = "Detecting encoders…";
+        EncoderCombo.IsEnabled   = false;
+
+        var svc = new HardwareEncoderService(FfmpegLocator.Executable);
+        _encoderOptions = await svc.GetEncoderOptionsAsync();
+
+        _suppressEncoderEvents = true;
+        EncoderCombo.Items.Clear();
+        foreach (var opt in _encoderOptions)
+            EncoderCombo.Items.Add(opt.DisplayName);
+
+        // Restore saved selection
+        var savedCodec = _settings.Get("video_encoder") ?? "libx264";
+        int savedIdx = 0;
+        for (int i = 0; i < _encoderOptions.Count; i++)
+        {
+            if (_encoderOptions[i].Id.Equals(savedCodec, StringComparison.OrdinalIgnoreCase))
+            { savedIdx = i; break; }
+        }
+        EncoderCombo.SelectedIndex = savedIdx;
+        _suppressEncoderEvents = false;
+
+        ApplySelectedEncoder();
+        EncoderStatusText.Text = HardwareEncoderService.Summarise(_encoderOptions);
+        EncoderCombo.IsEnabled = HardwareEncodingToggle.IsChecked == true;
+    }
+
+    private void ApplySelectedEncoder()
+    {
+        if (_suppressEncoderEvents) return;
+        if (EncoderCombo.SelectedIndex < 0 || EncoderCombo.SelectedIndex >= _encoderOptions.Count) return;
+
+        var opt = _encoderOptions[EncoderCombo.SelectedIndex];
+        var effective = HardwareEncodingToggle.IsChecked == true ? opt : EncoderOption.SoftwareFallback;
+
+        VideoEncoderSettings.Codec     = effective.FfmpegCodec;
+        VideoEncoderSettings.ExtraArgs = effective.ExtraArgs;
+        _settings.Set("video_encoder", effective.Id);
+    }
+
+    private void HardwareEncodingToggle_Changed(object? sender, RoutedEventArgs e)
+    {
+        bool on = HardwareEncodingToggle.IsChecked == true;
+        _settings.Set("hardware_encoding", on ? "1" : "0");
+        EncoderCombo.IsEnabled = on;
+        ApplySelectedEncoder();
+    }
+
+    private void EncoderCombo_SelectionChanged(object? sender, SelectionChangedEventArgs e) =>
+        ApplySelectedEncoder();
+
+    private async void RefreshEncoders_Click(object? sender, RoutedEventArgs e) =>
+        await LoadEncodersAsync();
 
     // ─── FFmpeg path handlers ─────────────────────────────────────────────────
 
@@ -59,15 +124,12 @@ public partial class SettingsPage : UserControl
 
         var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Select FFmpeg Executable",
+            Title         = "Select FFmpeg Executable",
             AllowMultiple = false,
             FileTypeFilter = new[]
             {
-                new FilePickerFileType("Executable")
-                {
-                    Patterns = new[] { "ffmpeg.exe", "ffmpeg" }
-                },
-                new FilePickerFileType("All files") { Patterns = new[] { "*" } }
+                new FilePickerFileType("Executable") { Patterns = new[] { "ffmpeg.exe", "ffmpeg" } },
+                new FilePickerFileType("All files")  { Patterns = new[] { "*" } }
             }
         });
 

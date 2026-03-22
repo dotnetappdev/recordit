@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecordIt.Core", "RecordIt.C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecordIt.Avalonia", "RecordIt.Avalonia\RecordIt.Avalonia.csproj", "{D4E5F6A7-8901-2345-BCDE-F34567890123}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecordIt.Encoder", "RecordIt.Encoder\RecordIt.Encoder.csproj", "{E5F6A7B8-9012-3456-CDEF-012345678901}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|AnyCPU = Debug|AnyCPU
@@ -40,6 +42,14 @@ Global
 		{D4E5F6A7-8901-2345-BCDE-F34567890123}.Release|AnyCPU.Build.0 = Release|AnyCPU
 		{D4E5F6A7-8901-2345-BCDE-F34567890123}.Release|x64.ActiveCfg = Release|Any CPU
 		{D4E5F6A7-8901-2345-BCDE-F34567890123}.Release|x64.Build.0 = Release|Any CPU
+		{E5F6A7B8-9012-3456-CDEF-012345678901}.Debug|AnyCPU.ActiveCfg = Debug|Any CPU
+		{E5F6A7B8-9012-3456-CDEF-012345678901}.Debug|AnyCPU.Build.0 = Debug|Any CPU
+		{E5F6A7B8-9012-3456-CDEF-012345678901}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E5F6A7B8-9012-3456-CDEF-012345678901}.Debug|x64.Build.0 = Debug|Any CPU
+		{E5F6A7B8-9012-3456-CDEF-012345678901}.Release|AnyCPU.ActiveCfg = Release|Any CPU
+		{E5F6A7B8-9012-3456-CDEF-012345678901}.Release|AnyCPU.Build.0 = Release|Any CPU
+		{E5F6A7B8-9012-3456-CDEF-012345678901}.Release|x64.ActiveCfg = Release|Any CPU
+		{E5F6A7B8-9012-3456-CDEF-012345678901}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RecordIt.Core\RecordIt.Core.csproj" />
+    <ProjectReference Include="..\RecordIt.Encoder\RecordIt.Encoder.csproj" />
   </ItemGroup>
 
   <!-- Bundle ffmpeg.exe alongside the app (placed by CI or manually for local dev) -->

@@ -135,6 +135,62 @@
           </StackPanel>
         </Border>
 
+        <!-- Encoding -->
+        <Border Classes="alvonia-card">
+          <StackPanel Spacing="16">
+            <TextBlock Text="Encoding"
+                       FontSize="16" FontWeight="SemiBold"
+                       Foreground="{StaticResource TextPrimaryBrush}" />
+
+            <Border Height="1" Background="{StaticResource BorderDefaultBrush}" />
+
+            <!-- Hardware encoding toggle -->
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel Grid.Column="0" Spacing="2">
+                <TextBlock Text="Hardware Encoding" FontSize="13"
+                           Foreground="{StaticResource TextPrimaryBrush}" />
+                <TextBlock Text="Use GPU encoder (NVENC / AMF / QSV) instead of CPU libx264"
+                           FontSize="12" TextWrapping="Wrap"
+                           Foreground="{StaticResource TextTertiaryBrush}" />
+              </StackPanel>
+              <ToggleSwitch x:Name="HardwareEncodingToggle"
+                            Grid.Column="1"
+                            IsChecked="False"
+                            OnContent="" OffContent=""
+                            IsCheckedChanged="HardwareEncodingToggle_Changed" />
+            </Grid>
+
+            <Border Height="1" Background="{StaticResource BorderDefaultBrush}" />
+
+            <!-- GPU / Encoder dropdown -->
+            <StackPanel Spacing="8">
+              <Grid ColumnDefinitions="*,Auto,Auto">
+                <StackPanel Grid.Column="0" Spacing="2">
+                  <TextBlock Text="GPU / Encoder" FontSize="13"
+                             Foreground="{StaticResource TextPrimaryBrush}" />
+                  <TextBlock x:Name="EncoderStatusText"
+                             Text="Detecting encoders…"
+                             FontSize="12"
+                             Foreground="{StaticResource TextTertiaryBrush}" />
+                </StackPanel>
+                <Button Grid.Column="2" Margin="8,0,0,0"
+                        Classes="ghost" Content="Refresh"
+                        Padding="12,6"
+                        Click="RefreshEncoders_Click" />
+              </Grid>
+
+              <ComboBox x:Name="EncoderCombo"
+                        IsEnabled="False"
+                        HorizontalAlignment="Stretch"
+                        SelectionChanged="EncoderCombo_SelectionChanged"
+                        Background="{StaticResource BgElevatedBrush}"
+                        BorderBrush="{StaticResource BorderDefaultBrush}"
+                        Foreground="{StaticResource TextPrimaryBrush}" />
+            </StackPanel>
+
+          </StackPanel>
+        </Border>
+
         <!-- External Tools -->
         <Border Classes="alvonia-card">
           <StackPanel Spacing="16">
