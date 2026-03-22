@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\sasproducts\\recordit2\\RecordIt.Avalonia\\RecordIt.Avalonia.csproj": {}
+    "d:\\sasproducts\\recordit2\\RecordIt.Avalonia\\RecordIt.Avalonia.csproj": {}
   },
   "projects": {
-    "D:\\sasproducts\\recordit2\\RecordIt.Avalonia\\RecordIt.Avalonia.csproj": {
+    "d:\\sasproducts\\recordit2\\RecordIt.Avalonia\\RecordIt.Avalonia.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\sasproducts\\recordit2\\RecordIt.Avalonia\\RecordIt.Avalonia.csproj",
+        "projectUniqueName": "d:\\sasproducts\\recordit2\\RecordIt.Avalonia\\RecordIt.Avalonia.csproj",
         "projectName": "RecordIt.Avalonia",
-        "projectPath": "D:\\sasproducts\\recordit2\\RecordIt.Avalonia\\RecordIt.Avalonia.csproj",
+        "projectPath": "d:\\sasproducts\\recordit2\\RecordIt.Avalonia\\RecordIt.Avalonia.csproj",
         "packagesPath": "C:\\Users\\David\\.nuget\\packages\\",
-        "outputPath": "D:\\sasproducts\\recordit2\\RecordIt.Avalonia\\obj\\",
+        "outputPath": "d:\\sasproducts\\recordit2\\RecordIt.Avalonia\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
@@ -35,8 +35,8 @@
           "net10.0-windows10.0.19041": {
             "targetAlias": "net10.0-windows10.0.19041.0",
             "projectReferences": {
-              "D:\\sasproducts\\recordit2\\RecordIt.Core\\RecordIt.Core.csproj": {
-                "projectPath": "D:\\sasproducts\\recordit2\\RecordIt.Core\\RecordIt.Core.csproj"
+              "d:\\sasproducts\\recordit2\\RecordIt.Core\\RecordIt.Core.csproj": {
+                "projectPath": "d:\\sasproducts\\recordit2\\RecordIt.Core\\RecordIt.Core.csproj"
               },
               "D:\\sasproducts\\recordit2\\RecordIt.Encoder\\RecordIt.Encoder.csproj": {
                 "projectPath": "D:\\sasproducts\\recordit2\\RecordIt.Encoder\\RecordIt.Encoder.csproj"
@@ -380,14 +380,14 @@
         }
       }
     },
-    "D:\\sasproducts\\recordit2\\RecordIt.Core\\RecordIt.Core.csproj": {
+    "d:\\sasproducts\\recordit2\\RecordIt.Core\\RecordIt.Core.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\sasproducts\\recordit2\\RecordIt.Core\\RecordIt.Core.csproj",
+        "projectUniqueName": "d:\\sasproducts\\recordit2\\RecordIt.Core\\RecordIt.Core.csproj",
         "projectName": "RecordIt.Core",
-        "projectPath": "D:\\sasproducts\\recordit2\\RecordIt.Core\\RecordIt.Core.csproj",
+        "projectPath": "d:\\sasproducts\\recordit2\\RecordIt.Core\\RecordIt.Core.csproj",
         "packagesPath": "C:\\Users\\David\\.nuget\\packages\\",
-        "outputPath": "D:\\sasproducts\\recordit2\\RecordIt.Core\\obj\\",
+        "outputPath": "d:\\sasproducts\\recordit2\\RecordIt.Core\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",

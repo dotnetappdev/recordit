@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "X0wcr2Y9tr0=",
+  "dgSpecHash": "f0GZ+XMpHTU=",
   "success": true,
-  "projectFilePath": "D:\\sasproducts\\recordit2\\RecordIt.Avalonia\\RecordIt.Avalonia.csproj",
+  "projectFilePath": "d:\\sasproducts\\recordit2\\RecordIt.Avalonia\\RecordIt.Avalonia.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\David\\.nuget\\packages\\avalonia\\11.0.0\\avalonia.11.0.0.nupkg.sha512",
     "C:\\Users\\David\\.nuget\\packages\\avalonia.angle.windows.natives\\2.1.0.2023020321\\avalonia.angle.windows.natives.2.1.0.2023020321.nupkg.sha512",
@@ -48,9 +48,9 @@
       "code": "NU1903",
       "level": "Warning",
       "message": "Package 'SkiaSharp' 2.88.3 has a known high severity vulnerability, https://github.com/advisories/GHSA-j7hp-h8jx-5ppr",
-      "projectPath": "D:\\sasproducts\\recordit2\\RecordIt.Avalonia\\RecordIt.Avalonia.csproj",
+      "projectPath": "d:\\sasproducts\\recordit2\\RecordIt.Avalonia\\RecordIt.Avalonia.csproj",
       "warningLevel": 1,
-      "filePath": "D:\\sasproducts\\recordit2\\RecordIt.Avalonia\\RecordIt.Avalonia.csproj",
+      "filePath": "d:\\sasproducts\\recordit2\\RecordIt.Avalonia\\RecordIt.Avalonia.csproj",
       "libraryId": "SkiaSharp",
       "targetGraphs": [
         "net10.0-windows10.0.19041"

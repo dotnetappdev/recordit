@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using Avalonia.Media;
 using Avalonia.Threading;
 using RecordIt.Avalonia.Pages;
 
@@ -51,8 +52,8 @@ public partial class MainWindow : Window
         if (btn.Content is TextBlock tb)
         {
             tb.Foreground = active
-                ? new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#6366F1"))
-                : new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#666666"));
+                ? new SolidColorBrush(Color.Parse("#6366F1"))
+                : new SolidColorBrush(Color.Parse("#666666"));
         }
     }
 
