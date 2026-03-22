@@ -123,6 +123,50 @@
                     </Border>
                 </StackPanel>
 
+                <!-- Encoding -->
+                <StackPanel Spacing="12">
+                    <TextBlock Text="ENCODING" Style="{StaticResource SectionTitleStyle}" />
+                    <Border Style="{StaticResource AlvoniaCardStyle}">
+                        <StackPanel Spacing="0">
+
+                            <!-- Hardware encoding toggle -->
+                            <Grid Padding="0,4" Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Hardware Encoding" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Use GPU encoder (NVENC / AMF / QSV) instead of CPU libx264"
+                                               FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <ToggleSwitch x:Name="HardwareEncodingToggle" Grid.Column="1"
+                                              IsOn="False" Style="{StaticResource AlvoniaToggleSwitchStyle}"
+                                              Toggled="HardwareEncodingToggle_Toggled" />
+                            </Grid>
+
+                            <Border BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,1,0,0" />
+
+                            <!-- GPU / Encoder selector -->
+                            <Grid Padding="0,12" Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="GPU / Encoder" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock x:Name="EncoderStatusText"
+                                               Text="Detecting encoders…"
+                                               FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <ComboBox x:Name="EncoderCombo" Grid.Column="1"
+                                          Style="{StaticResource AlvoniaComboBoxStyle}"
+                                          Width="280" IsEnabled="False"
+                                          SelectionChanged="EncoderCombo_SelectionChanged"
+                                          Margin="12,0,0,0" />
+                                <Button x:Name="RefreshEncodersBtn" Grid.Column="2"
+                                        Content="Refresh" Margin="8,0,0,0"
+                                        Click="RefreshEncoders_Click" />
+                            </Grid>
+
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
                 <!-- System -->
                 <StackPanel Spacing="12">
                     <TextBlock Text="SYSTEM" Style="{StaticResource SectionTitleStyle}" />
@@ -135,15 +179,6 @@
                                     <TextBlock Text="Show notifications when recording completes" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
                                 </StackPanel>
                                 <ToggleSwitch x:Name="NotificationsToggle" Grid.Column="1" IsOn="True" Style="{StaticResource AlvoniaToggleSwitchStyle}" />
-                            </Grid>
-                            <Border BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,1,0,0" />
-                            <Grid Padding="0,12" Margin="0,0,0,12">
-                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                <StackPanel Spacing="2">
-                                    <TextBlock Text="Hardware Acceleration" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                    <TextBlock Text="Use GPU for encoding when available" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                </StackPanel>
-                                <ToggleSwitch x:Name="HardwareAccelToggle" Grid.Column="1" IsOn="True" Style="{StaticResource AlvoniaToggleSwitchStyle}" />
                             </Grid>
                             <Border BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,1,0,0" />
                             <Grid Padding="0,12,0,4">

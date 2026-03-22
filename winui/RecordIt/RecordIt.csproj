@@ -35,6 +35,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\RecordIt.Core\RecordIt.Core.csproj" />
+    <ProjectReference Include="..\..\RecordIt.Encoder\RecordIt.Encoder.csproj" />
   </ItemGroup>
 
   <ItemGroup>
