@@ -10,5 +10,9 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.0" />
+    <!-- FFmpeg wrapper for multi-platform RTMP streaming -->
+    <PackageReference Include="FFMpegCore" Version="5.1.0" />
+    <!-- JSON serialisation for streaming config -->
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
   </ItemGroup>
 </Project>

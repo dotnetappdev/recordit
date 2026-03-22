@@ -1,6 +1,19 @@
-import React, { useState } from 'react';
-import { Sun, Moon, Monitor, Folder, Bell, Keyboard, Info, Globe, Shield } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Sun, Moon, Monitor, Folder, Bell, Keyboard, Info, Globe, Shield, Radio, Eye, EyeOff, Save, Check } from 'lucide-react';
 import { Theme } from '../App';
+
+const isElectron = !!(window as any).electronAPI;
+
+// Platform stream key config
+interface StreamKeys {
+  twitch: string;
+  youtube: string;
+  youtube_shorts: string;
+  kick: string;
+  tiktok: string;
+  custom_rtmp_url: string;
+  custom_rtmp_key: string;
+}
 
 interface SettingsPageProps {
   theme: Theme;
@@ -9,6 +22,37 @@ interface SettingsPageProps {
 
 const SettingsPage: React.FC<SettingsPageProps> = ({ theme, onToggleTheme }) => {
   const [notifications, setNotifications] = useState(true);
+
+  // Stream keys state
+  const [streamKeys, setStreamKeys] = useState<StreamKeys>({
+    twitch: '', youtube: '', youtube_shorts: '', kick: '', tiktok: '',
+    custom_rtmp_url: '', custom_rtmp_key: '',
+  });
+  const [keyVisibility, setKeyVisibility] = useState<Record<string, boolean>>({});
+  const [streamKeysSaved, setStreamKeysSaved] = useState(false);
+
+  // Load keys on mount
+  useEffect(() => {
+    if (isElectron) {
+      (window as any).electronAPI.getStreamSettings().then((keys: StreamKeys) => {
+        if (keys) setStreamKeys(keys);
+      });
+    }
+  }, []);
+
+  const saveStreamKeys = async () => {
+    if (isElectron) {
+      await (window as any).electronAPI.saveStreamSettings(streamKeys);
+    }
+    setStreamKeysSaved(true);
+    setTimeout(() => setStreamKeysSaved(false), 2000);
+  };
+
+  const setKey = (field: keyof StreamKeys, value: string) =>
+    setStreamKeys(prev => ({ ...prev, [field]: value }));
+
+  const toggleVisibility = (field: string) =>
+    setKeyVisibility(prev => ({ ...prev, [field]: !prev[field] }));
   const [autoSave, setAutoSave] = useState(true);
   const [hardwareAccel, setHardwareAccel] = useState(true);
   const [startMinimized, setStartMinimized] = useState(false);
@@ -223,6 +267,92 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ theme, onToggleTheme }) => 
                 }}>{item.shortcut}</kbd>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Streaming */}
+        <div className="settings-section">
+          <div className="settings-section-title">
+            <Radio size={12} style={{ display: 'inline', marginRight: 4 }} />
+            Streaming — API Keys &amp; Stream Keys
+          </div>
+          <div className="card">
+            <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-tertiary)', marginBottom: 16, lineHeight: 1.5 }}>
+              Keys are stored locally in your app data. Never share them.
+            </p>
+
+            {([
+              { id: 'twitch',         label: 'Twitch',         hint: 'Dashboard → Creator Dashboard → Stream → Stream key' },
+              { id: 'youtube',        label: 'YouTube (Full)',  hint: 'YouTube Studio → Go Live → Stream key' },
+              { id: 'youtube_shorts', label: 'YouTube Shorts', hint: 'Same stream key as YouTube — vertical 9:16 output' },
+              { id: 'kick',           label: 'Kick',           hint: 'Kick dashboard → Channel → Stream key' },
+              { id: 'tiktok',         label: 'TikTok LIVE',    hint: 'TikTok LIVE Studio → Stream key' },
+            ] as { id: keyof StreamKeys; label: string; hint: string }[]).map(p => (
+              <div key={p.id} style={{ marginBottom: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <div>
+                    <div className="settings-row-label">{p.label}</div>
+                    <div className="settings-row-description">{p.hint}</div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                  <input
+                    type={keyVisibility[p.id] ? 'text' : 'password'}
+                    className="form-input"
+                    placeholder="Paste stream key…"
+                    value={streamKeys[p.id]}
+                    onChange={e => setKey(p.id, e.target.value)}
+                    style={{ flex: 1, fontFamily: streamKeys[p.id] ? 'monospace' : undefined, fontSize: 13 }}
+                  />
+                  <button
+                    className="btn btn-ghost"
+                    style={{ padding: '6px 8px' }}
+                    onClick={() => toggleVisibility(p.id)}
+                    title={keyVisibility[p.id] ? 'Hide' : 'Show'}
+                  >
+                    {keyVisibility[p.id] ? <EyeOff size={14} /> : <Eye size={14} />}
+                  </button>
+                </div>
+              </div>
+            ))}
+
+            {/* Custom RTMP */}
+            <div style={{ borderTop: '1px solid var(--color-border-default)', paddingTop: 12, marginTop: 4 }}>
+              <div className="settings-row-label" style={{ marginBottom: 8 }}>Custom RTMP</div>
+              <div className="form-group" style={{ marginBottom: 8 }}>
+                <label className="form-label">Server URL</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="rtmp://your-server/live"
+                  value={streamKeys.custom_rtmp_url}
+                  onChange={e => setKey('custom_rtmp_url', e.target.value)}
+                  style={{ fontFamily: 'monospace', fontSize: 13 }}
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Stream Key</label>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <input
+                    type={keyVisibility['custom_rtmp_key'] ? 'text' : 'password'}
+                    className="form-input"
+                    placeholder="Stream key…"
+                    value={streamKeys.custom_rtmp_key}
+                    onChange={e => setKey('custom_rtmp_key', e.target.value)}
+                    style={{ flex: 1, fontFamily: 'monospace', fontSize: 13 }}
+                  />
+                  <button className="btn btn-ghost" style={{ padding: '6px 8px' }} onClick={() => toggleVisibility('custom_rtmp_key')}>
+                    {keyVisibility['custom_rtmp_key'] ? <EyeOff size={14} /> : <Eye size={14} />}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end' }}>
+              <button className="btn btn-primary" onClick={saveStreamKeys}>
+                {streamKeysSaved ? <><Check size={13} /> Saved</> : <><Save size={13} /> Save Keys</>}
+              </button>
+            </div>
           </div>
         </div>
 

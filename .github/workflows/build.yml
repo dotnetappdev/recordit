@@ -63,23 +63,43 @@ jobs:
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v2
 
-      # Download FFmpeg essentials build and place ffmpeg.exe in tools/ffmpeg/
-      # so the csproj Content item picks it up during the build.
-      - name: Download & unpack FFmpeg (Windows x64)
+      # Download FFmpeg shared-lib build and place ffmpeg.exe + core DLLs in tools/ffmpeg/
+      # The shared-lib build ships avcodec-*.dll, avformat-*.dll, avutil-*.dll etc.
+      # alongside the executable – no separate FFmpeg installer needed at runtime.
+      - name: Download & unpack FFmpeg (Windows x64, shared-lib)
         shell: pwsh
         run: |
           $ver  = "7.1"
-          $url  = "https://github.com/GyanD/codexffmpeg/releases/download/$ver/ffmpeg-$ver-essentials_build.zip"
+          # Use the shared build so that avcodec-*.dll, avformat-*.dll, avutil-*.dll
+          # are present alongside ffmpeg.exe and can be bundled inside the app package.
+          $url  = "https://github.com/GyanD/codexffmpeg/releases/download/$ver/ffmpeg-$ver-full_build-shared.zip"
           $zip  = "$env:RUNNER_TEMP\ffmpeg.zip"
-          Write-Host "Downloading FFmpeg $ver from $url"
+          Write-Host "Downloading FFmpeg $ver shared build from $url"
           Invoke-WebRequest -Uri $url -OutFile $zip -UseBasicParsing
           Expand-Archive -Path $zip -DestinationPath "$env:RUNNER_TEMP\ffmpeg_unpack" -Force
-          $exePath = Get-ChildItem "$env:RUNNER_TEMP\ffmpeg_unpack" -Recurse -Filter "ffmpeg.exe" `
-                     | Where-Object { $_.DirectoryName -like "*bin*" } `
-                     | Select-Object -First 1 -ExpandProperty FullName
+
+          $binDir = Get-ChildItem "$env:RUNNER_TEMP\ffmpeg_unpack" -Recurse -Filter "ffmpeg.exe" `
+                    | Where-Object { $_.DirectoryName -like "*bin*" } `
+                    | Select-Object -First 1 -ExpandProperty DirectoryName
+
           New-Item -ItemType Directory -Force -Path "tools\ffmpeg" | Out-Null
-          Copy-Item $exePath "tools\ffmpeg\ffmpeg.exe" -Force
+
+          # Copy ffmpeg.exe
+          Copy-Item "$binDir\ffmpeg.exe" "tools\ffmpeg\ffmpeg.exe" -Force
           Write-Host "Placed: tools\ffmpeg\ffmpeg.exe"
+
+          # Copy core shared DLLs: avcodec, avformat, avutil, avdevice, avfilter, swscale, swresample
+          $dllPatterns = @("avcodec-*.dll","avformat-*.dll","avutil-*.dll",
+                           "avdevice-*.dll","avfilter-*.dll","swscale-*.dll","swresample-*.dll")
+          foreach ($pat in $dllPatterns) {
+            Get-ChildItem "$binDir" -Filter $pat | ForEach-Object {
+              Copy-Item $_.FullName "tools\ffmpeg\$($_.Name)" -Force
+              Write-Host "Placed DLL: tools\ffmpeg\$($_.Name)"
+            }
+          }
+
+          $copied = (Get-ChildItem "tools\ffmpeg" | Measure-Object).Count
+          Write-Host "Total files in tools\ffmpeg: $copied"
 
       - name: Restore NuGet packages
         working-directory: winui
@@ -112,22 +132,33 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      # Same FFmpeg download as the WinUI job
-      - name: Download & unpack FFmpeg (Windows x64)
+      # Same FFmpeg shared-lib download as the WinUI job – bundles avcodec, avformat, avutil DLLs
+      - name: Download & unpack FFmpeg (Windows x64, shared-lib)
         shell: pwsh
         run: |
           $ver  = "7.1"
-          $url  = "https://github.com/GyanD/codexffmpeg/releases/download/$ver/ffmpeg-$ver-essentials_build.zip"
+          $url  = "https://github.com/GyanD/codexffmpeg/releases/download/$ver/ffmpeg-$ver-full_build-shared.zip"
           $zip  = "$env:RUNNER_TEMP\ffmpeg.zip"
-          Write-Host "Downloading FFmpeg $ver from $url"
+          Write-Host "Downloading FFmpeg $ver shared build from $url"
           Invoke-WebRequest -Uri $url -OutFile $zip -UseBasicParsing
           Expand-Archive -Path $zip -DestinationPath "$env:RUNNER_TEMP\ffmpeg_unpack" -Force
-          $exePath = Get-ChildItem "$env:RUNNER_TEMP\ffmpeg_unpack" -Recurse -Filter "ffmpeg.exe" `
-                     | Where-Object { $_.DirectoryName -like "*bin*" } `
-                     | Select-Object -First 1 -ExpandProperty FullName
+
+          $binDir = Get-ChildItem "$env:RUNNER_TEMP\ffmpeg_unpack" -Recurse -Filter "ffmpeg.exe" `
+                    | Where-Object { $_.DirectoryName -like "*bin*" } `
+                    | Select-Object -First 1 -ExpandProperty DirectoryName
+
           New-Item -ItemType Directory -Force -Path "tools\ffmpeg" | Out-Null
-          Copy-Item $exePath "tools\ffmpeg\ffmpeg.exe" -Force
+          Copy-Item "$binDir\ffmpeg.exe" "tools\ffmpeg\ffmpeg.exe" -Force
           Write-Host "Placed: tools\ffmpeg\ffmpeg.exe"
+
+          $dllPatterns = @("avcodec-*.dll","avformat-*.dll","avutil-*.dll",
+                           "avdevice-*.dll","avfilter-*.dll","swscale-*.dll","swresample-*.dll")
+          foreach ($pat in $dllPatterns) {
+            Get-ChildItem "$binDir" -Filter $pat | ForEach-Object {
+              Copy-Item $_.FullName "tools\ffmpeg\$($_.Name)" -Force
+              Write-Host "Placed DLL: tools\ffmpeg\$($_.Name)"
+            }
+          }
 
       - name: Restore & publish Avalonia (self-contained, win-x64)
         run: |
