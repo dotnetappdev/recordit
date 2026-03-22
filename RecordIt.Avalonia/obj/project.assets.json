@@ -774,6 +774,16 @@
         "runtime": {
           "bin/placeholder/RecordIt.Core.dll": {}
         }
+      },
+      "RecordIt.Encoder/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "compile": {
+          "bin/placeholder/RecordIt.Encoder.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/RecordIt.Encoder.dll": {}
+        }
       }
     }
   },
@@ -1909,6 +1919,11 @@
       "type": "project",
       "path": "../RecordIt.Core/RecordIt.Core.csproj",
       "msbuildProject": "../RecordIt.Core/RecordIt.Core.csproj"
+    },
+    "RecordIt.Encoder/1.0.0": {
+      "type": "project",
+      "path": "../RecordIt.Encoder/RecordIt.Encoder.csproj",
+      "msbuildProject": "../RecordIt.Encoder/RecordIt.Encoder.csproj"
     }
   },
   "projectFileDependencyGroups": {
@@ -1917,7 +1932,8 @@
       "Avalonia.Desktop >= 11.0.0",
       "Avalonia.ReactiveUI >= 11.0.0",
       "Avalonia.Themes.Fluent >= 11.0.0",
-      "RecordIt.Core >= 1.0.0"
+      "RecordIt.Core >= 1.0.0",
+      "RecordIt.Encoder >= 1.0.0"
     ]
   },
   "packageFolders": {
@@ -1928,11 +1944,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\sasproducts\\recordit\\RecordIt.Avalonia\\RecordIt.Avalonia.csproj",
+      "projectUniqueName": "D:\\sasproducts\\recordit2\\RecordIt.Avalonia\\RecordIt.Avalonia.csproj",
       "projectName": "RecordIt.Avalonia",
-      "projectPath": "D:\\sasproducts\\recordit\\RecordIt.Avalonia\\RecordIt.Avalonia.csproj",
+      "projectPath": "D:\\sasproducts\\recordit2\\RecordIt.Avalonia\\RecordIt.Avalonia.csproj",
       "packagesPath": "C:\\Users\\David\\.nuget\\packages\\",
-      "outputPath": "D:\\sasproducts\\recordit\\RecordIt.Avalonia\\obj\\",
+      "outputPath": "D:\\sasproducts\\recordit2\\RecordIt.Avalonia\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
@@ -1956,8 +1972,11 @@
         "net10.0-windows10.0.19041": {
           "targetAlias": "net10.0-windows10.0.19041.0",
           "projectReferences": {
-            "D:\\sasproducts\\recordit\\RecordIt.Core\\RecordIt.Core.csproj": {
-              "projectPath": "D:\\sasproducts\\recordit\\RecordIt.Core\\RecordIt.Core.csproj"
+            "D:\\sasproducts\\recordit2\\RecordIt.Core\\RecordIt.Core.csproj": {
+              "projectPath": "D:\\sasproducts\\recordit2\\RecordIt.Core\\RecordIt.Core.csproj"
+            },
+            "D:\\sasproducts\\recordit2\\RecordIt.Encoder\\RecordIt.Encoder.csproj": {
+              "projectPath": "D:\\sasproducts\\recordit2\\RecordIt.Encoder\\RecordIt.Encoder.csproj"
             }
           }
         }
@@ -2306,7 +2325,7 @@
       "message": "Package 'SkiaSharp' 2.88.3 has a known high severity vulnerability, https://github.com/advisories/GHSA-j7hp-h8jx-5ppr",
       "libraryId": "SkiaSharp",
       "targetGraphs": [
-        "net10.0-windows10.0.19041.0"
+        "net10.0-windows10.0.19041"
       ]
     }
   ]

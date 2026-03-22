@@ -13,6 +13,7 @@
           "Microsoft.Graphics.Win2D": "1.2.0",
           "Microsoft.WindowsAppSDK": "1.5.240627000",
           "RecordIt.Core": "1.0.0",
+          "RecordIt.Encoder": "1.0.0",
           "runtimepack.Microsoft.Windows.SDK.NET.Ref": "10.0.19041.57"
         },
         "runtime": {
@@ -476,6 +477,14 @@
             "fileVersion": "1.0.0.0"
           }
         }
+      },
+      "RecordIt.Encoder/1.0.0": {
+        "runtime": {
+          "RecordIt.Encoder.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
       }
     }
   },
@@ -645,6 +654,11 @@
       "hashPath": "sqlitepclraw.provider.e_sqlite3.2.1.6.nupkg.sha512"
     },
     "RecordIt.Core/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "RecordIt.Encoder/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

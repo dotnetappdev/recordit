@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "nudR6HT0U4Q=",
+  "dgSpecHash": "gPPVJP5FsfE=",
   "success": true,
-  "projectFilePath": "D:\\sasproducts\\recordit\\winui\\RecordIt\\RecordIt.csproj",
+  "projectFilePath": "D:\\sasproducts\\recordit2\\winui\\RecordIt\\RecordIt.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\David\\.nuget\\packages\\colorcode.core\\2.0.13\\colorcode.core.2.0.13.nupkg.sha512",
     "C:\\Users\\David\\.nuget\\packages\\colorcode.winui\\2.0.13\\colorcode.winui.2.0.13.nupkg.sha512",

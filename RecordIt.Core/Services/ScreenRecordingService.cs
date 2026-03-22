@@ -2,10 +2,44 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace RecordIt.Core.Services;
+
+// ── Win32 P/Invoke for monitor + window enumeration ──────────────────────────
+
+internal static class Win32Capture
+{
+    [StructLayout(LayoutKind.Sequential)]
+    public struct RECT { public int Left, Top, Right, Bottom; }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+    public struct MONITORINFOEX
+    {
+        public int  cbSize;
+        public RECT rcMonitor;
+        public RECT rcWork;
+        public uint dwFlags;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+        public string szDevice;
+    }
+
+    public delegate bool MonitorEnumProc(IntPtr hMonitor, IntPtr hdcMonitor, ref RECT lprcMonitor, IntPtr dwData);
+    public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
+    [DllImport("user32.dll")] public static extern bool EnumDisplayMonitors(IntPtr hdc, IntPtr lprcClip, MonitorEnumProc lpfnEnum, IntPtr dwData);
+    [DllImport("user32.dll", CharSet = CharSet.Auto)] public static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFOEX lpmi);
+    [DllImport("user32.dll")] public static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+    [DllImport("user32.dll")] public static extern bool IsWindowVisible(IntPtr hWnd);
+    [DllImport("user32.dll", CharSet = CharSet.Auto)] public static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
+    [DllImport("user32.dll")] public static extern int GetWindowTextLength(IntPtr hWnd);
+    [DllImport("user32.dll")] public static extern IntPtr GetShellWindow();
+
+    public const uint MONITORINFOF_PRIMARY = 1;
+}
 
 public class CaptureSource
 {
@@ -42,14 +76,76 @@ public class ScreenRecordingService
 
     // ── Source enumeration ────────────────────────────────────────────────
 
+    /// <summary>
+    /// Enumerates real monitors via Win32 EnumDisplayMonitors, then adds
+    /// all visible top-level windows via EnumWindows, plus a "Custom Region" entry.
+    /// </summary>
     public Task<IEnumerable<CaptureSource>> GetCaptureSources()
     {
-        var sources = new List<CaptureSource>
+        var sources = new List<CaptureSource>();
+
+        // ── Monitors ─────────────────────────────────────────────────────
+        int monitorIndex = 0;
+        try
         {
-            new() { Id = "screen:primary", Name = "Primary Display",    Type = CaptureSourceType.Screen },
-            new() { Id = "screen:all",     Name = "All Displays",        Type = CaptureSourceType.Screen },
-            new() { Id = "screen:region",  Name = "Custom Region",       Type = CaptureSourceType.Screen },
-        };
+            Win32Capture.EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, (hMon, _, ref _, _) =>
+            {
+                var info = new Win32Capture.MONITORINFOEX { cbSize = Marshal.SizeOf<Win32Capture.MONITORINFOEX>() };
+                if (!Win32Capture.GetMonitorInfo(hMon, ref info)) return true;
+
+                bool isPrimary = (info.dwFlags & Win32Capture.MONITORINFOF_PRIMARY) != 0;
+                int  w  = info.rcMonitor.Right  - info.rcMonitor.Left;
+                int  h  = info.rcMonitor.Bottom - info.rcMonitor.Top;
+                var  id = isPrimary ? "screen:primary" : $"screen:monitor{monitorIndex}";
+                var  name = isPrimary
+                    ? $"Primary Display ({w}×{h})"
+                    : $"Display {monitorIndex + 1} ({w}×{h})";
+
+                sources.Add(new CaptureSource { Id = id, Name = name, Type = CaptureSourceType.Screen });
+                monitorIndex++;
+                return true;
+            }, IntPtr.Zero);
+        }
+        catch { }
+
+        // Fallback if EnumDisplayMonitors returned nothing
+        if (monitorIndex == 0)
+            sources.Add(new CaptureSource { Id = "screen:primary", Name = "Primary Display", Type = CaptureSourceType.Screen });
+
+        sources.Add(new CaptureSource { Id = "screen:all",    Name = "All Displays",  Type = CaptureSourceType.Screen });
+        sources.Add(new CaptureSource { Id = "screen:region", Name = "Custom Region", Type = CaptureSourceType.Screen });
+
+        // ── Visible top-level windows ─────────────────────────────────────
+        var shellWnd = Win32Capture.GetShellWindow();
+        try
+        {
+            Win32Capture.EnumWindows((hWnd, _) =>
+            {
+                if (hWnd == shellWnd) return true;
+                if (!Win32Capture.IsWindowVisible(hWnd)) return true;
+
+                int len = Win32Capture.GetWindowTextLength(hWnd);
+                if (len < 3) return true;   // skip untitled / single-char windows
+
+                var sb = new StringBuilder(len + 1);
+                Win32Capture.GetWindowText(hWnd, sb, sb.Capacity);
+                var title = sb.ToString().Trim();
+                if (string.IsNullOrEmpty(title)) return true;
+
+                // Skip our own window
+                if (title.StartsWith("RecordIt", StringComparison.OrdinalIgnoreCase)) return true;
+
+                sources.Add(new CaptureSource
+                {
+                    Id   = $"title={title}",
+                    Name = title,
+                    Type = CaptureSourceType.Window,
+                });
+                return true;
+            }, IntPtr.Zero);
+        }
+        catch { }
+
         return Task.FromResult<IEnumerable<CaptureSource>>(sources);
     }
 
@@ -146,11 +242,12 @@ public class ScreenRecordingService
         string resolution,
         int fps,
         bool includeMic,
-        bool includeWebcam = false,
-        string? webcamDevice = null,
-        string? audioDevice = null,
-        float micVolume = 1.0f,
-        float desktopVolume = 1.0f)
+        bool includeWebcam    = false,
+        string? webcamDevice  = null,
+        string? audioDevice   = null,
+        float micVolume       = 1.0f,
+        float desktopVolume   = 1.0f,
+        bool noiseSuppression = false)
     {
         if (_isRecording) return Task.CompletedTask;
 
@@ -224,9 +321,14 @@ public class ScreenRecordingService
         // Audio mapping — index is correct now
         if (includeMic && audioInputIdx >= 0)
         {
-            // Volume filter on the audio stream
+            // Build audio filter chain: noise suppression + optional volume
+            var audioFilters = new List<string>();
+            if (noiseSuppression)
+                audioFilters.Add("arnndn");          // AI real-time noise suppression
             if (Math.Abs(micVolume - 1.0f) > 0.01f)
-                finalArgs += $" -af volume={micVolume:0.00}";
+                audioFilters.Add($"volume={micVolume:0.00}");
+            if (audioFilters.Count > 0)
+                finalArgs += $" -af \"{string.Join(",", audioFilters)}\"";
 
             finalArgs += $" -map {audioInputIdx}:a? -c:a aac -b:a 192k";
         }

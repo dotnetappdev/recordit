@@ -1,0 +1,12 @@
+D:\sasproducts\recordit2\RecordIt.Encoder\bin\Debug\net10.0-windows10.0.19041.0\RecordIt.Encoder.deps.json
+D:\sasproducts\recordit2\RecordIt.Encoder\bin\Debug\net10.0-windows10.0.19041.0\RecordIt.Encoder.dll
+D:\sasproducts\recordit2\RecordIt.Encoder\bin\Debug\net10.0-windows10.0.19041.0\RecordIt.Encoder.pdb
+D:\sasproducts\recordit2\RecordIt.Encoder\obj\Debug\net10.0-windows10.0.19041.0\RecordIt.Encoder.GeneratedMSBuildEditorConfig.editorconfig
+D:\sasproducts\recordit2\RecordIt.Encoder\obj\Debug\net10.0-windows10.0.19041.0\RecordIt.Encoder.AssemblyInfoInputs.cache
+D:\sasproducts\recordit2\RecordIt.Encoder\obj\Debug\net10.0-windows10.0.19041.0\RecordIt.Encoder.AssemblyInfo.cs
+D:\sasproducts\recordit2\RecordIt.Encoder\obj\Debug\net10.0-windows10.0.19041.0\RecordIt.Encoder.csproj.CoreCompileInputs.cache
+D:\sasproducts\recordit2\RecordIt.Encoder\obj\Debug\net10.0-windows10.0.19041.0\RecordIt.Encoder.sourcelink.json
+D:\sasproducts\recordit2\RecordIt.Encoder\obj\Debug\net10.0-windows10.0.19041.0\RecordIt.Encoder.dll
+D:\sasproducts\recordit2\RecordIt.Encoder\obj\Debug\net10.0-windows10.0.19041.0\refint\RecordIt.Encoder.dll
+D:\sasproducts\recordit2\RecordIt.Encoder\obj\Debug\net10.0-windows10.0.19041.0\RecordIt.Encoder.pdb
+D:\sasproducts\recordit2\RecordIt.Encoder\obj\Debug\net10.0-windows10.0.19041.0\ref\RecordIt.Encoder.dll

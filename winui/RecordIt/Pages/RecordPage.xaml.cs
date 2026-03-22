@@ -6,13 +6,20 @@ using Microsoft.UI.Xaml.Media;
 using RecordIt.Core.Services;
 using RecordIt.Services;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Windows.Foundation;
+using Windows.Media.Capture;
+using Windows.Media.Playback;
+using Windows.Media.Core;
+using Windows.Devices.Enumeration;
 using Windows.Storage.Pickers;
+using Windows.UI;
 using WinRT.Interop;
 
 namespace RecordIt.Pages;
@@ -212,11 +219,28 @@ public sealed partial class RecordPage : Page, IDisposable
     // Services
     private readonly ScreenRecordingService _recordingService = new();
     private readonly AudioMeterService      _audioMeter       = new();
+    private readonly SpeechCaptionService   _captionService   = new();
 
     // State
     private string?  _selectedSourceId;
     private string?  _outputFilePath;
     private Process? _previewProcess;
+    private MediaCapture? _mediaCapture;
+    private DateTime _recordingStartTime;
+
+    // Studio Mode
+    private bool _isStudioMode;
+
+    // Lower Third
+    private bool _lowerThirdVisible;
+
+    // Per-scene source persistence
+    private readonly Dictionary<string, List<SourceItem>> _sceneSources = new();
+
+    // Captions
+    private bool _captionsActive;
+    private CancellationTokenSource? _captionClearCts;
+    private CaptionConfig _captionConfig = new();
 
     // Metering
     private DispatcherTimer? _meterTimer;
@@ -245,10 +269,118 @@ public sealed partial class RecordPage : Page, IDisposable
 
     private async Task InitAsync()
     {
+        // Check ffmpeg first — prompt the user if it's not installed
+        await ShowFfmpegSetupIfNeededAsync();
+
         await LoadCaptureSources();
         await ProbeAndPopulateDevicesAsync();
         BuildDefaultMixerChannels();
         StartMeterTimer();
+    }
+
+    // ── FFmpeg first-run setup dialog ─────────────────────────────────────────
+
+    private async Task ShowFfmpegSetupIfNeededAsync()
+    {
+        // Quick non-blocking check (don't install automatically)
+        if (await FfmpegLocator.EnsureAvailableAsync(installIfMissing: false))
+            return;
+
+        // Build dialog content
+        var statusText = new TextBlock
+        {
+            Text       = "ffmpeg is not installed or cannot be found.",
+            FontSize   = 12,
+            Foreground = (Brush)Application.Current.Resources["TextTertiaryBrush"],
+            TextWrapping = TextWrapping.Wrap,
+        };
+        var progressRing = new ProgressRing
+        {
+            IsActive  = false,
+            Width     = 24,
+            Height    = 24,
+            Visibility = Visibility.Collapsed,
+        };
+        var panel = new StackPanel { Spacing = 12, Width = 340 };
+        panel.Children.Add(new TextBlock
+        {
+            Text         = "RecordIt uses ffmpeg for all recording and export features. "
+                         + "You can download the free static build automatically (~95 MB from gyan.dev), "
+                         + "or point to an existing ffmpeg.exe on your machine.",
+            TextWrapping = TextWrapping.Wrap,
+            FontSize     = 13,
+        });
+        panel.Children.Add(new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing     = 8,
+            Children    = { progressRing, statusText },
+        });
+
+        var dlg = new ContentDialog
+        {
+            Title                = "FFmpeg Not Found",
+            Content              = panel,
+            PrimaryButtonText    = "Download Automatically",
+            SecondaryButtonText  = "Browse for ffmpeg.exe",
+            CloseButtonText      = "Continue (Limited)",
+            XamlRoot             = XamlRoot,
+        };
+
+        // Prevent closing during download
+        dlg.PrimaryButtonClick += async (s, args) =>
+        {
+            args.Cancel = true;
+            dlg.IsPrimaryButtonEnabled   = false;
+            dlg.IsSecondaryButtonEnabled = false;
+            progressRing.IsActive        = true;
+            progressRing.Visibility      = Visibility.Visible;
+            statusText.Text              = "Downloading ffmpeg… this may take a minute.";
+
+            var ok = await FfmpegLocator.EnsureAvailableAsync(installIfMissing: true);
+
+            progressRing.IsActive   = false;
+            progressRing.Visibility = Visibility.Collapsed;
+            if (ok)
+            {
+                statusText.Text           = "✓ ffmpeg downloaded and ready!";
+                dlg.CloseButtonText       = "Done";
+                dlg.IsPrimaryButtonEnabled = false;
+            }
+            else
+            {
+                statusText.Text              = "Download failed. Check your internet connection.";
+                dlg.IsPrimaryButtonEnabled   = true;
+                dlg.IsSecondaryButtonEnabled = true;
+            }
+        };
+
+        dlg.SecondaryButtonClick += async (s, args) =>
+        {
+            args.Cancel = true;
+            var picker = new Windows.Storage.Pickers.FileOpenPicker();
+            WinRT.Interop.InitializeWithWindow.Initialize(picker,
+                WindowNativeInterop.GetWindowHandle(App.MainWindow!));
+            picker.FileTypeFilter.Add(".exe");
+            picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.ComputerFolder;
+            var file = await picker.PickSingleFileAsync();
+            if (file != null)
+            {
+                FfmpegLocator.Executable = file.Path;
+                var works = await FfmpegLocator.EnsureAvailableAsync(installIfMissing: false);
+                statusText.Text = works
+                    ? $"✓ Using: {file.Path}"
+                    : "That file doesn't appear to be a working ffmpeg.exe.";
+                if (works)
+                {
+                    dlg.CloseButtonText          = "Done";
+                    dlg.IsPrimaryButtonEnabled   = false;
+                    dlg.IsSecondaryButtonEnabled = false;
+                }
+            }
+        };
+
+        await dlg.ShowAsync();
     }
 
     // ── Capture sources ───────────────────────────────────────────────────────
@@ -256,6 +388,7 @@ public sealed partial class RecordPage : Page, IDisposable
     private async Task LoadCaptureSources()
     {
         Sources.Clear();
+        // Add built-in screen sources
         var raw = await _recordingService.GetCaptureSources();
         foreach (var s in raw)
         {
@@ -266,6 +399,22 @@ public sealed partial class RecordPage : Page, IDisposable
                 Icon       = s.Type == CaptureSourceType.Screen ? "\uE7F8" : "\uE737",
             });
         }
+
+        // Probe and add video capture devices (webcams) as sources so they show up immediately
+        try
+        {
+            var devs = await DeviceInformation.FindAllAsync(DeviceClass.VideoCapture);
+            foreach (var d in devs)
+            {
+                // Use device name as display; SourceType contains identifier to start preview/recording
+                var id = $"video={d.Name}";
+                if (!Sources.Any(x => x.SourceType == id))
+                {
+                    Sources.Add(new SourceItem { Name = d.Name, SourceType = id, Icon = "\uE714" });
+                }
+            }
+        }
+        catch { }
         if (Sources.Count > 0)
         {
             SourcesList.SelectedIndex = 0;
@@ -280,26 +429,31 @@ public sealed partial class RecordPage : Page, IDisposable
         try
         {
             SetStatus("Probing audio/video devices…");
-            var devices = await _recordingService.ProbeDevicesAsync();
 
-            // Populate webcam combo
+            // ── Video devices via WinRT DeviceInformation ─────────────────
+            var videoDevs = await DeviceInformation.FindAllAsync(DeviceClass.VideoCapture);
             WebcamDeviceCombo.Items.Clear();
             WebcamDeviceCombo.Items.Add(new ComboBoxItem { Content = "(disabled)" });
-            foreach (var v in devices.VideoDevices)
-                WebcamDeviceCombo.Items.Add(new ComboBoxItem { Content = v });
+            foreach (var d in videoDevs)
+                WebcamDeviceCombo.Items.Add(new ComboBoxItem { Content = d.Name });
             WebcamDeviceCombo.SelectedIndex = 0;
 
-            // Populate mic combo (audio devices)
+            // ── Audio capture devices via WinRT (WASAPI) ──────────────────
+            var audioCapture = await DeviceInformation.FindAllAsync(DeviceClass.AudioCapture);
             MicDeviceCombo.Items.Clear();
             MicDeviceCombo.Items.Add(new ComboBoxItem { Content = "Default Microphone" });
-            foreach (var a in devices.AudioDevices)
-                MicDeviceCombo.Items.Add(new ComboBoxItem { Content = a });
+            MicDeviceCombo.Items.Add(new ComboBoxItem { Content = "Desktop Audio (Loopback)" });
+            foreach (var d in audioCapture)
+                MicDeviceCombo.Items.Add(new ComboBoxItem { Content = d.Name });
             MicDeviceCombo.SelectedIndex = 0;
 
-            // Add audio sources to mixer that were detected
-            RebuildMixerFromDevices(devices);
+            // ── Also run ffmpeg DirectShow probe for broader compatibility ─
+            DshowDeviceList? dshow = null;
+            try { dshow = await _recordingService.ProbeDevicesAsync(); } catch { }
+            if (dshow != null)
+                RebuildMixerFromDevices(dshow);
 
-            SetStatus($"Found {devices.VideoDevices.Count} video · {devices.AudioDevices.Count} audio devices");
+            SetStatus($"Found {videoDevs.Count} camera(s) · {audioCapture.Count} mic(s)");
         }
         catch (Exception ex)
         {
@@ -399,11 +553,26 @@ public sealed partial class RecordPage : Page, IDisposable
 
     private void ScenesList_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        // Scene switch - in a full impl, would swap source list
+        // Save current sources to the scene we're leaving
+        if (e.RemovedItems.Count > 0 && e.RemovedItems[0] is SceneItem leaving)
+            _sceneSources[leaving.Name] = new List<SourceItem>(Sources);
+
+        // Restore sources for the scene we're entering
+        if (e.AddedItems.Count > 0 && e.AddedItems[0] is SceneItem entering
+            && _sceneSources.TryGetValue(entering.Name, out var saved))
+        {
+            Sources.Clear();
+            foreach (var s in saved) Sources.Add(s);
+            _selectedSourceId = Sources.Count > 0 ? Sources[0].SourceType : null;
+        }
     }
 
     private void AddSceneBtn_Click(object sender, RoutedEventArgs e)
     {
+        // Snapshot current sources into the new scene before adding
+        if (ScenesList.SelectedItem is SceneItem current)
+            _sceneSources[current.Name] = new List<SourceItem>(Sources);
+
         AddScene($"Scene {Scenes.Count + 1}");
     }
 
@@ -450,6 +619,15 @@ public sealed partial class RecordPage : Page, IDisposable
         {
             _selectedSourceId = src.SourceType;
             PreviewHintText.Text = $"Source: {src.Name}";
+            // If this is a video device, start a live camera preview in the right-hand pane
+            if (src.SourceType != null && src.SourceType.StartsWith("video=", StringComparison.OrdinalIgnoreCase))
+            {
+                _ = StartCameraPreviewAsync(src.Name);
+            }
+            else
+            {
+                _ = StopCameraPreviewAsync();
+            }
         }
     }
 
@@ -558,6 +736,10 @@ public sealed partial class RecordPage : Page, IDisposable
             Sources.Add(new SourceItem { Name = chosenName, Icon = icon, SourceType = chosen });
             SourcesList.SelectedIndex = Sources.Count - 1;
 
+            // If the added source is a video device, start preview
+            if (chosen.StartsWith("video", StringComparison.OrdinalIgnoreCase))
+                _ = StartCameraPreviewAsync(chosenName);
+
             // If it's an audio source, add a mixer channel
             if (chosen is "audiout" or "audiin")
                 AddMixerChannel(chosenName, isDesktop: chosen == "audiout", isMic: chosen == "audiin");
@@ -605,6 +787,133 @@ public sealed partial class RecordPage : Page, IDisposable
             XamlRoot        = XamlRoot,
         };
         await dlg.ShowAsync();
+    }
+
+    // ── Camera preview (live webcam feed via MediaCapture) ───────────────
+
+    private async Task StartCameraPreviewAsync(string deviceName)
+    {
+        await StopCameraPreviewAsync();
+        try
+        {
+            // Find device by name
+            var devs = await DeviceInformation.FindAllAsync(DeviceClass.VideoCapture);
+            var dev  = devs.FirstOrDefault(d => d.Name.Equals(deviceName, StringComparison.OrdinalIgnoreCase))
+                       ?? devs.FirstOrDefault();
+            if (dev == null)
+            {
+                LivePreviewHint.Text = $"Camera not found: {deviceName}";
+                return;
+            }
+
+            _mediaCapture = new MediaCapture();
+            await _mediaCapture.InitializeAsync(new MediaCaptureInitializationSettings
+            {
+                VideoDeviceId       = dev.Id,
+                StreamingCaptureMode = Windows.Media.Capture.StreamingCaptureMode.Video,
+            });
+
+            // Build a MediaSource from the first video frame source
+            var frameSource = _mediaCapture.FrameSources.Values
+                .FirstOrDefault(fs => fs.Info.MediaStreamType == Windows.Media.Capture.MediaStreamType.VideoPreview
+                                   || fs.Info.MediaStreamType == Windows.Media.Capture.MediaStreamType.VideoRecord);
+
+            if (frameSource != null)
+            {
+                var mediaSource = Windows.Media.Core.MediaSource.CreateFromMediaFrameSource(frameSource);
+                var player = new MediaPlayer { Source = mediaSource };
+                LivePreviewElement.SetMediaPlayer(player);
+                LivePreviewElement.Visibility = Visibility.Visible;
+                LivePreviewHint.Visibility    = Visibility.Collapsed;
+                player.Play();
+
+                // Also show in Program pane if in Studio Mode
+                if (_isStudioMode)
+                {
+                    var progPlayer = new MediaPlayer { Source = mediaSource };
+                    ProgramCamElement.SetMediaPlayer(progPlayer);
+                    ProgramCamElement.Visibility  = Visibility.Visible;
+                    ProgramHintText.Visibility    = Visibility.Collapsed;
+                    progPlayer.Play();
+                }
+            }
+            else
+            {
+                LivePreviewHint.Text = $"Preview: {deviceName}";
+            }
+        }
+        catch (Exception ex)
+        {
+            LivePreviewHint.Text = $"Camera error: {ex.Message}";
+            LivePreviewHint.Visibility    = Visibility.Visible;
+            LivePreviewElement.Visibility = Visibility.Collapsed;
+        }
+    }
+
+    private async Task StopCameraPreviewAsync()
+    {
+        LivePreviewElement.SetMediaPlayer(null);
+        LivePreviewElement.Visibility = Visibility.Collapsed;
+        LivePreviewHint.Visibility    = Visibility.Visible;
+        LivePreviewHint.Text          = "No live source";
+
+        ProgramCamElement.SetMediaPlayer(null);
+        ProgramCamElement.Visibility = Visibility.Collapsed;
+
+        if (_mediaCapture != null)
+        {
+            try { await _mediaCapture.StopPreviewAsync(); } catch { }
+            _mediaCapture.Dispose();
+            _mediaCapture = null;
+        }
+    }
+
+    // ── Studio Mode ─────────────────────────────────────────────────────────
+
+    private void StudioModeBtn_Click(object sender, RoutedEventArgs e)
+    {
+        _isStudioMode = !_isStudioMode;
+
+        if (_isStudioMode)
+        {
+            // Split: PREVIEW left | divider | PROGRAM right; hide live side panel
+            PreviewMainCol.Width = new GridLength(1, GridUnitType.Star);
+            StudioDivCol.Width   = new GridLength(4);
+            ProgramCol.Width     = new GridLength(1, GridUnitType.Star);
+            LiveSideCol.Width    = new GridLength(0);
+
+            StudioDividerRect.Visibility = Visibility.Visible;
+            ProgramHost.Visibility       = Visibility.Visible;
+            LivePreviewHost.Visibility   = Visibility.Collapsed;
+
+            ProgramHintText.Text  = _selectedSourceId != null
+                ? $"Program: {_selectedSourceId}"
+                : "No program output";
+
+            StudioModeBtnText.Text = "Exit Studio Mode";
+        }
+        else
+        {
+            // Normal: main preview left | live side panel right
+            PreviewMainCol.Width = new GridLength(1, GridUnitType.Star);
+            StudioDivCol.Width   = new GridLength(0);
+            ProgramCol.Width     = new GridLength(0);
+            LiveSideCol.Width    = new GridLength(360);
+
+            StudioDividerRect.Visibility = Visibility.Collapsed;
+            ProgramHost.Visibility       = Visibility.Collapsed;
+            LivePreviewHost.Visibility   = Visibility.Visible;
+
+            StudioModeBtnText.Text = "Studio Mode";
+        }
+    }
+
+    private void TransitionBtn_Click(object sender, RoutedEventArgs e)
+    {
+        // Cut: swap preview scene into program
+        if (ScenesList.SelectedItem is SceneItem s)
+            ProgramHintText.Text = $"Program: {s.Name}";
+        SetStatus("Cut transition applied");
     }
 
     // ── Recording ─────────────────────────────────────────────────────────────
@@ -658,17 +967,24 @@ public sealed partial class RecordPage : Page, IDisposable
 
         try
         {
+            // 3-2-1 countdown if enabled
+            if (CountdownCheckBox.IsChecked == true)
+                await RunCountdownAsync();
+
             SetStatus("Starting recording…");
             await _recordingService.StartRecording(
                 _selectedSourceId,
                 _outputFilePath,
                 quality, fps,
-                includeMic:    true,    // always try
-                includeWebcam: hasWebcam,
-                webcamDevice:  camDevice,
-                audioDevice:   micDevice,
-                micVolume:     micVol);
+                includeMic:       true,    // always try
+                includeWebcam:    hasWebcam,
+                webcamDevice:     camDevice,
+                audioDevice:      micDevice,
+                micVolume:        micVol,
+                noiseSuppression: NoiseSuppCheckBox.IsChecked == true);
 
+            _recordingStartTime       = DateTime.Now;
+            SaveClipBtn.IsEnabled     = true;
             StartRecordBtn.Visibility = Visibility.Collapsed;
             StopRecordBtn.Visibility  = Visibility.Visible;
             MenuStartRecord.IsEnabled = false;
@@ -695,6 +1011,7 @@ public sealed partial class RecordPage : Page, IDisposable
     {
         await _recordingService.StopRecording();
 
+        SaveClipBtn.IsEnabled     = false;
         StartRecordBtn.Visibility = Visibility.Visible;
         StopRecordBtn.Visibility  = Visibility.Collapsed;
         MenuStartRecord.IsEnabled = true;
@@ -705,6 +1022,25 @@ public sealed partial class RecordPage : Page, IDisposable
 
         if (_outputFilePath != null && File.Exists(_outputFilePath))
         {
+            // ── Optional: save .srt subtitle file when captions were active ──
+            if (_captionsActive && _captionService.HasSubtitles)
+            {
+                var srtDlg = new ContentDialog
+                {
+                    Title             = "Save Subtitles?",
+                    Content           = "Captions were recorded this session. Save as an .srt subtitle file alongside the video?",
+                    PrimaryButtonText = "Save .srt",
+                    CloseButtonText   = "Skip",
+                    XamlRoot          = XamlRoot,
+                };
+                if (await srtDlg.ShowAsync() == ContentDialogResult.Primary)
+                {
+                    var srtPath = Path.ChangeExtension(_outputFilePath, ".srt");
+                    await File.WriteAllTextAsync(srtPath, _captionService.GetSrtContent());
+                    SetStatus($"Subtitles saved: {Path.GetFileName(srtPath)}");
+                }
+            }
+
             // ── Optional: extract separate MP3 audio track ────────────────
             if (SepAudioCheckBox.IsChecked == true)
                 await ExtractSepAudioAsync(_outputFilePath);
@@ -956,13 +1292,395 @@ public sealed partial class RecordPage : Page, IDisposable
         await dlg.ShowAsync();
     }
 
+    // ── Auto Captions (CC) ────────────────────────────────────────────────────
+
+    private async void CcBtn_Click(object sender, RoutedEventArgs e)
+    {
+        _captionsActive = !_captionsActive;
+
+        if (_captionsActive)
+        {
+            _captionService.Config = _captionConfig;
+            _captionService.CaptionTextChanged += OnCaptionTextChanged;
+            _captionService.ErrorOccurred       += OnCaptionError;
+            await _captionService.StartAsync();
+
+            if (_captionService.IsRunning)
+            {
+                CcBtnText.Text = "Captions: ON";
+                ApplyCaptionStyle();
+                SetStatus("Auto captions active");
+            }
+            else
+            {
+                _captionsActive = false;
+                CcBtnText.Text  = "Auto Captions";
+            }
+        }
+        else
+        {
+            await _captionService.StopAsync();
+            _captionService.CaptionTextChanged -= OnCaptionTextChanged;
+            _captionService.ErrorOccurred       -= OnCaptionError;
+            CcBtnText.Text            = "Auto Captions";
+            CaptionOverlay.Visibility = Visibility.Collapsed;
+            CaptionText.Text          = "";
+            SetStatus("Captions off");
+        }
+    }
+
+    private void OnCaptionTextChanged(object? sender, string text)
+    {
+        // Marshal to UI thread
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            CaptionText.Text          = text;
+            CaptionOverlay.Visibility = Visibility.Visible;
+
+            // Auto-clear after configured delay
+            if (_captionConfig.ClearAfterSec > 0)
+            {
+                _captionClearCts?.Cancel();
+                _captionClearCts = new CancellationTokenSource();
+                var token = _captionClearCts.Token;
+                _ = Task.Delay(_captionConfig.ClearAfterSec * 1000, token)
+                    .ContinueWith(_ =>
+                    {
+                        if (!token.IsCancellationRequested)
+                            DispatcherQueue.TryEnqueue(() =>
+                            {
+                                CaptionText.Text          = "";
+                                CaptionOverlay.Visibility = Visibility.Collapsed;
+                            });
+                    }, TaskScheduler.Default);
+            }
+        });
+    }
+
+    private void OnCaptionError(object? sender, string error)
+        => DispatcherQueue.TryEnqueue(() => SetStatus($"Caption error: {error}"));
+
+    /// <summary>Apply current CaptionConfig (including Style preset) to overlay elements.</summary>
+    private void ApplyCaptionStyle()
+    {
+        // ── Defaults that presets will override ───────────────────────────
+        CaptionText.FontSize   = _captionConfig.FontSize;
+        CaptionText.FontWeight = Microsoft.UI.Text.FontWeights.SemiBold;
+        CaptionOverlay.CornerRadius = new CornerRadius(8);
+        CaptionOverlay.HorizontalAlignment = HorizontalAlignment.Center;
+        CaptionOverlay.MaxWidth  = 900;
+        CaptionOverlay.Padding   = new Thickness(18, 8, 18, 8);
+
+        switch (_captionConfig.Style)
+        {
+            case CaptionStyle.Broadcast:
+                // Black text · solid yellow bg — high-contrast broadcast / accessibility
+                CaptionText.Foreground    = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 0, 0, 0));
+                CaptionOverlay.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 220, 0));
+                CaptionOverlay.CornerRadius = new CornerRadius(4);
+                break;
+
+            case CaptionStyle.Cinema:
+                // White text, no background — movie subtitle style
+                CaptionText.Foreground    = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 255, 255));
+                CaptionOverlay.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0, 0, 0, 0));
+                CaptionText.FontSize      = Math.Max(_captionConfig.FontSize, 22);
+                break;
+
+            case CaptionStyle.LowerThird:
+                // Full-width dark bar — broadcast lower-third
+                CaptionText.Foreground     = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 255, 255));
+                CaptionOverlay.Background  = new SolidColorBrush(Windows.UI.Color.FromArgb(230, 0, 0, 0));
+                CaptionOverlay.CornerRadius = new CornerRadius(0);
+                CaptionOverlay.HorizontalAlignment = HorizontalAlignment.Stretch;
+                CaptionOverlay.MaxWidth    = double.PositiveInfinity;
+                CaptionOverlay.Padding     = new Thickness(20, 10, 20, 10);
+                break;
+
+            case CaptionStyle.Accessible:
+                // Large white text · solid black bg — maximum readability
+                CaptionText.Foreground    = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 255, 255));
+                CaptionOverlay.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 0, 0, 0));
+                CaptionText.FontSize      = Math.Max(_captionConfig.FontSize, 28);
+                CaptionText.FontWeight    = Microsoft.UI.Text.FontWeights.Bold;
+                CaptionOverlay.CornerRadius = new CornerRadius(0);
+                CaptionOverlay.HorizontalAlignment = HorizontalAlignment.Stretch;
+                CaptionOverlay.MaxWidth    = double.PositiveInfinity;
+                break;
+
+            case CaptionStyle.Neon:
+                // Cyan glow — streamer / gaming
+                CaptionText.Foreground    = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 0, 255, 220));
+                CaptionOverlay.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(200, 0, 0, 30));
+                CaptionOverlay.BorderBrush     = new SolidColorBrush(Windows.UI.Color.FromArgb(160, 0, 255, 220));
+                CaptionOverlay.BorderThickness = new Thickness(1);
+                break;
+
+            case CaptionStyle.Custom:
+            {
+                var color = _captionConfig.TextColor switch
+                {
+                    "Yellow" => Windows.UI.Color.FromArgb(255, 255, 235, 59),
+                    "Cyan"   => Windows.UI.Color.FromArgb(255, 0,   188, 212),
+                    "Green"  => Windows.UI.Color.FromArgb(255, 76,  175, 80),
+                    "Red"    => Windows.UI.Color.FromArgb(255, 239, 68,  68),
+                    "Orange" => Windows.UI.Color.FromArgb(255, 251, 146, 60),
+                    _        => Windows.UI.Color.FromArgb(255, 255, 255, 255),
+                };
+                CaptionText.Foreground = new SolidColorBrush(color);
+                var bgAlpha = (byte)Math.Clamp(_captionConfig.BgOpacity * 255, 0, 255);
+                CaptionOverlay.Background = new SolidColorBrush(
+                    Windows.UI.Color.FromArgb(bgAlpha, 0, 0, 0));
+                break;
+            }
+
+            default: // Classic
+                CaptionText.Foreground    = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 255, 255, 255));
+                CaptionOverlay.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(140, 0, 0, 0));
+                break;
+        }
+
+        CaptionOverlay.VerticalAlignment = _captionConfig.Position == "Top"
+            ? VerticalAlignment.Top
+            : VerticalAlignment.Bottom;
+
+        CaptionOverlay.Margin = _captionConfig.Position == "Top"
+            ? new Thickness(40, 48, 40, 0)
+            : new Thickness(40, 0, 40, 48);
+    }
+
+    // ── Caption Settings dialog ───────────────────────────────────────────────
+
+    private async void CcSettingsBtn_Click(object sender, RoutedEventArgs e)
+    {
+        var panel = new StackPanel { Spacing = 14, Width = 320 };
+
+        // Caption Style
+        var styleCombo = new ComboBox { HorizontalAlignment = HorizontalAlignment.Stretch };
+        foreach (var s in Enum.GetValues<CaptionStyle>())
+            styleCombo.Items.Add(new ComboBoxItem { Content = s.ToString(), Tag = s });
+        styleCombo.SelectedIndex = (int)_captionConfig.Style;
+        panel.Children.Add(MakeLabel("Caption Style"));
+        panel.Children.Add(styleCombo);
+
+        // Language
+        var langCombo = new ComboBox { HorizontalAlignment = HorizontalAlignment.Stretch };
+        foreach (var l in new[] { "en-US","en-GB","fr-FR","de-DE","es-ES","it-IT","pt-BR","ja-JP","ko-KR","zh-CN" })
+            langCombo.Items.Add(new ComboBoxItem { Content = l, Tag = l });
+        langCombo.SelectedIndex = Math.Max(0,
+            langCombo.Items.Cast<ComboBoxItem>().ToList()
+                .FindIndex(i => i.Tag as string == _captionConfig.Language));
+        panel.Children.Add(MakeLabel("Language"));
+        panel.Children.Add(langCombo);
+
+        // Font size
+        var fontSlider = new Slider { Minimum = 12, Maximum = 48, Value = _captionConfig.FontSize,
+            StepFrequency = 2, TickFrequency = 4, TickPlacement = Microsoft.UI.Xaml.Controls.Primitives.TickPlacement.Outside };
+        panel.Children.Add(MakeLabel("Font Size"));
+        panel.Children.Add(fontSlider);
+
+        // Text colour
+        var colorCombo = new ComboBox { HorizontalAlignment = HorizontalAlignment.Stretch };
+        foreach (var c in new[] { "White", "Yellow", "Cyan", "Green" })
+            colorCombo.Items.Add(new ComboBoxItem { Content = c, Tag = c });
+        colorCombo.SelectedIndex = Math.Max(0,
+            colorCombo.Items.Cast<ComboBoxItem>().ToList()
+                .FindIndex(i => i.Tag as string == _captionConfig.TextColor));
+        panel.Children.Add(MakeLabel("Text Colour"));
+        panel.Children.Add(colorCombo);
+
+        // Background opacity
+        var bgSlider = new Slider { Minimum = 0, Maximum = 1, Value = _captionConfig.BgOpacity,
+            StepFrequency = 0.05, TickFrequency = 0.25, TickPlacement = Microsoft.UI.Xaml.Controls.Primitives.TickPlacement.Outside };
+        panel.Children.Add(MakeLabel("Background Opacity"));
+        panel.Children.Add(bgSlider);
+
+        // Position
+        var posCombo = new ComboBox { HorizontalAlignment = HorizontalAlignment.Stretch };
+        posCombo.Items.Add(new ComboBoxItem { Content = "Bottom", Tag = "Bottom" });
+        posCombo.Items.Add(new ComboBoxItem { Content = "Top",    Tag = "Top" });
+        posCombo.SelectedIndex = _captionConfig.Position == "Top" ? 1 : 0;
+        panel.Children.Add(MakeLabel("Position"));
+        panel.Children.Add(posCombo);
+
+        // Auto-clear delay
+        var clearSlider = new Slider { Minimum = 0, Maximum = 10, Value = _captionConfig.ClearAfterSec,
+            StepFrequency = 1, TickFrequency = 2, TickPlacement = Microsoft.UI.Xaml.Controls.Primitives.TickPlacement.Outside };
+        panel.Children.Add(MakeLabel("Auto-clear after (seconds, 0 = never)"));
+        panel.Children.Add(clearSlider);
+
+        // Burn in
+        var burnCheckBox = new CheckBox { Content = "Burn captions into recording (via ffmpeg)",
+            IsChecked = _captionConfig.BurnIntoRecording };
+        panel.Children.Add(burnCheckBox);
+
+        var dlg = new ContentDialog
+        {
+            Title             = "Caption Settings",
+            Content           = new ScrollViewer { Content = panel, MaxHeight = 460 },
+            PrimaryButtonText = "Save",
+            CloseButtonText   = "Cancel",
+            XamlRoot          = XamlRoot,
+        };
+
+        if (await dlg.ShowAsync() == ContentDialogResult.Primary)
+        {
+            _captionConfig.Style             = (styleCombo.SelectedItem as ComboBoxItem)?.Tag is CaptionStyle cs ? cs : CaptionStyle.Classic;
+            _captionConfig.Language          = (langCombo.SelectedItem  as ComboBoxItem)?.Tag as string ?? "en-US";
+            _captionConfig.TextColor         = (colorCombo.SelectedItem as ComboBoxItem)?.Tag as string ?? "White";
+            _captionConfig.Position          = (posCombo.SelectedItem   as ComboBoxItem)?.Tag as string ?? "Bottom";
+            _captionConfig.FontSize          = fontSlider.Value;
+            _captionConfig.BgOpacity         = bgSlider.Value;
+            _captionConfig.ClearAfterSec     = (int)clearSlider.Value;
+            _captionConfig.BurnIntoRecording = burnCheckBox.IsChecked == true;
+            _captionService.Config           = _captionConfig;
+            ApplyCaptionStyle();
+            SetStatus("Caption settings saved");
+        }
+    }
+
+    private static TextBlock MakeLabel(string text) => new()
+    {
+        Text       = text,
+        FontSize   = 11,
+        FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+        Foreground = (Brush)Application.Current.Resources["TextTertiaryBrush"],
+    };
+
+    // ── Countdown before recording ────────────────────────────────────────────
+
+    private async Task<bool> RunCountdownAsync()
+    {
+        if (CountdownCheckBox.IsChecked != true) return true;
+
+        CountdownOverlay.Visibility = Visibility.Visible;
+        for (int i = 3; i >= 1; i--)
+        {
+            CountdownText.Text = i.ToString();
+            await Task.Delay(1000);
+        }
+        CountdownOverlay.Visibility = Visibility.Collapsed;
+        return true;
+    }
+
+    // ── Save Clip (Replay Buffer — last 30 s) ────────────────────────────────
+
+    private async void SaveClipBtn_Click(object sender, RoutedEventArgs e)
+    {
+        if (_outputFilePath == null || !File.Exists(_outputFilePath))
+        {
+            SetStatus("No recording in progress");
+            return;
+        }
+
+        var elapsed = (DateTime.Now - _recordingStartTime).TotalSeconds;
+        var clipSec = Math.Min(30, (int)elapsed);
+        var skip    = Math.Max(0, (int)elapsed - clipSec);
+
+        var dir  = Path.GetDirectoryName(_outputFilePath) ?? "";
+        var ext  = Path.GetExtension(_outputFilePath);
+        var clip = Path.Combine(dir,
+            $"Clip-{DateTime.Now:yyyyMMdd-HHmmss}{ext}");
+
+        SetStatus($"Saving {clipSec}s clip…");
+        try
+        {
+            var args = $"-y -ss {skip} -i \"{_outputFilePath}\" -t {clipSec} -c copy \"{clip}\"";
+            var psi  = new ProcessStartInfo(FfmpegLocator.Executable, args)
+                { UseShellExecute = false, CreateNoWindow = true };
+            using var p = Process.Start(psi)!;
+            await Task.Run(() => p.WaitForExit(10000));
+            SetStatus(File.Exists(clip) ? $"Clip saved: {Path.GetFileName(clip)}" : "Clip save failed");
+        }
+        catch (Exception ex)
+        {
+            SetStatus($"Clip error: {ex.Message}");
+        }
+    }
+
+    // ── Lower Third / Title Card ──────────────────────────────────────────────
+
+    private void LowerThirdBtn_Click(object sender, RoutedEventArgs e)
+    {
+        _lowerThirdVisible = !_lowerThirdVisible;
+        LowerThirdOverlay.Visibility = _lowerThirdVisible ? Visibility.Visible : Visibility.Collapsed;
+        LowerThirdBtnText.Text = _lowerThirdVisible ? "Hide Lower Third" : "Lower Third";
+    }
+
+    private async void LowerThirdSettingsBtn_Click(object sender, RoutedEventArgs e)
+    {
+        var titleBox = new TextBox
+        {
+            PlaceholderText = "Title text (e.g. John Smith)",
+            Text            = LowerThirdTitle.Text == "Title Text" ? "" : LowerThirdTitle.Text,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+        };
+        var subBox = new TextBox
+        {
+            PlaceholderText = "Subtitle / role (e.g. CEO, Contoso)",
+            Text            = LowerThirdSub.Text == "Subtitle / Role" ? "" : LowerThirdSub.Text,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+        };
+
+        var colorCombo = new ComboBox { HorizontalAlignment = HorizontalAlignment.Stretch };
+        foreach (var (label, tag) in new[] { ("Dark (default)", "dark"), ("Blue", "blue"), ("Red accent", "red"), ("Transparent", "transparent") })
+            colorCombo.Items.Add(new ComboBoxItem { Content = label, Tag = tag });
+        colorCombo.SelectedIndex = 0;
+
+        var panel = new StackPanel { Spacing = 12, Width = 300 };
+        panel.Children.Add(MakeLabel("Title"));
+        panel.Children.Add(titleBox);
+        panel.Children.Add(MakeLabel("Subtitle / Role"));
+        panel.Children.Add(subBox);
+        panel.Children.Add(MakeLabel("Background Colour"));
+        panel.Children.Add(colorCombo);
+
+        var dlg = new ContentDialog
+        {
+            Title             = "Lower Third Settings",
+            Content           = panel,
+            PrimaryButtonText = "Apply",
+            CloseButtonText   = "Cancel",
+            XamlRoot          = XamlRoot,
+        };
+
+        if (await dlg.ShowAsync() != ContentDialogResult.Primary) return;
+
+        var title = titleBox.Text.Trim();
+        var sub   = subBox.Text.Trim();
+        if (!string.IsNullOrEmpty(title)) LowerThirdTitle.Text = title;
+        if (!string.IsNullOrEmpty(sub))   LowerThirdSub.Text   = sub;
+
+        // Apply chosen background
+        LowerThirdOverlay.Background = ((colorCombo.SelectedItem as ComboBoxItem)?.Tag as string) switch
+        {
+            "blue"        => new SolidColorBrush(Windows.UI.Color.FromArgb(230, 20,  80,  180)),
+            "red"         => new SolidColorBrush(Windows.UI.Color.FromArgb(230, 180, 20,  20)),
+            "transparent" => new SolidColorBrush(Windows.UI.Color.FromArgb(0,   0,   0,   0)),
+            _             => new SolidColorBrush(Windows.UI.Color.FromArgb(230, 0,   0,   0)),
+        };
+
+        // Auto-show the overlay when text is configured
+        if (!_lowerThirdVisible && (!string.IsNullOrEmpty(title) || !string.IsNullOrEmpty(sub)))
+        {
+            _lowerThirdVisible           = true;
+            LowerThirdOverlay.Visibility = Visibility.Visible;
+            LowerThirdBtnText.Text       = "Hide Lower Third";
+        }
+    }
+
     // ── IDisposable ───────────────────────────────────────────────────────────
 
     public void Dispose()
     {
         _meterTimer?.Stop();
         _audioMeter.Dispose();
+        _captionClearCts?.Cancel();
+        _ = _captionService.StopAsync();
+        _captionService.Dispose();
         if (_previewProcess is { HasExited: false })
             try { _previewProcess.Kill(true); } catch { }
+        try { _mediaCapture?.Dispose(); } catch { }
+        _mediaCapture = null;
     }
 }

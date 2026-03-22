@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "Q3+v8/R30Es=",
+  "success": true,
+  "projectFilePath": "D:\\sasproducts\\recordit2\\RecordIt.Encoder\\RecordIt.Encoder.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\David\\.nuget\\packages\\microsoft.windows.sdk.net.ref\\10.0.19041.57\\microsoft.windows.sdk.net.ref.10.0.19041.57.nupkg.sha512"
+  ],
+  "logs": []
+}

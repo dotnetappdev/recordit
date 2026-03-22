@@ -224,7 +224,7 @@ namespace RecordIt.RecordIt_XamlTypeInfo
 
         private void InitTypeTables()
         {
-            _typeNameTable = new string[32];
+            _typeNameTable = new string[44];
             _typeNameTable[0] = "Microsoft.UI.Xaml.Controls.XamlControlsResources";
             _typeNameTable[1] = "Microsoft.UI.Xaml.ResourceDictionary";
             _typeNameTable[2] = "Object";
@@ -245,20 +245,32 @@ namespace RecordIt.RecordIt_XamlTypeInfo
             _typeNameTable[17] = "System.Collections.ObjectModel.Collection`1<RecordIt.Pages.LibraryItem>";
             _typeNameTable[18] = "RecordIt.Pages.LibraryItem";
             _typeNameTable[19] = "String";
-            _typeNameTable[20] = "RecordIt.Pages.RecordPage";
-            _typeNameTable[21] = "System.Collections.ObjectModel.ObservableCollection`1<RecordIt.Core.Services.CaptureSource>";
-            _typeNameTable[22] = "System.Collections.ObjectModel.Collection`1<RecordIt.Core.Services.CaptureSource>";
-            _typeNameTable[23] = "RecordIt.Core.Services.CaptureSource";
-            _typeNameTable[24] = "RecordIt.Pages.SettingsPage";
-            _typeNameTable[25] = "RecordIt.Pages.WhiteboardPage";
-            _typeNameTable[26] = "Windows.UI.Color";
-            _typeNameTable[27] = "System.ValueType";
-            _typeNameTable[28] = "Byte";
-            _typeNameTable[29] = "Microsoft.UI.Xaml.Controls.TreeViewNode";
-            _typeNameTable[30] = "System.Collections.Generic.IList`1<Microsoft.UI.Xaml.Controls.TreeViewNode>";
-            _typeNameTable[31] = "Int32";
+            _typeNameTable[20] = "System.DateTime";
+            _typeNameTable[21] = "System.ValueType";
+            _typeNameTable[22] = "RecordIt.Converters.BoolToVisibilityConverter";
+            _typeNameTable[23] = "Microsoft.UI.Xaml.Controls.MenuBar";
+            _typeNameTable[24] = "Microsoft.UI.Xaml.Controls.Control";
+            _typeNameTable[25] = "System.Collections.Generic.IList`1<Microsoft.UI.Xaml.Controls.MenuBarItem>";
+            _typeNameTable[26] = "Microsoft.UI.Xaml.Controls.MenuBarItem";
+            _typeNameTable[27] = "System.Collections.Generic.IList`1<Microsoft.UI.Xaml.Controls.MenuFlyoutItemBase>";
+            _typeNameTable[28] = "Microsoft.UI.Xaml.Controls.MenuFlyoutItemBase";
+            _typeNameTable[29] = "RecordIt.Pages.RecordPage";
+            _typeNameTable[30] = "System.Collections.ObjectModel.ObservableCollection`1<RecordIt.Pages.SceneItem>";
+            _typeNameTable[31] = "System.Collections.ObjectModel.Collection`1<RecordIt.Pages.SceneItem>";
+            _typeNameTable[32] = "RecordIt.Pages.SceneItem";
+            _typeNameTable[33] = "System.Collections.ObjectModel.ObservableCollection`1<RecordIt.Pages.SourceItem>";
+            _typeNameTable[34] = "System.Collections.ObjectModel.Collection`1<RecordIt.Pages.SourceItem>";
+            _typeNameTable[35] = "RecordIt.Pages.SourceItem";
+            _typeNameTable[36] = "RecordIt.Pages.SettingsPage";
+            _typeNameTable[37] = "RecordIt.Pages.WhiteboardPage";
+            _typeNameTable[38] = "Windows.UI.Color";
+            _typeNameTable[39] = "Byte";
+            _typeNameTable[40] = "RecordIt.WhiteboardWindow";
+            _typeNameTable[41] = "Microsoft.UI.Xaml.Controls.TreeViewNode";
+            _typeNameTable[42] = "System.Collections.Generic.IList`1<Microsoft.UI.Xaml.Controls.TreeViewNode>";
+            _typeNameTable[43] = "Int32";
 
-            _typeTable = new global::System.Type[32];
+            _typeTable = new global::System.Type[44];
             _typeTable[0] = typeof(global::Microsoft.UI.Xaml.Controls.XamlControlsResources);
             _typeTable[1] = typeof(global::Microsoft.UI.Xaml.ResourceDictionary);
             _typeTable[2] = typeof(global::System.Object);
@@ -279,18 +291,30 @@ namespace RecordIt.RecordIt_XamlTypeInfo
             _typeTable[17] = typeof(global::System.Collections.ObjectModel.Collection<global::RecordIt.Pages.LibraryItem>);
             _typeTable[18] = typeof(global::RecordIt.Pages.LibraryItem);
             _typeTable[19] = typeof(global::System.String);
-            _typeTable[20] = typeof(global::RecordIt.Pages.RecordPage);
-            _typeTable[21] = typeof(global::System.Collections.ObjectModel.ObservableCollection<global::RecordIt.Core.Services.CaptureSource>);
-            _typeTable[22] = typeof(global::System.Collections.ObjectModel.Collection<global::RecordIt.Core.Services.CaptureSource>);
-            _typeTable[23] = typeof(global::RecordIt.Core.Services.CaptureSource);
-            _typeTable[24] = typeof(global::RecordIt.Pages.SettingsPage);
-            _typeTable[25] = typeof(global::RecordIt.Pages.WhiteboardPage);
-            _typeTable[26] = typeof(global::Windows.UI.Color);
-            _typeTable[27] = typeof(global::System.ValueType);
-            _typeTable[28] = typeof(global::System.Byte);
-            _typeTable[29] = typeof(global::Microsoft.UI.Xaml.Controls.TreeViewNode);
-            _typeTable[30] = typeof(global::System.Collections.Generic.IList<global::Microsoft.UI.Xaml.Controls.TreeViewNode>);
-            _typeTable[31] = typeof(global::System.Int32);
+            _typeTable[20] = typeof(global::System.DateTime);
+            _typeTable[21] = typeof(global::System.ValueType);
+            _typeTable[22] = typeof(global::RecordIt.Converters.BoolToVisibilityConverter);
+            _typeTable[23] = typeof(global::Microsoft.UI.Xaml.Controls.MenuBar);
+            _typeTable[24] = typeof(global::Microsoft.UI.Xaml.Controls.Control);
+            _typeTable[25] = typeof(global::System.Collections.Generic.IList<global::Microsoft.UI.Xaml.Controls.MenuBarItem>);
+            _typeTable[26] = typeof(global::Microsoft.UI.Xaml.Controls.MenuBarItem);
+            _typeTable[27] = typeof(global::System.Collections.Generic.IList<global::Microsoft.UI.Xaml.Controls.MenuFlyoutItemBase>);
+            _typeTable[28] = typeof(global::Microsoft.UI.Xaml.Controls.MenuFlyoutItemBase);
+            _typeTable[29] = typeof(global::RecordIt.Pages.RecordPage);
+            _typeTable[30] = typeof(global::System.Collections.ObjectModel.ObservableCollection<global::RecordIt.Pages.SceneItem>);
+            _typeTable[31] = typeof(global::System.Collections.ObjectModel.Collection<global::RecordIt.Pages.SceneItem>);
+            _typeTable[32] = typeof(global::RecordIt.Pages.SceneItem);
+            _typeTable[33] = typeof(global::System.Collections.ObjectModel.ObservableCollection<global::RecordIt.Pages.SourceItem>);
+            _typeTable[34] = typeof(global::System.Collections.ObjectModel.Collection<global::RecordIt.Pages.SourceItem>);
+            _typeTable[35] = typeof(global::RecordIt.Pages.SourceItem);
+            _typeTable[36] = typeof(global::RecordIt.Pages.SettingsPage);
+            _typeTable[37] = typeof(global::RecordIt.Pages.WhiteboardPage);
+            _typeTable[38] = typeof(global::Windows.UI.Color);
+            _typeTable[39] = typeof(global::System.Byte);
+            _typeTable[40] = typeof(global::RecordIt.WhiteboardWindow);
+            _typeTable[41] = typeof(global::Microsoft.UI.Xaml.Controls.TreeViewNode);
+            _typeTable[42] = typeof(global::System.Collections.Generic.IList<global::Microsoft.UI.Xaml.Controls.TreeViewNode>);
+            _typeTable[43] = typeof(global::System.Int32);
         }
 
         private int LookupTypeIndexByName(string typeName)
@@ -331,13 +355,20 @@ namespace RecordIt.RecordIt_XamlTypeInfo
         private object Activate_13_LibraryPage() { return new global::RecordIt.Pages.LibraryPage(); }
         private object Activate_16_ObservableCollection() { return new global::System.Collections.ObjectModel.ObservableCollection<global::RecordIt.Pages.LibraryItem>(); }
         private object Activate_17_Collection() { return new global::System.Collections.ObjectModel.Collection<global::RecordIt.Pages.LibraryItem>(); }
-        private object Activate_20_RecordPage() { return new global::RecordIt.Pages.RecordPage(); }
-        private object Activate_21_ObservableCollection() { return new global::System.Collections.ObjectModel.ObservableCollection<global::RecordIt.Core.Services.CaptureSource>(); }
-        private object Activate_22_Collection() { return new global::System.Collections.ObjectModel.Collection<global::RecordIt.Core.Services.CaptureSource>(); }
-        private object Activate_23_CaptureSource() { return new global::RecordIt.Core.Services.CaptureSource(); }
-        private object Activate_24_SettingsPage() { return new global::RecordIt.Pages.SettingsPage(); }
-        private object Activate_25_WhiteboardPage() { return new global::RecordIt.Pages.WhiteboardPage(); }
-        private object Activate_29_TreeViewNode() { return new global::Microsoft.UI.Xaml.Controls.TreeViewNode(); }
+        private object Activate_22_BoolToVisibilityConverter() { return new global::RecordIt.Converters.BoolToVisibilityConverter(); }
+        private object Activate_23_MenuBar() { return new global::Microsoft.UI.Xaml.Controls.MenuBar(); }
+        private object Activate_26_MenuBarItem() { return new global::Microsoft.UI.Xaml.Controls.MenuBarItem(); }
+        private object Activate_29_RecordPage() { return new global::RecordIt.Pages.RecordPage(); }
+        private object Activate_30_ObservableCollection() { return new global::System.Collections.ObjectModel.ObservableCollection<global::RecordIt.Pages.SceneItem>(); }
+        private object Activate_31_Collection() { return new global::System.Collections.ObjectModel.Collection<global::RecordIt.Pages.SceneItem>(); }
+        private object Activate_32_SceneItem() { return new global::RecordIt.Pages.SceneItem(); }
+        private object Activate_33_ObservableCollection() { return new global::System.Collections.ObjectModel.ObservableCollection<global::RecordIt.Pages.SourceItem>(); }
+        private object Activate_34_Collection() { return new global::System.Collections.ObjectModel.Collection<global::RecordIt.Pages.SourceItem>(); }
+        private object Activate_35_SourceItem() { return new global::RecordIt.Pages.SourceItem(); }
+        private object Activate_36_SettingsPage() { return new global::RecordIt.Pages.SettingsPage(); }
+        private object Activate_37_WhiteboardPage() { return new global::RecordIt.Pages.WhiteboardPage(); }
+        private object Activate_40_WhiteboardWindow() { return new global::RecordIt.WhiteboardWindow(); }
+        private object Activate_41_TreeViewNode() { return new global::Microsoft.UI.Xaml.Controls.TreeViewNode(); }
         private void MapAdd_0_XamlControlsResources(object instance, object key, object item)
         {
             var collection = (global::System.Collections.Generic.IDictionary<global::System.Object, global::System.Object>)instance;
@@ -357,19 +388,43 @@ namespace RecordIt.RecordIt_XamlTypeInfo
             var newItem = (global::RecordIt.Pages.LibraryItem)item;
             collection.Add(newItem);
         }
-        private void VectorAdd_21_ObservableCollection(object instance, object item)
+        private void VectorAdd_25_IList(object instance, object item)
         {
-            var collection = (global::System.Collections.Generic.ICollection<global::RecordIt.Core.Services.CaptureSource>)instance;
-            var newItem = (global::RecordIt.Core.Services.CaptureSource)item;
+            var collection = (global::System.Collections.Generic.ICollection<global::Microsoft.UI.Xaml.Controls.MenuBarItem>)instance;
+            var newItem = (global::Microsoft.UI.Xaml.Controls.MenuBarItem)item;
             collection.Add(newItem);
         }
-        private void VectorAdd_22_Collection(object instance, object item)
+        private void VectorAdd_27_IList(object instance, object item)
         {
-            var collection = (global::System.Collections.Generic.ICollection<global::RecordIt.Core.Services.CaptureSource>)instance;
-            var newItem = (global::RecordIt.Core.Services.CaptureSource)item;
+            var collection = (global::System.Collections.Generic.ICollection<global::Microsoft.UI.Xaml.Controls.MenuFlyoutItemBase>)instance;
+            var newItem = (global::Microsoft.UI.Xaml.Controls.MenuFlyoutItemBase)item;
             collection.Add(newItem);
         }
-        private void VectorAdd_30_IList(object instance, object item)
+        private void VectorAdd_30_ObservableCollection(object instance, object item)
+        {
+            var collection = (global::System.Collections.Generic.ICollection<global::RecordIt.Pages.SceneItem>)instance;
+            var newItem = (global::RecordIt.Pages.SceneItem)item;
+            collection.Add(newItem);
+        }
+        private void VectorAdd_31_Collection(object instance, object item)
+        {
+            var collection = (global::System.Collections.Generic.ICollection<global::RecordIt.Pages.SceneItem>)instance;
+            var newItem = (global::RecordIt.Pages.SceneItem)item;
+            collection.Add(newItem);
+        }
+        private void VectorAdd_33_ObservableCollection(object instance, object item)
+        {
+            var collection = (global::System.Collections.Generic.ICollection<global::RecordIt.Pages.SourceItem>)instance;
+            var newItem = (global::RecordIt.Pages.SourceItem)item;
+            collection.Add(newItem);
+        }
+        private void VectorAdd_34_Collection(object instance, object item)
+        {
+            var collection = (global::System.Collections.Generic.ICollection<global::RecordIt.Pages.SourceItem>)instance;
+            var newItem = (global::RecordIt.Pages.SourceItem)item;
+            collection.Add(newItem);
+        }
+        private void VectorAdd_42_IList(object instance, object item)
         {
             var collection = (global::System.Collections.Generic.ICollection<global::Microsoft.UI.Xaml.Controls.TreeViewNode>)instance;
             var newItem = (global::Microsoft.UI.Xaml.Controls.TreeViewNode)item;
@@ -493,6 +548,8 @@ namespace RecordIt.RecordIt_XamlTypeInfo
                 userType.AddMemberName("Duration");
                 userType.AddMemberName("Size");
                 userType.AddMemberName("Date");
+                userType.AddMemberName("FullPath");
+                userType.AddMemberName("LastWriteTime");
                 userType.AddMemberName("TypeIcon");
                 userType.SetIsLocalType();
                 xamlType = userType;
@@ -502,52 +559,134 @@ namespace RecordIt.RecordIt_XamlTypeInfo
                 xamlType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlSystemBaseType(typeName, type);
                 break;
 
-            case 20:   //  RecordIt.Pages.RecordPage
+            case 20:   //  System.DateTime
+                userType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("System.ValueType"));
+                userType.SetIsReturnTypeStub();
+                xamlType = userType;
+                break;
+
+            case 21:   //  System.ValueType
+                userType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("Object"));
+                xamlType = userType;
+                break;
+
+            case 22:   //  RecordIt.Converters.BoolToVisibilityConverter
+                userType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("Object"));
+                userType.Activator = Activate_22_BoolToVisibilityConverter;
+                userType.SetIsLocalType();
+                xamlType = userType;
+                break;
+
+            case 23:   //  Microsoft.UI.Xaml.Controls.MenuBar
+                userType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("Microsoft.UI.Xaml.Controls.Control"));
+                userType.Activator = Activate_23_MenuBar;
+                userType.SetContentPropertyName("Microsoft.UI.Xaml.Controls.MenuBar.Items");
+                userType.AddMemberName("Items");
+                xamlType = userType;
+                break;
+
+            case 24:   //  Microsoft.UI.Xaml.Controls.Control
+                xamlType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlSystemBaseType(typeName, type);
+                break;
+
+            case 25:   //  System.Collections.Generic.IList`1<Microsoft.UI.Xaml.Controls.MenuBarItem>
+                userType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType(this, typeName, type, null);
+                userType.CollectionAdd = VectorAdd_25_IList;
+                userType.SetIsReturnTypeStub();
+                xamlType = userType;
+                break;
+
+            case 26:   //  Microsoft.UI.Xaml.Controls.MenuBarItem
+                userType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("Microsoft.UI.Xaml.Controls.Control"));
+                userType.Activator = Activate_26_MenuBarItem;
+                userType.SetContentPropertyName("Microsoft.UI.Xaml.Controls.MenuBarItem.Items");
+                userType.AddMemberName("Items");
+                userType.AddMemberName("Title");
+                xamlType = userType;
+                break;
+
+            case 27:   //  System.Collections.Generic.IList`1<Microsoft.UI.Xaml.Controls.MenuFlyoutItemBase>
+                userType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType(this, typeName, type, null);
+                userType.CollectionAdd = VectorAdd_27_IList;
+                userType.SetIsReturnTypeStub();
+                xamlType = userType;
+                break;
+
+            case 28:   //  Microsoft.UI.Xaml.Controls.MenuFlyoutItemBase
+                xamlType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlSystemBaseType(typeName, type);
+                break;
+
+            case 29:   //  RecordIt.Pages.RecordPage
                 userType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("Microsoft.UI.Xaml.Controls.Page"));
-                userType.Activator = Activate_20_RecordPage;
+                userType.Activator = Activate_29_RecordPage;
+                userType.AddMemberName("Scenes");
                 userType.AddMemberName("Sources");
                 userType.SetIsLocalType();
                 xamlType = userType;
                 break;
 
-            case 21:   //  System.Collections.ObjectModel.ObservableCollection`1<RecordIt.Core.Services.CaptureSource>
-                userType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("System.Collections.ObjectModel.Collection`1<RecordIt.Core.Services.CaptureSource>"));
-                userType.CollectionAdd = VectorAdd_21_ObservableCollection;
+            case 30:   //  System.Collections.ObjectModel.ObservableCollection`1<RecordIt.Pages.SceneItem>
+                userType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("System.Collections.ObjectModel.Collection`1<RecordIt.Pages.SceneItem>"));
+                userType.CollectionAdd = VectorAdd_30_ObservableCollection;
                 userType.SetIsReturnTypeStub();
                 xamlType = userType;
                 break;
 
-            case 22:   //  System.Collections.ObjectModel.Collection`1<RecordIt.Core.Services.CaptureSource>
+            case 31:   //  System.Collections.ObjectModel.Collection`1<RecordIt.Pages.SceneItem>
                 userType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("Object"));
-                userType.Activator = Activate_22_Collection;
-                userType.CollectionAdd = VectorAdd_22_Collection;
+                userType.Activator = Activate_31_Collection;
+                userType.CollectionAdd = VectorAdd_31_Collection;
                 xamlType = userType;
                 break;
 
-            case 23:   //  RecordIt.Core.Services.CaptureSource
+            case 32:   //  RecordIt.Pages.SceneItem
                 userType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("Object"));
-                userType.Activator = Activate_23_CaptureSource;
-                userType.AddMemberName("Id");
+                userType.Activator = Activate_32_SceneItem;
                 userType.AddMemberName("Name");
-                userType.AddMemberName("Thumbnail");
-                xamlType = userType;
-                break;
-
-            case 24:   //  RecordIt.Pages.SettingsPage
-                userType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("Microsoft.UI.Xaml.Controls.Page"));
-                userType.Activator = Activate_24_SettingsPage;
                 userType.SetIsLocalType();
                 xamlType = userType;
                 break;
 
-            case 25:   //  RecordIt.Pages.WhiteboardPage
-                userType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("Microsoft.UI.Xaml.Controls.Page"));
-                userType.Activator = Activate_25_WhiteboardPage;
+            case 33:   //  System.Collections.ObjectModel.ObservableCollection`1<RecordIt.Pages.SourceItem>
+                userType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("System.Collections.ObjectModel.Collection`1<RecordIt.Pages.SourceItem>"));
+                userType.CollectionAdd = VectorAdd_33_ObservableCollection;
+                userType.SetIsReturnTypeStub();
+                xamlType = userType;
+                break;
+
+            case 34:   //  System.Collections.ObjectModel.Collection`1<RecordIt.Pages.SourceItem>
+                userType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("Object"));
+                userType.Activator = Activate_34_Collection;
+                userType.CollectionAdd = VectorAdd_34_Collection;
+                xamlType = userType;
+                break;
+
+            case 35:   //  RecordIt.Pages.SourceItem
+                userType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("Object"));
+                userType.Activator = Activate_35_SourceItem;
+                userType.AddMemberName("Name");
+                userType.AddMemberName("Icon");
+                userType.AddMemberName("SourceType");
+                userType.AddMemberName("IsVisible");
                 userType.SetIsLocalType();
                 xamlType = userType;
                 break;
 
-            case 26:   //  Windows.UI.Color
+            case 36:   //  RecordIt.Pages.SettingsPage
+                userType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("Microsoft.UI.Xaml.Controls.Page"));
+                userType.Activator = Activate_36_SettingsPage;
+                userType.SetIsLocalType();
+                xamlType = userType;
+                break;
+
+            case 37:   //  RecordIt.Pages.WhiteboardPage
+                userType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("Microsoft.UI.Xaml.Controls.Page"));
+                userType.Activator = Activate_37_WhiteboardPage;
+                userType.SetIsLocalType();
+                xamlType = userType;
+                break;
+
+            case 38:   //  Windows.UI.Color
                 userType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("System.ValueType"));
                 userType.AddMemberName("A");
                 userType.AddMemberName("R");
@@ -556,20 +695,22 @@ namespace RecordIt.RecordIt_XamlTypeInfo
                 xamlType = userType;
                 break;
 
-            case 27:   //  System.ValueType
-                userType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("Object"));
-                xamlType = userType;
-                break;
-
-            case 28:   //  Byte
+            case 39:   //  Byte
                 userType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("System.ValueType"));
                 userType.SetIsReturnTypeStub();
                 xamlType = userType;
                 break;
 
-            case 29:   //  Microsoft.UI.Xaml.Controls.TreeViewNode
+            case 40:   //  RecordIt.WhiteboardWindow
+                userType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("Microsoft.UI.Xaml.Window"));
+                userType.Activator = Activate_40_WhiteboardWindow;
+                userType.SetIsLocalType();
+                xamlType = userType;
+                break;
+
+            case 41:   //  Microsoft.UI.Xaml.Controls.TreeViewNode
                 userType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("Microsoft.UI.Xaml.DependencyObject"));
-                userType.Activator = Activate_29_TreeViewNode;
+                userType.Activator = Activate_41_TreeViewNode;
                 userType.AddMemberName("Children");
                 userType.AddMemberName("Content");
                 userType.AddMemberName("Depth");
@@ -581,14 +722,14 @@ namespace RecordIt.RecordIt_XamlTypeInfo
                 xamlType = userType;
                 break;
 
-            case 30:   //  System.Collections.Generic.IList`1<Microsoft.UI.Xaml.Controls.TreeViewNode>
+            case 42:   //  System.Collections.Generic.IList`1<Microsoft.UI.Xaml.Controls.TreeViewNode>
                 userType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType(this, typeName, type, null);
-                userType.CollectionAdd = VectorAdd_30_IList;
+                userType.CollectionAdd = VectorAdd_42_IList;
                 userType.SetIsReturnTypeStub();
                 xamlType = userType;
                 break;
 
-            case 31:   //  Int32
+            case 43:   //  Int32
                 xamlType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlSystemBaseType(typeName, type);
                 break;
             }
@@ -742,132 +883,187 @@ namespace RecordIt.RecordIt_XamlTypeInfo
             var that = (global::RecordIt.Pages.LibraryItem)instance;
             return that.Date;
         }
-        private object get_12_LibraryItem_TypeIcon(object instance)
+        private object get_12_LibraryItem_FullPath(object instance)
+        {
+            var that = (global::RecordIt.Pages.LibraryItem)instance;
+            return that.FullPath;
+        }
+        private object get_13_LibraryItem_LastWriteTime(object instance)
+        {
+            var that = (global::RecordIt.Pages.LibraryItem)instance;
+            return that.LastWriteTime;
+        }
+        private object get_14_LibraryItem_TypeIcon(object instance)
         {
             var that = (global::RecordIt.Pages.LibraryItem)instance;
             return that.TypeIcon;
         }
-        private object get_13_RecordPage_Sources(object instance)
+        private object get_15_MenuBar_Items(object instance)
+        {
+            var that = (global::Microsoft.UI.Xaml.Controls.MenuBar)instance;
+            return that.Items;
+        }
+        private object get_16_MenuBarItem_Items(object instance)
+        {
+            var that = (global::Microsoft.UI.Xaml.Controls.MenuBarItem)instance;
+            return that.Items;
+        }
+        private object get_17_MenuBarItem_Title(object instance)
+        {
+            var that = (global::Microsoft.UI.Xaml.Controls.MenuBarItem)instance;
+            return that.Title;
+        }
+        private void set_17_MenuBarItem_Title(object instance, object Value)
+        {
+            var that = (global::Microsoft.UI.Xaml.Controls.MenuBarItem)instance;
+            that.Title = (global::System.String)Value;
+        }
+        private object get_18_RecordPage_Scenes(object instance)
+        {
+            var that = (global::RecordIt.Pages.RecordPage)instance;
+            return that.Scenes;
+        }
+        private object get_19_SceneItem_Name(object instance)
+        {
+            var that = (global::RecordIt.Pages.SceneItem)instance;
+            return that.Name;
+        }
+        private void set_19_SceneItem_Name(object instance, object Value)
+        {
+            var that = (global::RecordIt.Pages.SceneItem)instance;
+            that.Name = (global::System.String)Value;
+        }
+        private object get_20_RecordPage_Sources(object instance)
         {
             var that = (global::RecordIt.Pages.RecordPage)instance;
             return that.Sources;
         }
-        private object get_14_CaptureSource_Id(object instance)
+        private object get_21_SourceItem_Name(object instance)
         {
-            var that = (global::RecordIt.Core.Services.CaptureSource)instance;
-            return that.Id;
-        }
-        private void set_14_CaptureSource_Id(object instance, object Value)
-        {
-            var that = (global::RecordIt.Core.Services.CaptureSource)instance;
-            that.Id = (global::System.String)Value;
-        }
-        private object get_15_CaptureSource_Name(object instance)
-        {
-            var that = (global::RecordIt.Core.Services.CaptureSource)instance;
+            var that = (global::RecordIt.Pages.SourceItem)instance;
             return that.Name;
         }
-        private void set_15_CaptureSource_Name(object instance, object Value)
+        private void set_21_SourceItem_Name(object instance, object Value)
         {
-            var that = (global::RecordIt.Core.Services.CaptureSource)instance;
+            var that = (global::RecordIt.Pages.SourceItem)instance;
             that.Name = (global::System.String)Value;
         }
-        private object get_16_CaptureSource_Thumbnail(object instance)
+        private object get_22_SourceItem_Icon(object instance)
         {
-            var that = (global::RecordIt.Core.Services.CaptureSource)instance;
-            return that.Thumbnail;
+            var that = (global::RecordIt.Pages.SourceItem)instance;
+            return that.Icon;
         }
-        private void set_16_CaptureSource_Thumbnail(object instance, object Value)
+        private void set_22_SourceItem_Icon(object instance, object Value)
         {
-            var that = (global::RecordIt.Core.Services.CaptureSource)instance;
-            that.Thumbnail = (global::System.String)Value;
+            var that = (global::RecordIt.Pages.SourceItem)instance;
+            that.Icon = (global::System.String)Value;
         }
-        private object get_17_Color_A(object instance)
+        private object get_23_SourceItem_SourceType(object instance)
+        {
+            var that = (global::RecordIt.Pages.SourceItem)instance;
+            return that.SourceType;
+        }
+        private void set_23_SourceItem_SourceType(object instance, object Value)
+        {
+            var that = (global::RecordIt.Pages.SourceItem)instance;
+            that.SourceType = (global::System.String)Value;
+        }
+        private object get_24_SourceItem_IsVisible(object instance)
+        {
+            var that = (global::RecordIt.Pages.SourceItem)instance;
+            return that.IsVisible;
+        }
+        private void set_24_SourceItem_IsVisible(object instance, object Value)
+        {
+            var that = (global::RecordIt.Pages.SourceItem)instance;
+            that.IsVisible = (global::System.Boolean)Value;
+        }
+        private object get_25_Color_A(object instance)
         {
             var that = (global::Windows.UI.Color)instance;
             return that.A;
         }
-        private void set_17_Color_A(object instance, object Value)
+        private void set_25_Color_A(object instance, object Value)
         {
             var that = (global::Windows.UI.Color)instance;
             that.A = (global::System.Byte)Value;
         }
-        private object get_18_Color_R(object instance)
+        private object get_26_Color_R(object instance)
         {
             var that = (global::Windows.UI.Color)instance;
             return that.R;
         }
-        private void set_18_Color_R(object instance, object Value)
+        private void set_26_Color_R(object instance, object Value)
         {
             var that = (global::Windows.UI.Color)instance;
             that.R = (global::System.Byte)Value;
         }
-        private object get_19_Color_G(object instance)
+        private object get_27_Color_G(object instance)
         {
             var that = (global::Windows.UI.Color)instance;
             return that.G;
         }
-        private void set_19_Color_G(object instance, object Value)
+        private void set_27_Color_G(object instance, object Value)
         {
             var that = (global::Windows.UI.Color)instance;
             that.G = (global::System.Byte)Value;
         }
-        private object get_20_Color_B(object instance)
+        private object get_28_Color_B(object instance)
         {
             var that = (global::Windows.UI.Color)instance;
             return that.B;
         }
-        private void set_20_Color_B(object instance, object Value)
+        private void set_28_Color_B(object instance, object Value)
         {
             var that = (global::Windows.UI.Color)instance;
             that.B = (global::System.Byte)Value;
         }
-        private object get_21_TreeViewNode_Children(object instance)
+        private object get_29_TreeViewNode_Children(object instance)
         {
             var that = (global::Microsoft.UI.Xaml.Controls.TreeViewNode)instance;
             return that.Children;
         }
-        private object get_22_TreeViewNode_Content(object instance)
+        private object get_30_TreeViewNode_Content(object instance)
         {
             var that = (global::Microsoft.UI.Xaml.Controls.TreeViewNode)instance;
             return that.Content;
         }
-        private void set_22_TreeViewNode_Content(object instance, object Value)
+        private void set_30_TreeViewNode_Content(object instance, object Value)
         {
             var that = (global::Microsoft.UI.Xaml.Controls.TreeViewNode)instance;
             that.Content = (global::System.Object)Value;
         }
-        private object get_23_TreeViewNode_Depth(object instance)
+        private object get_31_TreeViewNode_Depth(object instance)
         {
             var that = (global::Microsoft.UI.Xaml.Controls.TreeViewNode)instance;
             return that.Depth;
         }
-        private object get_24_TreeViewNode_HasChildren(object instance)
+        private object get_32_TreeViewNode_HasChildren(object instance)
         {
             var that = (global::Microsoft.UI.Xaml.Controls.TreeViewNode)instance;
             return that.HasChildren;
         }
-        private object get_25_TreeViewNode_HasUnrealizedChildren(object instance)
+        private object get_33_TreeViewNode_HasUnrealizedChildren(object instance)
         {
             var that = (global::Microsoft.UI.Xaml.Controls.TreeViewNode)instance;
             return that.HasUnrealizedChildren;
         }
-        private void set_25_TreeViewNode_HasUnrealizedChildren(object instance, object Value)
+        private void set_33_TreeViewNode_HasUnrealizedChildren(object instance, object Value)
         {
             var that = (global::Microsoft.UI.Xaml.Controls.TreeViewNode)instance;
             that.HasUnrealizedChildren = (global::System.Boolean)Value;
         }
-        private object get_26_TreeViewNode_IsExpanded(object instance)
+        private object get_34_TreeViewNode_IsExpanded(object instance)
         {
             var that = (global::Microsoft.UI.Xaml.Controls.TreeViewNode)instance;
             return that.IsExpanded;
         }
-        private void set_26_TreeViewNode_IsExpanded(object instance, object Value)
+        private void set_34_TreeViewNode_IsExpanded(object instance, object Value)
         {
             var that = (global::Microsoft.UI.Xaml.Controls.TreeViewNode)instance;
             that.IsExpanded = (global::System.Boolean)Value;
         }
-        private object get_27_TreeViewNode_Parent(object instance)
+        private object get_35_TreeViewNode_Parent(object instance)
         {
             var that = (global::Microsoft.UI.Xaml.Controls.TreeViewNode)instance;
             return that.Parent;
@@ -956,104 +1152,155 @@ namespace RecordIt.RecordIt_XamlTypeInfo
                 xamlMember.Getter = get_11_LibraryItem_Date;
                 xamlMember.SetIsReadOnly();
                 break;
+            case "RecordIt.Pages.LibraryItem.FullPath":
+                userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("RecordIt.Pages.LibraryItem");
+                xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "FullPath", "String");
+                xamlMember.Getter = get_12_LibraryItem_FullPath;
+                xamlMember.SetIsReadOnly();
+                break;
+            case "RecordIt.Pages.LibraryItem.LastWriteTime":
+                userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("RecordIt.Pages.LibraryItem");
+                xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "LastWriteTime", "System.DateTime");
+                xamlMember.Getter = get_13_LibraryItem_LastWriteTime;
+                xamlMember.SetIsReadOnly();
+                break;
             case "RecordIt.Pages.LibraryItem.TypeIcon":
                 userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("RecordIt.Pages.LibraryItem");
                 xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "TypeIcon", "String");
-                xamlMember.Getter = get_12_LibraryItem_TypeIcon;
+                xamlMember.Getter = get_14_LibraryItem_TypeIcon;
                 xamlMember.SetIsReadOnly();
+                break;
+            case "Microsoft.UI.Xaml.Controls.MenuBar.Items":
+                userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Microsoft.UI.Xaml.Controls.MenuBar");
+                xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "Items", "System.Collections.Generic.IList`1<Microsoft.UI.Xaml.Controls.MenuBarItem>");
+                xamlMember.SetIsDependencyProperty();
+                xamlMember.Getter = get_15_MenuBar_Items;
+                xamlMember.SetIsReadOnly();
+                break;
+            case "Microsoft.UI.Xaml.Controls.MenuBarItem.Items":
+                userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Microsoft.UI.Xaml.Controls.MenuBarItem");
+                xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "Items", "System.Collections.Generic.IList`1<Microsoft.UI.Xaml.Controls.MenuFlyoutItemBase>");
+                xamlMember.SetIsDependencyProperty();
+                xamlMember.Getter = get_16_MenuBarItem_Items;
+                xamlMember.SetIsReadOnly();
+                break;
+            case "Microsoft.UI.Xaml.Controls.MenuBarItem.Title":
+                userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Microsoft.UI.Xaml.Controls.MenuBarItem");
+                xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "Title", "String");
+                xamlMember.SetIsDependencyProperty();
+                xamlMember.Getter = get_17_MenuBarItem_Title;
+                xamlMember.Setter = set_17_MenuBarItem_Title;
+                break;
+            case "RecordIt.Pages.RecordPage.Scenes":
+                userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("RecordIt.Pages.RecordPage");
+                xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "Scenes", "System.Collections.ObjectModel.ObservableCollection`1<RecordIt.Pages.SceneItem>");
+                xamlMember.Getter = get_18_RecordPage_Scenes;
+                xamlMember.SetIsReadOnly();
+                break;
+            case "RecordIt.Pages.SceneItem.Name":
+                userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("RecordIt.Pages.SceneItem");
+                xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "Name", "String");
+                xamlMember.Getter = get_19_SceneItem_Name;
+                xamlMember.Setter = set_19_SceneItem_Name;
                 break;
             case "RecordIt.Pages.RecordPage.Sources":
                 userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("RecordIt.Pages.RecordPage");
-                xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "Sources", "System.Collections.ObjectModel.ObservableCollection`1<RecordIt.Core.Services.CaptureSource>");
-                xamlMember.Getter = get_13_RecordPage_Sources;
+                xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "Sources", "System.Collections.ObjectModel.ObservableCollection`1<RecordIt.Pages.SourceItem>");
+                xamlMember.Getter = get_20_RecordPage_Sources;
                 xamlMember.SetIsReadOnly();
                 break;
-            case "RecordIt.Core.Services.CaptureSource.Id":
-                userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("RecordIt.Core.Services.CaptureSource");
-                xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "Id", "String");
-                xamlMember.Getter = get_14_CaptureSource_Id;
-                xamlMember.Setter = set_14_CaptureSource_Id;
-                break;
-            case "RecordIt.Core.Services.CaptureSource.Name":
-                userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("RecordIt.Core.Services.CaptureSource");
+            case "RecordIt.Pages.SourceItem.Name":
+                userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("RecordIt.Pages.SourceItem");
                 xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "Name", "String");
-                xamlMember.Getter = get_15_CaptureSource_Name;
-                xamlMember.Setter = set_15_CaptureSource_Name;
+                xamlMember.Getter = get_21_SourceItem_Name;
+                xamlMember.Setter = set_21_SourceItem_Name;
                 break;
-            case "RecordIt.Core.Services.CaptureSource.Thumbnail":
-                userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("RecordIt.Core.Services.CaptureSource");
-                xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "Thumbnail", "String");
-                xamlMember.Getter = get_16_CaptureSource_Thumbnail;
-                xamlMember.Setter = set_16_CaptureSource_Thumbnail;
+            case "RecordIt.Pages.SourceItem.Icon":
+                userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("RecordIt.Pages.SourceItem");
+                xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "Icon", "String");
+                xamlMember.Getter = get_22_SourceItem_Icon;
+                xamlMember.Setter = set_22_SourceItem_Icon;
+                break;
+            case "RecordIt.Pages.SourceItem.SourceType":
+                userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("RecordIt.Pages.SourceItem");
+                xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "SourceType", "String");
+                xamlMember.Getter = get_23_SourceItem_SourceType;
+                xamlMember.Setter = set_23_SourceItem_SourceType;
+                break;
+            case "RecordIt.Pages.SourceItem.IsVisible":
+                userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("RecordIt.Pages.SourceItem");
+                xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "IsVisible", "Boolean");
+                xamlMember.Getter = get_24_SourceItem_IsVisible;
+                xamlMember.Setter = set_24_SourceItem_IsVisible;
                 break;
             case "Windows.UI.Color.A":
                 userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Windows.UI.Color");
                 xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "A", "Byte");
-                xamlMember.Getter = get_17_Color_A;
-                xamlMember.Setter = set_17_Color_A;
+                xamlMember.Getter = get_25_Color_A;
+                xamlMember.Setter = set_25_Color_A;
                 break;
             case "Windows.UI.Color.R":
                 userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Windows.UI.Color");
                 xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "R", "Byte");
-                xamlMember.Getter = get_18_Color_R;
-                xamlMember.Setter = set_18_Color_R;
+                xamlMember.Getter = get_26_Color_R;
+                xamlMember.Setter = set_26_Color_R;
                 break;
             case "Windows.UI.Color.G":
                 userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Windows.UI.Color");
                 xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "G", "Byte");
-                xamlMember.Getter = get_19_Color_G;
-                xamlMember.Setter = set_19_Color_G;
+                xamlMember.Getter = get_27_Color_G;
+                xamlMember.Setter = set_27_Color_G;
                 break;
             case "Windows.UI.Color.B":
                 userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Windows.UI.Color");
                 xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "B", "Byte");
-                xamlMember.Getter = get_20_Color_B;
-                xamlMember.Setter = set_20_Color_B;
+                xamlMember.Getter = get_28_Color_B;
+                xamlMember.Setter = set_28_Color_B;
                 break;
             case "Microsoft.UI.Xaml.Controls.TreeViewNode.Children":
                 userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Microsoft.UI.Xaml.Controls.TreeViewNode");
                 xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "Children", "System.Collections.Generic.IList`1<Microsoft.UI.Xaml.Controls.TreeViewNode>");
-                xamlMember.Getter = get_21_TreeViewNode_Children;
+                xamlMember.Getter = get_29_TreeViewNode_Children;
                 xamlMember.SetIsReadOnly();
                 break;
             case "Microsoft.UI.Xaml.Controls.TreeViewNode.Content":
                 userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Microsoft.UI.Xaml.Controls.TreeViewNode");
                 xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "Content", "Object");
                 xamlMember.SetIsDependencyProperty();
-                xamlMember.Getter = get_22_TreeViewNode_Content;
-                xamlMember.Setter = set_22_TreeViewNode_Content;
+                xamlMember.Getter = get_30_TreeViewNode_Content;
+                xamlMember.Setter = set_30_TreeViewNode_Content;
                 break;
             case "Microsoft.UI.Xaml.Controls.TreeViewNode.Depth":
                 userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Microsoft.UI.Xaml.Controls.TreeViewNode");
                 xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "Depth", "Int32");
                 xamlMember.SetIsDependencyProperty();
-                xamlMember.Getter = get_23_TreeViewNode_Depth;
+                xamlMember.Getter = get_31_TreeViewNode_Depth;
                 xamlMember.SetIsReadOnly();
                 break;
             case "Microsoft.UI.Xaml.Controls.TreeViewNode.HasChildren":
                 userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Microsoft.UI.Xaml.Controls.TreeViewNode");
                 xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "HasChildren", "Boolean");
                 xamlMember.SetIsDependencyProperty();
-                xamlMember.Getter = get_24_TreeViewNode_HasChildren;
+                xamlMember.Getter = get_32_TreeViewNode_HasChildren;
                 xamlMember.SetIsReadOnly();
                 break;
             case "Microsoft.UI.Xaml.Controls.TreeViewNode.HasUnrealizedChildren":
                 userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Microsoft.UI.Xaml.Controls.TreeViewNode");
                 xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "HasUnrealizedChildren", "Boolean");
-                xamlMember.Getter = get_25_TreeViewNode_HasUnrealizedChildren;
-                xamlMember.Setter = set_25_TreeViewNode_HasUnrealizedChildren;
+                xamlMember.Getter = get_33_TreeViewNode_HasUnrealizedChildren;
+                xamlMember.Setter = set_33_TreeViewNode_HasUnrealizedChildren;
                 break;
             case "Microsoft.UI.Xaml.Controls.TreeViewNode.IsExpanded":
                 userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Microsoft.UI.Xaml.Controls.TreeViewNode");
                 xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "IsExpanded", "Boolean");
                 xamlMember.SetIsDependencyProperty();
-                xamlMember.Getter = get_26_TreeViewNode_IsExpanded;
-                xamlMember.Setter = set_26_TreeViewNode_IsExpanded;
+                xamlMember.Getter = get_34_TreeViewNode_IsExpanded;
+                xamlMember.Setter = set_34_TreeViewNode_IsExpanded;
                 break;
             case "Microsoft.UI.Xaml.Controls.TreeViewNode.Parent":
                 userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Microsoft.UI.Xaml.Controls.TreeViewNode");
                 xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "Parent", "Microsoft.UI.Xaml.Controls.TreeViewNode");
-                xamlMember.Getter = get_27_TreeViewNode_Parent;
+                xamlMember.Getter = get_35_TreeViewNode_Parent;
                 xamlMember.SetIsReadOnly();
                 break;
             }

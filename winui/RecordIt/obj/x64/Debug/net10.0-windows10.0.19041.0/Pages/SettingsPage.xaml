@@ -44,7 +44,7 @@
                                     <TextBlock Text="Choose your preferred color scheme" FontSize="12"
                                                Foreground="{StaticResource TextSecondaryBrush}" />
                                 </StackPanel>
-                                <ComboBox x:ConnectionId='10' x:Name="ThemeCombo" Grid.Column="1"
+                                <ComboBox x:ConnectionId='18' x:Name="ThemeCombo" Grid.Column="1"
                                           Style="{StaticResource AlvoniaComboBoxStyle}"
                                           Width="140" SelectedIndex="0">
                                     <ComboBoxItem Content="Dark" />
@@ -65,7 +65,7 @@
                                     <TextBlock Text="Interface language" FontSize="12"
                                                Foreground="{StaticResource TextSecondaryBrush}" />
                                 </StackPanel>
-                                <ComboBox x:ConnectionId='9' x:Name="LanguageCombo" Grid.Column="1"
+                                <ComboBox x:ConnectionId='17' x:Name="LanguageCombo" Grid.Column="1"
                                           Style="{StaticResource AlvoniaComboBoxStyle}"
                                           Width="140" SelectedIndex="0">
                                     <ComboBoxItem Content="English" />
@@ -90,7 +90,7 @@
                                     <TextBlock Text="Default Quality" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
                                     <TextBlock Text="Output video resolution" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
                                 </StackPanel>
-                                <ComboBox x:ConnectionId='8' x:Name="QualityCombo" Grid.Column="1" Style="{StaticResource AlvoniaComboBoxStyle}" Width="140" SelectedIndex="0">
+                                <ComboBox x:ConnectionId='16' x:Name="QualityCombo" Grid.Column="1" Style="{StaticResource AlvoniaComboBoxStyle}" Width="140" SelectedIndex="0">
                                     <ComboBoxItem Content="1080p HD"/>
                                     <ComboBoxItem Content="1440p QHD"/>
                                     <ComboBoxItem Content="4K Ultra HD"/>
@@ -104,7 +104,7 @@
                                     <TextBlock Text="Output Format" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
                                     <TextBlock Text="Container format for recordings" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
                                 </StackPanel>
-                                <ComboBox x:ConnectionId='7' x:Name="FormatCombo" Grid.Column="1" Style="{StaticResource AlvoniaComboBoxStyle}" Width="140" SelectedIndex="0">
+                                <ComboBox x:ConnectionId='15' x:Name="FormatCombo" Grid.Column="1" Style="{StaticResource AlvoniaComboBoxStyle}" Width="140" SelectedIndex="0">
                                     <ComboBoxItem Content="MP4 (H.264)"/>
                                     <ComboBoxItem Content="WebM (VP9)"/>
                                     <ComboBoxItem Content="MKV"/>
@@ -117,13 +117,85 @@
                                     <TextBlock Text="Show Countdown" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
                                     <TextBlock Text="3-second countdown before recording" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
                                 </StackPanel>
-                                <ToggleSwitch x:ConnectionId='6' x:Name="CountdownToggle" Grid.Column="1" IsOn="True" Style="{StaticResource AlvoniaToggleSwitchStyle}" />
+                                <ToggleSwitch x:ConnectionId='14' x:Name="CountdownToggle" Grid.Column="1" IsOn="True" Style="{StaticResource AlvoniaToggleSwitchStyle}" />
                             </Grid>
                         </StackPanel>
                     </Border>
                 </StackPanel>
 
-                <!-- System -->
+                <!-- Encoding -->
+                <StackPanel Spacing="12">
+                    <TextBlock Text="ENCODING" Style="{StaticResource SectionTitleStyle}" />
+                    <Border Style="{StaticResource AlvoniaCardStyle}">
+                        <StackPanel Spacing="0">
+
+                            <!-- Hardware encoding toggle -->
+                            <Grid Padding="0,4" Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Hardware Encoding" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Use GPU encoder (NVENC / AMF / QSV) instead of CPU libx264"
+                                               FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <ToggleSwitch x:ConnectionId='13' x:Name="HardwareEncodingToggle" Grid.Column="1"
+                                              IsOn="False" Style="{StaticResource AlvoniaToggleSwitchStyle}"
+                                                                                       />
+                            </Grid>
+
+                            <Border BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,1,0,0" />
+
+                            <!-- GPU / Encoder selector -->
+                            <Grid Padding="0,12" Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="GPU / Encoder" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock x:ConnectionId='12' x:Name="EncoderStatusText"
+                                               Text="Detecting encoders…"
+                                               FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <ComboBox x:ConnectionId='10' x:Name="EncoderCombo" Grid.Column="1"
+                                          Style="{StaticResource AlvoniaComboBoxStyle}"
+                                          Width="280" IsEnabled="False"
+                                                                                          
+                                          Margin="12,0,0,0" />
+                                <Button x:ConnectionId='11' x:Name="RefreshEncodersBtn" Grid.Column="2"
+                                        Content="Refresh" Margin="8,0,0,0"
+                                                                      />
+                            </Grid>
+
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                        <!-- FFmpeg -->
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="FFMPEG" Style="{StaticResource SectionTitleStyle}" />
+                            <Border Style="{StaticResource AlvoniaCardStyle}">
+                                <StackPanel Spacing="12">
+                                    <Grid Padding="0,4" Margin="0,0,0,12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="FFmpeg Path" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}" />
+                                            <TextBlock Text="Path to ffmpeg executable (optional)" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                            <TextBox x:ConnectionId='7' x:Name="FfmpegPathBox" Width="360"                                  />
+                                            <Button x:ConnectionId='8' Content="Browse..."                            />
+                                            <Button x:ConnectionId='9' x:Name="FfmpegVerifyBtn" Content="Verify"                            />
+                                        </StackPanel>
+                                    </Grid>
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <Border x:ConnectionId='5' x:Name="FfmpegStatusBadge" Width="12" Height="12" CornerRadius="6" Background="{StaticResource TextSecondaryBrush}" Visibility="Collapsed" />
+                                        <TextBlock x:ConnectionId='6' x:Name="FfmpegStatusText" Text="Not verified" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- System -->
                 <StackPanel Spacing="12">
                     <TextBlock Text="SYSTEM" Style="{StaticResource SectionTitleStyle}" />
                     <Border Style="{StaticResource AlvoniaCardStyle}">
@@ -134,16 +206,7 @@
                                     <TextBlock Text="Notifications" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
                                     <TextBlock Text="Show notifications when recording completes" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
                                 </StackPanel>
-                                <ToggleSwitch x:ConnectionId='5' x:Name="NotificationsToggle" Grid.Column="1" IsOn="True" Style="{StaticResource AlvoniaToggleSwitchStyle}" />
-                            </Grid>
-                            <Border BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,1,0,0" />
-                            <Grid Padding="0,12" Margin="0,0,0,12">
-                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                <StackPanel Spacing="2">
-                                    <TextBlock Text="Hardware Acceleration" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
-                                    <TextBlock Text="Use GPU for encoding when available" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
-                                </StackPanel>
-                                <ToggleSwitch x:ConnectionId='4' x:Name="HardwareAccelToggle" Grid.Column="1" IsOn="True" Style="{StaticResource AlvoniaToggleSwitchStyle}" />
+                                <ToggleSwitch x:ConnectionId='4' x:Name="NotificationsToggle" Grid.Column="1" IsOn="True" Style="{StaticResource AlvoniaToggleSwitchStyle}" />
                             </Grid>
                             <Border BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,1,0,0" />
                             <Grid Padding="0,12,0,4">

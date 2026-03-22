@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+
+  "model": "claude-sonnet-4-6",
+
+  "permissions": {
+    "defaultMode": "bypassPermissions",
+
+    "allow": [
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep",
+      "Bash(dotnet *)",
+      "Bash(git *)",
+      "Bash(grep *)",
+      "Bash(ls *)",
+      "Bash(cat *)",
+      "Bash(echo *)",
+      "Bash(mkdir *)",
+      "Bash(cp *)",
+      "Bash(mv *)",
+      "Bash(rm *)",
+      "Bash(pwd)",
+      "Bash(cd *)",
+      "Bash(type *)",
+      "Bash(where *)",
+      "Bash(node *)",
+      "Bash(npm *)",
+      "Bash(npx *)",
+      "Bash(python *)",
+      "Bash(pip *)",
+      "Bash(jq *)",
+      "WebFetch",
+      "WebSearch"
+    ],
+
+    "deny": [
+      "Bash(rm -rf /)",
+      "Bash(sudo *)",
+      "Bash(su *)"
+    ]
+  },
+
+  "sandbox": {
+    "enabled": false
+  },
+
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+
+  "env": {
+    "BASH_DEFAULT_TIMEOUT_MS": "30000",
+    "BASH_MAX_TIMEOUT_MS": "120000"
+  },
+
+  "spinnerTipsEnabled": true,
+  "cleanupPeriodDays": 30
+}

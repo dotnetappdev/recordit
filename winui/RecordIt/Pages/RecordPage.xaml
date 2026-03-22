@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:converters="using:RecordIt.Converters"
+    xmlns:media="using:Microsoft.UI.Xaml.Controls"
     mc:Ignorable="d"
     Background="{StaticResource BgBaseBrush}">
 
@@ -57,7 +58,7 @@
                     <ToggleMenuFlyoutItem x:Name="MenuShowScenes"     Text="Scenes Panel"       IsChecked="True"  Click="MenuTogglePanel_Click" Tag="scenes" />
                     <ToggleMenuFlyoutItem x:Name="MenuShowSources"    Text="Sources Panel"      IsChecked="True"  Click="MenuTogglePanel_Click" Tag="sources" />
                     <ToggleMenuFlyoutItem x:Name="MenuShowMixer"      Text="Audio Mixer"        IsChecked="True"  Click="MenuTogglePanel_Click" Tag="mixer" />
-                    <ToggleMenuFlyoutItem x:Name="MenuShowTransitions"Text="Transitions Panel"  IsChecked="True"  Click="MenuTogglePanel_Click" Tag="transitions" />
+                    <ToggleMenuFlyoutItem x:Name="MenuShowTransitions" Text="Transitions Panel"  IsChecked="True"  Click="MenuTogglePanel_Click" Tag="transitions" />
                     <ToggleMenuFlyoutItem x:Name="MenuShowControls"   Text="Controls Panel"     IsChecked="True"  Click="MenuTogglePanel_Click" Tag="controls" />
                 </MenuBarItem>
 
@@ -89,15 +90,27 @@
 
         <!-- ═══════════════════════════════════════════════════════════════
              Row 1 · Preview Area
+             Normal mode  : [PREVIEW *] | [Live side 360px]
+             Studio mode  : [PREVIEW *] | [4px] | [PROGRAM *]
         ═══════════════════════════════════════════════════════════════════ -->
-        <Grid Grid.Row="1" Background="#080808">
+        <Grid x:Name="PreviewAreaGrid" Grid.Row="1" Background="#080808">
+            <Grid.ColumnDefinitions>
+                <!-- col 0: PREVIEW / main canvas -->
+                <ColumnDefinition x:Name="PreviewMainCol" Width="*" />
+                <!-- col 1: studio divider (0 in normal mode) -->
+                <ColumnDefinition x:Name="StudioDivCol" Width="0" />
+                <!-- col 2: PROGRAM panel (0 in normal mode) -->
+                <ColumnDefinition x:Name="ProgramCol" Width="0" />
+                <!-- col 3: small live-preview side panel (360 in normal mode) -->
+                <ColumnDefinition x:Name="LiveSideCol" Width="360" />
+            </Grid.ColumnDefinitions>
 
-            <!-- Preview canvas -->
+            <!-- ── col 0: Main PREVIEW canvas ─────────────────────────── -->
             <Border x:Name="PreviewHost"
+                    Grid.Column="0"
                     Background="#000000"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Stretch">
-                <!-- Preview placeholder -->
                 <Grid>
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
                         <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE714;"
@@ -112,20 +125,122 @@
                 </Grid>
             </Border>
 
-            <!-- Preview label top-left (OBS-style "Preview") -->
-            <Border HorizontalAlignment="Left" VerticalAlignment="Top"
+            <!-- ── col 1: Studio divider line ────────────────────────── -->
+            <Rectangle x:Name="StudioDividerRect"
+                       Grid.Column="1"
+                       Fill="#222222"
+                       Visibility="Collapsed" />
+
+            <!-- ── col 2: PROGRAM panel (Studio Mode only) ────────────── -->
+            <Border x:Name="ProgramHost"
+                    Grid.Column="2"
+                    Background="#050505"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    Visibility="Collapsed">
+                <Grid>
+                    <!-- placeholder / live output info -->
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE9D5;"
+                                  FontSize="40" Foreground="#22FF4444"
+                                  HorizontalAlignment="Center" />
+                        <TextBlock x:Name="ProgramHintText"
+                                   Text="No program output"
+                                   FontSize="13" FontWeight="Medium"
+                                   Foreground="#33FFFFFF"
+                                   HorizontalAlignment="Center" />
+                    </StackPanel>
+
+                    <!-- Webcam live preview in PROGRAM pane -->
+                    <media:MediaPlayerElement x:Name="ProgramCamElement"
+                                              AreTransportControlsEnabled="False"
+                                              AutoPlay="False"
+                                              Stretch="UniformToFill"
+                                              Visibility="Collapsed" />
+
+                    <!-- PROGRAM label overlay -->
+                    <Border HorizontalAlignment="Left" VerticalAlignment="Top"
+                            Margin="12,10" Padding="10,4"
+                            Background="#CC1A0000"
+                            CornerRadius="6"
+                            BorderBrush="#55EF4444" BorderThickness="1">
+                        <TextBlock Text="PROGRAM"
+                                   FontSize="10" FontWeight="Bold"
+                                   Foreground="#CCEF4444"
+                                   CharacterSpacing="80" />
+                    </Border>
+
+                    <!-- Transition button (centre-top of program pane) -->
+                    <Button x:Name="TransitionBtn"
+                            HorizontalAlignment="Right" VerticalAlignment="Top"
+                            Margin="0,10,12,0"
+                            Style="{StaticResource AlvoniaRecordButtonStyle}"
+                            Click="TransitionBtn_Click"
+                            ToolTipService.ToolTip="Cut — push Preview to Program">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8AB;" FontSize="11" />
+                            <TextBlock Text="CUT" VerticalAlignment="Center" FontSize="11" />
+                        </StackPanel>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!-- ── col 3: Small Live Preview panel (normal mode) ──────── -->
+            <Border Grid.Column="3" x:Name="LivePreviewHost"
+                    Background="#0A0000" BorderBrush="#151515" BorderThickness="1,0,0,0"
+                    Padding="6">
+                <Grid>
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="LIVE PREVIEW" FontSize="11" FontWeight="Bold" Foreground="#AAFFFFFF" />
+
+                        <!-- Webcam live feed via MediaPlayer -->
+                        <media:MediaPlayerElement x:Name="LivePreviewElement"
+                                                  AreTransportControlsEnabled="False"
+                                                  AutoPlay="False"
+                                                  Stretch="UniformToFill"
+                                                  Height="200"
+                                                  Visibility="Collapsed" />
+
+                        <TextBlock x:Name="LivePreviewHint"
+                                   Text="No live source"
+                                   FontSize="12"
+                                   Foreground="#66FFFFFF" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- ── Overlays on column 0 ───────────────────────────────── -->
+
+            <!-- PREVIEW label top-left -->
+            <Border Grid.Column="0"
+                    HorizontalAlignment="Left" VerticalAlignment="Top"
                     Margin="12,10" Padding="10,4"
                     Background="#CC000000"
                     CornerRadius="6"
                     BorderBrush="#22FFFFFF" BorderThickness="1">
-                <TextBlock Text="PREVIEW"
+                <TextBlock x:Name="PreviewLabelText"
+                           Text="PREVIEW"
                            FontSize="10" FontWeight="Bold"
                            Foreground="#AAFFFFFF"
                            CharacterSpacing="80" />
             </Border>
 
-            <!-- Recording status overlay (top-right) -->
+            <!-- Small record button in preview overlay -->
+            <Button x:Name="PreviewRecordBtn"
+                    Grid.Column="0"
+                    HorizontalAlignment="Left" VerticalAlignment="Top"
+                    Margin="12,50,0,0"
+                    Style="{StaticResource AlvoniaRecordButtonStyle}"
+                    Click="StartRecordBtn_Click">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <Ellipse Width="6" Height="6" Fill="White" VerticalAlignment="Center" />
+                    <TextBlock Text="Record" VerticalAlignment="Center" FontSize="12" />
+                </StackPanel>
+            </Button>
+
+            <!-- Recording status overlay (top-right of column 0) -->
             <Border x:Name="RecordingBadge"
+                    Grid.Column="0"
                     HorizontalAlignment="Right" VerticalAlignment="Top"
                     Margin="0,10,12,0" Padding="10,4"
                     Background="#CC1A0000"
@@ -142,8 +257,68 @@
                 </StackPanel>
             </Border>
 
+            <!-- ── Caption overlay (above scene strip) ───────────────── -->
+            <Border x:Name="CaptionOverlay"
+                    Grid.Column="0"
+                    HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                    Margin="40,0,40,48"
+                    Padding="18,8"
+                    Background="#8C000000"
+                    CornerRadius="8"
+                    BorderBrush="#33FFFFFF" BorderThickness="1"
+                    Visibility="Collapsed"
+                    MaxWidth="900">
+                <TextBlock x:Name="CaptionText"
+                           Text=""
+                           FontSize="22"
+                           FontWeight="SemiBold"
+                           Foreground="White"
+                           TextAlignment="Center"
+                           TextWrapping="Wrap" />
+            </Border>
+
+            <!-- ── Countdown overlay (centred, shown 3-2-1) ───────────── -->
+            <Border x:Name="CountdownOverlay"
+                    Grid.Column="0"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Width="120" Height="120"
+                    Background="#CC000000"
+                    CornerRadius="60"
+                    BorderBrush="#44FFFFFF" BorderThickness="2"
+                    Visibility="Collapsed">
+                <TextBlock x:Name="CountdownText"
+                           Text="3"
+                           FontSize="64"
+                           FontWeight="Bold"
+                           Foreground="White"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center" />
+            </Border>
+
+            <!-- ── Lower-Third / Title card overlay ──────────────── -->
+            <Border x:Name="LowerThirdOverlay"
+                    Grid.Column="0"
+                    HorizontalAlignment="Stretch" VerticalAlignment="Bottom"
+                    Margin="0,0,0,36"
+                    Padding="20,10,20,12"
+                    Background="#E6000000"
+                    BorderBrush="#33FFFFFF" BorderThickness="0,1,0,0"
+                    Visibility="Collapsed">
+                <StackPanel Spacing="2">
+                    <TextBlock x:Name="LowerThirdTitle"
+                               Text="Title Text"
+                               FontSize="20" FontWeight="SemiBold"
+                               Foreground="White" />
+                    <TextBlock x:Name="LowerThirdSub"
+                               Text="Subtitle / Role"
+                               FontSize="13"
+                               Foreground="#B3FFFFFF" />
+                </StackPanel>
+            </Border>
+
             <!-- Scene selector quick strip (bottom of preview) -->
-            <Border HorizontalAlignment="Stretch" VerticalAlignment="Bottom"
+            <Border Grid.Column="0"
+                    HorizontalAlignment="Stretch" VerticalAlignment="Bottom"
                     Background="#CC000000" Padding="12,6"
                     BorderBrush="#15FFFFFF" BorderThickness="0,1,0,0">
                 <ScrollViewer HorizontalScrollMode="Enabled"
@@ -477,6 +652,18 @@
 
                 <StackPanel Grid.Row="1" Padding="8,8" Spacing="6">
 
+                    <!-- Studio Mode toggle (OBS-style) -->
+                    <Button x:Name="StudioModeBtn"
+                            HorizontalAlignment="Stretch"
+                            Style="{StaticResource ControlsPanelBtnStyle}"
+                            Click="StudioModeBtn_Click"
+                            ToolTipService.ToolTip="Studio Mode: left = Preview, right = Program">
+                        <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8B1;" FontSize="11" />
+                            <TextBlock x:Name="StudioModeBtnText" Text="Studio Mode" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
                     <!-- Start / Stop Recording -->
                     <Button x:Name="StartRecordBtn"
                             Style="{StaticResource AlvoniaRecordButtonStyle}"
@@ -497,6 +684,85 @@
                             <TextBlock Text="Stop Recording" />
                         </StackPanel>
                     </Button>
+
+                    <!-- ── CC / Auto Captions ─────────────────────── -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Button x:Name="CcBtn"
+                                Grid.Column="0"
+                                HorizontalAlignment="Stretch"
+                                Style="{StaticResource ControlsPanelBtnStyle}"
+                                Click="CcBtn_Click"
+                                ToolTipService.ToolTip="Toggle live auto-captions (CC)">
+                            <StackPanel Orientation="Horizontal" Spacing="7">
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7F0;" FontSize="11" />
+                                <TextBlock x:Name="CcBtnText" Text="Auto Captions" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                        <Button Grid.Column="1"
+                                Style="{StaticResource ObsToolbarBtnStyle}"
+                                Click="CcSettingsBtn_Click"
+                                ToolTipService.ToolTip="Caption Settings"
+                                Width="28" Height="28" Margin="4,0,0,0">
+                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE713;" FontSize="11" />
+                        </Button>
+                    </Grid>
+
+                    <!-- ── Save Clip (Replay Buffer) ──────────────── -->
+                    <Button x:Name="SaveClipBtn"
+                            Style="{StaticResource ControlsPanelBtnStyle}"
+                            Click="SaveClipBtn_Click"
+                            IsEnabled="False"
+                            ToolTipService.ToolTip="Save the last 30 seconds as a clip">
+                        <StackPanel Orientation="Horizontal" Spacing="7">
+                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7C3;" FontSize="11" />
+                            <TextBlock Text="Save Clip (30s)" />
+                        </StackPanel>
+                    </Button>
+
+                    <!-- ── Lower Third / Title Card ──────────────── -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Button x:Name="LowerThirdBtn"
+                                Grid.Column="0"
+                                HorizontalAlignment="Stretch"
+                                Style="{StaticResource ControlsPanelBtnStyle}"
+                                Click="LowerThirdBtn_Click"
+                                ToolTipService.ToolTip="Show/hide lower-third title card overlay">
+                            <StackPanel Orientation="Horizontal" Spacing="7">
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8D2;" FontSize="11" />
+                                <TextBlock x:Name="LowerThirdBtnText" Text="Lower Third" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                        <Button Grid.Column="1"
+                                Style="{StaticResource ControlsPanelBtnStyle}"
+                                Width="32" Padding="0"
+                                Click="LowerThirdSettingsBtn_Click"
+                                ToolTipService.ToolTip="Configure lower-third text">
+                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE713;" FontSize="11" />
+                        </Button>
+                    </Grid>
+
+                    <!-- ── Recording options box ──────────────────── -->
+                    <Border Background="#0AFFFFFF" CornerRadius="6" Padding="8,7"
+                            BorderBrush="#1AFFFFFF" BorderThickness="1">
+                        <StackPanel Spacing="5">
+                            <!-- Countdown before recording -->
+                            <CheckBox x:Name="CountdownCheckBox"
+                                      Content="3-2-1 countdown"
+                                      FontSize="12" IsChecked="True" />
+                            <!-- Noise suppression -->
+                            <CheckBox x:Name="NoiseSuppCheckBox"
+                                      Content="Noise suppression"
+                                      FontSize="12" IsChecked="False" />
+                        </StackPanel>
+                    </Border>
 
                     <!-- Separate MP3 audio track option -->
                     <Border Background="#0AFFFFFF"

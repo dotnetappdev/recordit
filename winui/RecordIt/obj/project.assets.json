@@ -551,6 +551,16 @@
         "runtime": {
           "bin/placeholder/RecordIt.Core.dll": {}
         }
+      },
+      "RecordIt.Encoder/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "compile": {
+          "bin/placeholder/RecordIt.Encoder.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/RecordIt.Encoder.dll": {}
+        }
       }
     },
     "net10.0-windows10.0.19041/win-x64": {
@@ -989,6 +999,16 @@
         },
         "runtime": {
           "bin/placeholder/RecordIt.Core.dll": {}
+        }
+      },
+      "RecordIt.Encoder/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "compile": {
+          "bin/placeholder/RecordIt.Encoder.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/RecordIt.Encoder.dll": {}
         }
       }
     }
@@ -2312,6 +2332,11 @@
       "type": "project",
       "path": "../../RecordIt.Core/RecordIt.Core.csproj",
       "msbuildProject": "../../RecordIt.Core/RecordIt.Core.csproj"
+    },
+    "RecordIt.Encoder/1.0.0": {
+      "type": "project",
+      "path": "../../RecordIt.Encoder/RecordIt.Encoder.csproj",
+      "msbuildProject": "../../RecordIt.Encoder/RecordIt.Encoder.csproj"
     }
   },
   "projectFileDependencyGroups": {
@@ -2321,7 +2346,8 @@
       "Microsoft.Graphics.Win2D >= 1.2.0",
       "Microsoft.Windows.SDK.BuildTools >= 10.0.22621.756",
       "Microsoft.WindowsAppSDK >= 1.5.240627000",
-      "RecordIt.Core >= 1.0.0"
+      "RecordIt.Core >= 1.0.0",
+      "RecordIt.Encoder >= 1.0.0"
     ]
   },
   "packageFolders": {
@@ -2332,11 +2358,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\sasproducts\\recordit\\winui\\RecordIt\\RecordIt.csproj",
+      "projectUniqueName": "D:\\sasproducts\\recordit2\\winui\\RecordIt\\RecordIt.csproj",
       "projectName": "RecordIt",
-      "projectPath": "D:\\sasproducts\\recordit\\winui\\RecordIt\\RecordIt.csproj",
+      "projectPath": "D:\\sasproducts\\recordit2\\winui\\RecordIt\\RecordIt.csproj",
       "packagesPath": "C:\\Users\\David\\.nuget\\packages\\",
-      "outputPath": "D:\\sasproducts\\recordit\\winui\\RecordIt\\obj\\",
+      "outputPath": "D:\\sasproducts\\recordit2\\winui\\RecordIt\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
@@ -2360,8 +2386,11 @@
         "net10.0-windows10.0.19041": {
           "targetAlias": "net10.0-windows10.0.19041.0",
           "projectReferences": {
-            "D:\\sasproducts\\recordit\\RecordIt.Core\\RecordIt.Core.csproj": {
-              "projectPath": "D:\\sasproducts\\recordit\\RecordIt.Core\\RecordIt.Core.csproj"
+            "D:\\sasproducts\\recordit2\\RecordIt.Core\\RecordIt.Core.csproj": {
+              "projectPath": "D:\\sasproducts\\recordit2\\RecordIt.Core\\RecordIt.Core.csproj"
+            },
+            "D:\\sasproducts\\recordit2\\RecordIt.Encoder\\RecordIt.Encoder.csproj": {
+              "projectPath": "D:\\sasproducts\\recordit2\\RecordIt.Encoder\\RecordIt.Encoder.csproj"
             }
           }
         }

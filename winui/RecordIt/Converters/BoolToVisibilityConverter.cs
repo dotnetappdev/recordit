@@ -8,12 +8,15 @@ internal sealed class BoolToVisibilityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language)
     {
-        bool boolValue = value switch
+        bool boolValue;
+        if (value is bool b)
         {
-            bool b   => b,
-            bool? nb => nb == true,
-            _        => false,
-        };
+            boolValue = b;
+        }
+        else
+        {
+            boolValue = false;
+        }
         return boolValue ? Visibility.Visible : Visibility.Collapsed;
     }
 

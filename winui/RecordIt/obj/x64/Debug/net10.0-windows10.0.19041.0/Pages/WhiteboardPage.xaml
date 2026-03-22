@@ -10,11 +10,14 @@
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />   <!-- Row 0: Toolbar -->
+            <RowDefinition Height="Auto" />   <!-- Row 1: Annotation bar (collapsed by default) -->
+            <RowDefinition Height="*" />      <!-- Row 2: Canvas area -->
         </Grid.RowDefinitions>
 
-        <!-- Toolbar -->
+        <!-- ═══════════════════════════════════════════════════════════════
+             Toolbar
+        ═══════════════════════════════════════════════════════════════════ -->
         <Border Grid.Row="0"
                 Background="{StaticResource BgSurfaceBrush}"
                 BorderBrush="{StaticResource BorderDefaultBrush}"
@@ -22,60 +25,58 @@
                 Padding="12,8">
             <StackPanel Orientation="Horizontal" Spacing="4">
 
-                <!-- Drawing Tools Group -->
+                <!-- Drawing Tools -->
                 <Border BorderBrush="{StaticResource BorderDefaultBrush}"
-                        BorderThickness="0,0,1,0"
-                        Padding="0,0,8,0">
+                        BorderThickness="0,0,1,0" Padding="0,0,8,0">
                     <StackPanel Orientation="Horizontal" Spacing="2">
-                        <Button x:ConnectionId='30' x:Name="SelectToolBtn" Style="{StaticResource WbToolButtonStyle}"
+                        <Button x:ConnectionId='71' x:Name="SelectToolBtn" Style="{StaticResource WbToolButtonStyle}"
                                                       Tag="select"
-                                ToolTipService.ToolTip="Select">
+                                ToolTipService.ToolTip="Select (V)">
                             <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8B0;" FontSize="16" />
                         </Button>
-                        <Button x:ConnectionId='31' x:Name="PenToolBtn" Style="{StaticResource WbToolButtonStyle}"
+                        <Button x:ConnectionId='72' x:Name="PenToolBtn" Style="{StaticResource WbToolButtonStyle}"
                                                       Tag="pen"
-                                ToolTipService.ToolTip="Pen">
+                                ToolTipService.ToolTip="Pen (P)">
                             <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xED63;" FontSize="16" />
                         </Button>
-                        <Button x:ConnectionId='32' x:Name="HighlighterToolBtn" Style="{StaticResource WbToolButtonStyle}"
+                        <Button x:ConnectionId='73' x:Name="HighlighterToolBtn" Style="{StaticResource WbToolButtonStyle}"
                                                       Tag="highlighter"
-                                ToolTipService.ToolTip="Highlighter">
+                                ToolTipService.ToolTip="Highlighter (H)">
                             <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7C3;" FontSize="16" />
                         </Button>
-                        <Button x:ConnectionId='33' x:Name="EraserToolBtn" Style="{StaticResource WbToolButtonStyle}"
+                        <Button x:ConnectionId='74' x:Name="EraserToolBtn" Style="{StaticResource WbToolButtonStyle}"
                                                       Tag="eraser"
-                                ToolTipService.ToolTip="Eraser">
+                                ToolTipService.ToolTip="Eraser (E)">
                             <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xED60;" FontSize="16" />
                         </Button>
                     </StackPanel>
                 </Border>
 
-                <!-- Shape Tools Group -->
+                <!-- Shape Tools -->
                 <Border BorderBrush="{StaticResource BorderDefaultBrush}"
-                        BorderThickness="0,0,1,0"
-                        Padding="8,0">
+                        BorderThickness="0,0,1,0" Padding="8,0">
                     <StackPanel Orientation="Horizontal" Spacing="2">
-                        <Button x:ConnectionId='25' x:Name="LineToolBtn" Style="{StaticResource WbToolButtonStyle}"
+                        <Button x:ConnectionId='66' x:Name="LineToolBtn" Style="{StaticResource WbToolButtonStyle}"
                                                       Tag="line"
                                 ToolTipService.ToolTip="Line">
                             <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xF576;" FontSize="16" />
                         </Button>
-                        <Button x:ConnectionId='26' x:Name="RectToolBtn" Style="{StaticResource WbToolButtonStyle}"
+                        <Button x:ConnectionId='67' x:Name="RectToolBtn" Style="{StaticResource WbToolButtonStyle}"
                                                       Tag="rect"
                                 ToolTipService.ToolTip="Rectangle">
                             <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7C7;" FontSize="16" />
                         </Button>
-                        <Button x:ConnectionId='27' x:Name="CircleToolBtn" Style="{StaticResource WbToolButtonStyle}"
+                        <Button x:ConnectionId='68' x:Name="CircleToolBtn" Style="{StaticResource WbToolButtonStyle}"
                                                       Tag="circle"
                                 ToolTipService.ToolTip="Ellipse">
                             <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xF137;" FontSize="16" />
                         </Button>
-                        <Button x:ConnectionId='28' x:Name="TextToolBtn" Style="{StaticResource WbToolButtonStyle}"
+                        <Button x:ConnectionId='69' x:Name="TextToolBtn" Style="{StaticResource WbToolButtonStyle}"
                                                       Tag="text"
                                 ToolTipService.ToolTip="Text">
                             <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8D2;" FontSize="16" />
                         </Button>
-                        <Button x:ConnectionId='29' x:Name="StickyToolBtn" Style="{StaticResource WbToolButtonStyle}"
+                        <Button x:ConnectionId='70' x:Name="StickyToolBtn" Style="{StaticResource WbToolButtonStyle}"
                                                       Tag="sticky"
                                 ToolTipService.ToolTip="Sticky Note">
                             <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE70B;" FontSize="16" />
@@ -85,52 +86,49 @@
 
                 <!-- Pan tool -->
                 <Border BorderBrush="{StaticResource BorderDefaultBrush}"
-                        BorderThickness="0,0,1,0"
-                        Padding="8,0">
-                    <Button x:ConnectionId='24' x:Name="PanToolBtn" Style="{StaticResource WbToolButtonStyle}"
+                        BorderThickness="0,0,1,0" Padding="8,0">
+                    <Button x:ConnectionId='65' x:Name="PanToolBtn" Style="{StaticResource WbToolButtonStyle}"
                                                   Tag="pan"
-                            ToolTipService.ToolTip="Pan">
+                            ToolTipService.ToolTip="Pan (Space + drag)">
                         <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7C2;" FontSize="16" />
                     </Button>
                 </Border>
 
                 <!-- Color Palette -->
                 <Border BorderBrush="{StaticResource BorderDefaultBrush}"
-                        BorderThickness="0,0,1,0"
-                        Padding="8,0">
+                        BorderThickness="0,0,1,0" Padding="8,0">
                     <StackPanel Orientation="Horizontal" Spacing="3" VerticalAlignment="Center">
-                        <Border x:ConnectionId='16' x:Name="Color1" Width="22" Height="22" CornerRadius="4"
+                        <Border x:ConnectionId='57' x:Name="Color1" Width="22" Height="22" CornerRadius="4"
                                 Background="#F5F5F5" BorderBrush="#555" BorderThickness="1"
                                                             Tag="#F5F5F5" />
-                        <Border x:ConnectionId='17' x:Name="Color2" Width="22" Height="22" CornerRadius="4"
+                        <Border x:ConnectionId='58' x:Name="Color2" Width="22" Height="22" CornerRadius="4"
                                 Background="#EF4444"                             Tag="#EF4444" />
-                        <Border x:ConnectionId='18' x:Name="Color3" Width="22" Height="22" CornerRadius="4"
+                        <Border x:ConnectionId='59' x:Name="Color3" Width="22" Height="22" CornerRadius="4"
                                 Background="#F59E0B"                             Tag="#F59E0B" />
-                        <Border x:ConnectionId='19' x:Name="Color4" Width="22" Height="22" CornerRadius="4"
+                        <Border x:ConnectionId='60' x:Name="Color4" Width="22" Height="22" CornerRadius="4"
                                 Background="#22C55E"                             Tag="#22C55E" />
-                        <Border x:ConnectionId='20' x:Name="Color5" Width="22" Height="22" CornerRadius="4"
+                        <Border x:ConnectionId='61' x:Name="Color5" Width="22" Height="22" CornerRadius="4"
                                 Background="#06B6D4"                             Tag="#06B6D4" />
-                        <Border x:ConnectionId='21' x:Name="Color6" Width="22" Height="22" CornerRadius="4"
+                        <Border x:ConnectionId='62' x:Name="Color6" Width="22" Height="22" CornerRadius="4"
                                 Background="#6366F1"                             Tag="#6366F1" />
-                        <Border x:ConnectionId='22' x:Name="Color7" Width="22" Height="22" CornerRadius="4"
+                        <Border x:ConnectionId='63' x:Name="Color7" Width="22" Height="22" CornerRadius="4"
                                 Background="#8B5CF6"                             Tag="#8B5CF6" />
-                        <Border x:ConnectionId='23' x:Name="Color8" Width="22" Height="22" CornerRadius="4"
+                        <Border x:ConnectionId='64' x:Name="Color8" Width="22" Height="22" CornerRadius="4"
                                 Background="#EC4899"                             Tag="#EC4899" />
                     </StackPanel>
                 </Border>
 
                 <!-- Brush Size -->
                 <Border BorderBrush="{StaticResource BorderDefaultBrush}"
-                        BorderThickness="0,0,1,0"
-                        Padding="8,0">
+                        BorderThickness="0,0,1,0" Padding="8,0">
                     <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                         <TextBlock Text="Size" FontSize="11"
                                    Foreground="{StaticResource TextTertiaryBrush}"
                                    VerticalAlignment="Center" />
-                        <Slider x:ConnectionId='14' x:Name="BrushSizeSlider" Width="80"
+                        <Slider x:ConnectionId='55' x:Name="BrushSizeSlider" Width="80"
                                 Minimum="1" Maximum="20" Value="3"
                                 VerticalAlignment="Center" />
-                        <TextBlock x:ConnectionId='15' x:Name="BrushSizeLabel" Text="3" FontSize="12"
+                        <TextBlock x:ConnectionId='56' x:Name="BrushSizeLabel" Text="3" FontSize="12"
                                    Foreground="{StaticResource TextSecondaryBrush}"
                                    VerticalAlignment="Center" MinWidth="16" />
                     </StackPanel>
@@ -138,14 +136,13 @@
 
                 <!-- Undo/Redo -->
                 <Border BorderBrush="{StaticResource BorderDefaultBrush}"
-                        BorderThickness="0,0,1,0"
-                        Padding="8,0">
+                        BorderThickness="0,0,1,0" Padding="8,0">
                     <StackPanel Orientation="Horizontal" Spacing="2">
-                        <Button x:ConnectionId='12' x:Name="UndoBtn" Style="{StaticResource WbToolButtonStyle}"
+                        <Button x:ConnectionId='53' x:Name="UndoBtn" Style="{StaticResource WbToolButtonStyle}"
                                                       ToolTipService.ToolTip="Undo (Ctrl+Z)">
                             <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7A7;" FontSize="16" />
                         </Button>
-                        <Button x:ConnectionId='13' x:Name="RedoBtn" Style="{StaticResource WbToolButtonStyle}"
+                        <Button x:ConnectionId='54' x:Name="RedoBtn" Style="{StaticResource WbToolButtonStyle}"
                                                       ToolTipService.ToolTip="Redo (Ctrl+Y)">
                             <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7A6;" FontSize="16" />
                         </Button>
@@ -153,28 +150,176 @@
                 </Border>
 
                 <!-- Actions -->
-                <Border Padding="8,0">
+                <Border BorderBrush="{StaticResource BorderDefaultBrush}"
+                        BorderThickness="0,0,1,0" Padding="8,0">
                     <StackPanel Orientation="Horizontal" Spacing="2">
-                        <Button x:ConnectionId='10' x:Name="ClearBtn" Style="{StaticResource WbToolButtonStyle}"
+                        <Button x:ConnectionId='51' x:Name="ClearBtn" Style="{StaticResource WbToolButtonStyle}"
                                                        ToolTipService.ToolTip="Clear Canvas">
                             <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE74D;" FontSize="16" />
                         </Button>
-                        <Button x:ConnectionId='11' x:Name="SaveBtn" Style="{StaticResource WbToolButtonStyle}"
+                        <Button x:ConnectionId='52' x:Name="SaveBtn" Style="{StaticResource WbToolButtonStyle}"
                                                       ToolTipService.ToolTip="Save as PNG">
                             <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE74E;" FontSize="16" />
                         </Button>
                     </StackPanel>
                 </Border>
 
-                <!-- Participants (right aligned) -->
+                <!-- Window / Presentation controls -->
+                <Border BorderBrush="{StaticResource BorderDefaultBrush}"
+                        BorderThickness="0,0,1,0" Padding="8,0">
+                    <StackPanel Orientation="Horizontal" Spacing="2">
+                        <!-- Pop-out to separate window -->
+                        <Button x:ConnectionId='48' x:Name="PopOutBtn" Style="{StaticResource WbToolButtonStyle}"
+                                                       
+                                ToolTipService.ToolTip="Open in separate window (for multi-monitor)">
+                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8A7;" FontSize="15" />
+                        </Button>
+                        <!-- Fullscreen presentation -->
+                        <Button x:ConnectionId='49' x:Name="FullscreenBtn" Style="{StaticResource WbToolButtonStyle}"
+                                                           
+                                ToolTipService.ToolTip="Fullscreen presentation (F11)">
+                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE740;" FontSize="15" />
+                        </Button>
+                        <!-- Vertical / 9:16 preview overlay -->
+                        <Button x:ConnectionId='50' x:Name="AspectRatioBtn" Style="{StaticResource WbToolButtonStyle}"
+                                                            
+                                ToolTipService.ToolTip="Toggle 9:16 vertical crop overlay (TikTok / Shorts)">
+                            <StackPanel Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
+                                <TextBlock Text="9:16" FontSize="9" FontWeight="SemiBold"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Border>
+
+                <!-- Monitor-level Zoom + Annotation + Quick Capture -->
+                <Border BorderBrush="{StaticResource BorderDefaultBrush}"
+                        BorderThickness="0,0,1,0" Padding="8,0">
+                    <StackPanel Orientation="Horizontal" Spacing="2">
+
+                        <!-- Screen magnifier zoom in (one ZoomSpeed step) -->
+                        <Button x:ConnectionId='35' x:Name="ScreenZoomInBtn" Style="{StaticResource WbToolButtonStyle}"
+                                                             
+                                ToolTipService.ToolTip="Screen Zoom In (one speed step)">
+                            <StackPanel Orientation="Horizontal" Spacing="2">
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8A3;" FontSize="13" />
+                                <TextBlock Text="SCR" FontSize="8" FontWeight="SemiBold"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Screen magnifier zoom out -->
+                        <Button x:ConnectionId='36' x:Name="ScreenZoomOutBtn" Style="{StaticResource WbToolButtonStyle}"
+                                                              
+                                ToolTipService.ToolTip="Screen Zoom Out (one speed step)">
+                            <StackPanel Orientation="Horizontal" Spacing="2">
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE71F;" FontSize="13" />
+                                <TextBlock Text="SCR" FontSize="8" FontWeight="SemiBold"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Toggle screen magnifier on/off -->
+                        <Button x:ConnectionId='37' x:Name="ScreenZoomToggleBtn" Style="{StaticResource WbToolButtonStyle}"
+                                                                 
+                                ToolTipService.ToolTip="Toggle monitor-level zoom (always click-through)">
+                            <FontIcon x:ConnectionId='47' x:Name="ScreenZoomIcon" FontFamily="Segoe MDL2 Assets"
+                                      Glyph="&#xE8B6;" FontSize="15" />
+                        </Button>
+
+                        <!-- Zoom settings flyout (magnification + speed sliders) -->
+                        <Button x:ConnectionId='38' x:Name="ZoomSettingsBtn"
+                                Style="{StaticResource WbToolButtonStyle}"
+                                ToolTipService.ToolTip="Zoom settings — magnification level and speed">
+                            <Button.Flyout>
+                                <Flyout Placement="Bottom">
+                                    <StackPanel Spacing="14" Width="250" Padding="4">
+
+                                        <TextBlock Text="SCREEN MAGNIFIER SETTINGS"
+                                                   FontSize="9" FontWeight="SemiBold"
+                                                   CharacterSpacing="80"
+                                                   Foreground="{StaticResource TextTertiaryBrush}" />
+
+                                        <!-- Magnification level -->
+                                        <StackPanel Spacing="4">
+                                            <Grid>
+                                                <TextBlock Text="Magnification"
+                                                           FontSize="12"
+                                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                                           VerticalAlignment="Center" />
+                                                <TextBlock x:ConnectionId='46' x:Name="ZoomFactorLabel"
+                                                           Text="2.0×"
+                                                           FontSize="12" FontWeight="Medium"
+                                                           Foreground="{StaticResource BrandPrimaryBrush}"
+                                                           HorizontalAlignment="Right"
+                                                           VerticalAlignment="Center" />
+                                            </Grid>
+                                            <Slider x:ConnectionId='45' x:Name="ZoomFactorSlider"
+                                                    Minimum="1.25" Maximum="8"
+                                                    StepFrequency="0.25" Value="2"
+                                                                                                 />
+                                        </StackPanel>
+
+                                        <!-- Zoom speed per click -->
+                                        <StackPanel Spacing="4">
+                                            <Grid>
+                                                <TextBlock Text="Speed per click"
+                                                           FontSize="12"
+                                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                                           VerticalAlignment="Center" />
+                                                <TextBlock x:ConnectionId='44' x:Name="ZoomSpeedLabel"
+                                                           Text="0.25"
+                                                           FontSize="12" FontWeight="Medium"
+                                                           Foreground="{StaticResource BrandPrimaryBrush}"
+                                                           HorizontalAlignment="Right"
+                                                           VerticalAlignment="Center" />
+                                            </Grid>
+                                            <Slider x:ConnectionId='43' x:Name="ZoomSpeedSlider"
+                                                    Minimum="0.05" Maximum="1.5"
+                                                    StepFrequency="0.05" Value="0.25"
+                                                                                                />
+                                        </StackPanel>
+
+                                    </StackPanel>
+                                </Flyout>
+                            </Button.Flyout>
+                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE713;" FontSize="14" />
+                        </Button>
+
+                        <!-- Screen Annotate toggle -->
+                        <Button x:ConnectionId='39' x:Name="AnnotateToggleBtn"
+                                Style="{StaticResource WbToolButtonStyle}"
+                                                            
+                                ToolTipService.ToolTip="Screen annotations — draw arrows, circles and freehand on top of all windows">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <FontIcon x:ConnectionId='41' x:Name="AnnotateToggleIcon"
+                                          FontFamily="Segoe MDL2 Assets"
+                                          Glyph="&#xECAA;" FontSize="14" />
+                                <TextBlock x:ConnectionId='42' x:Name="AnnotateToggleText"
+                                           Text="Annotate" FontSize="10"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Quick screen capture → draw on whiteboard -->
+                        <Button x:ConnectionId='40' x:Name="QuickCaptureBtn" Style="{StaticResource WbToolButtonStyle}"
+                                                             
+                                ToolTipService.ToolTip="Quick Capture — snapshot to whiteboard background">
+                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE722;" FontSize="15" />
+                        </Button>
+
+                    </StackPanel>
+                </Border>
+
+                <!-- Participants -->
                 <Border Margin="4,0,0,0">
-                    <Button x:ConnectionId='8' Style="{StaticResource WbToolButtonStyle}"
+                    <Button x:ConnectionId='33' Style="{StaticResource WbToolButtonStyle}"
                             Width="Auto" Padding="8,0"
                                                          
                             ToolTipService.ToolTip="Participants">
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE716;" FontSize="14" />
-                            <TextBlock x:ConnectionId='9' x:Name="ParticipantCountText" Text="2" FontSize="13"
+                            <TextBlock x:ConnectionId='34' x:Name="ParticipantCountText" Text="2" FontSize="13"
                                        Foreground="{StaticResource TextSecondaryBrush}" />
                         </StackPanel>
                     </Button>
@@ -182,31 +327,175 @@
             </StackPanel>
         </Border>
 
-        <!-- Canvas Area -->
-        <Grid Grid.Row="1">
-            <!-- Background with grid pattern -->
-            <Canvas x:ConnectionId='2' x:Name="WhiteboardCanvas"
-                                                          
+        <!-- ═══════════════════════════════════════════════════════════════
+             Row 1 · Screen Annotation Bar  (hidden until annotation starts)
+        ═══════════════════════════════════════════════════════════════════ -->
+        <Border x:ConnectionId='2' Grid.Row="1"
+                x:Name="AnnotationBar"
+                Background="#EE0D1117"
+                BorderBrush="#55636bf1"
+                BorderThickness="0,1,0,1"
+                Padding="10,5"
+                Visibility="Collapsed">
+            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+
+                <!-- Label -->
+                <TextBlock Text="SCREEN ANNOTATIONS"
+                           FontSize="9" FontWeight="SemiBold" CharacterSpacing="80"
+                           Foreground="#886366F1" VerticalAlignment="Center" />
+
+                <Rectangle Width="1" Height="18" Fill="#22FFFFFF" />
+
+                <!-- Draw / Passthrough toggle -->
+                <Button x:ConnectionId='16' x:Name="AnnotateDrawModeBtn"
+                        Style="{StaticResource WbToolButtonStyle}"
                                                       
-                                                            
-                    Background="{StaticResource BgBaseBrush}" />
+                        ToolTipService.ToolTip="Toggle Draw mode / Passthrough (click-through)">
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                        <FontIcon x:ConnectionId='31' x:Name="AnnotateDrawModeIcon"
+                                  FontFamily="Segoe MDL2 Assets"
+                                  Glyph="&#xED63;" FontSize="13" />
+                        <TextBlock x:ConnectionId='32' x:Name="AnnotateDrawModeText"
+                                   Text="Drawing" FontSize="10"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
 
-            <!-- Overlay for drawing feedback -->
-            <Canvas x:ConnectionId='3' x:Name="OverlayCanvas"
-                    IsHitTestVisible="False" />
+                <Rectangle Width="1" Height="18" Fill="#22FFFFFF" />
 
-            <!-- Participants panel (flyout) -->
-            <Border x:ConnectionId='4' x:Name="ParticipantsPanel"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Top"
-                    Margin="16"
-                    Background="{StaticResource BgSurfaceBrush}"
+                <!-- Tools -->
+                <StackPanel Orientation="Horizontal" Spacing="2">
+                    <Button x:ConnectionId='27' x:Name="AnnotatePenBtn"
+                            Style="{StaticResource WbToolButtonStyle}"
+                                                       Tag="0"
+                            ToolTipService.ToolTip="Freehand pen">
+                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xED63;" FontSize="13" />
+                    </Button>
+                    <Button x:ConnectionId='28' x:Name="AnnotateArrowBtn"
+                            Style="{StaticResource WbToolButtonStyle}"
+                                                       Tag="1"
+                            ToolTipService.ToolTip="Arrow — point of interest">
+                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xF090;" FontSize="13" />
+                    </Button>
+                    <Button x:ConnectionId='29' x:Name="AnnotateCircleBtn"
+                            Style="{StaticResource WbToolButtonStyle}"
+                                                       Tag="2"
+                            ToolTipService.ToolTip="Circle — highlight area">
+                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xF137;" FontSize="13" />
+                    </Button>
+                    <Button x:ConnectionId='30' x:Name="AnnotateRectBtn"
+                            Style="{StaticResource WbToolButtonStyle}"
+                                                       Tag="3"
+                            ToolTipService.ToolTip="Rectangle — box a region">
+                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7C6;" FontSize="13" />
+                    </Button>
+                </StackPanel>
+
+                <Rectangle Width="1" Height="18" Fill="#22FFFFFF" />
+
+                <!-- Annotation colours -->
+                <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                    <Border x:ConnectionId='22' x:Name="AnnColorRed"    Width="18" Height="18" CornerRadius="9"
+                            Background="#FFFF2020" BorderBrush="#33FFFFFF" BorderThickness="1"
+                                                          Tag="#FF2020"
+                            ToolTipService.ToolTip="Red" />
+                    <Border x:ConnectionId='23' x:Name="AnnColorYellow" Width="18" Height="18" CornerRadius="9"
+                            Background="#FFFFD700" BorderBrush="#33FFFFFF" BorderThickness="1"
+                                                          Tag="#FFD700"
+                            ToolTipService.ToolTip="Yellow" />
+                    <Border x:ConnectionId='24' x:Name="AnnColorGreen"  Width="18" Height="18" CornerRadius="9"
+                            Background="#FF00E676" BorderBrush="#33FFFFFF" BorderThickness="1"
+                                                          Tag="#00E676"
+                            ToolTipService.ToolTip="Green" />
+                    <Border x:ConnectionId='25' x:Name="AnnColorCyan"   Width="18" Height="18" CornerRadius="9"
+                            Background="#FF00E5FF" BorderBrush="#33FFFFFF" BorderThickness="1"
+                                                          Tag="#00E5FF"
+                            ToolTipService.ToolTip="Cyan" />
+                    <Border x:ConnectionId='26' x:Name="AnnColorWhite"  Width="18" Height="18" CornerRadius="9"
+                            Background="#FFFFFFFF" BorderBrush="#44000000" BorderThickness="1"
+                                                          Tag="#FFFFFF"
+                            ToolTipService.ToolTip="White" />
+                </StackPanel>
+
+                <Rectangle Width="1" Height="18" Fill="#22FFFFFF" />
+
+                <!-- Stroke width -->
+                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                    <TextBlock Text="Width" FontSize="10"
+                               Foreground="{StaticResource TextTertiaryBrush}"
+                               VerticalAlignment="Center" />
+                    <Slider x:ConnectionId='20' x:Name="AnnotateWidthSlider"
+                            Minimum="2" Maximum="16" Value="3" Width="80"
+                            VerticalAlignment="Center"
+                                                                 />
+                    <TextBlock x:ConnectionId='21' x:Name="AnnotateWidthLabel" Text="3"
+                               FontSize="10" MinWidth="18"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+
+                <Rectangle Width="1" Height="18" Fill="#22FFFFFF" />
+
+                <!-- Undo / Clear -->
+                <Button x:ConnectionId='17' Style="{StaticResource WbToolButtonStyle}"
+                                                  
+                        ToolTipService.ToolTip="Undo last stroke">
+                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7A7;" FontSize="13" />
+                </Button>
+                <Button x:ConnectionId='18' Style="{StaticResource WbToolButtonStyle}"
+                                                   
+                        ToolTipService.ToolTip="Clear all annotations">
+                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE74D;" FontSize="13" />
+                </Button>
+
+                <Rectangle Width="1" Height="18" Fill="#22FFFFFF" />
+
+                <!-- Stop annotation -->
+                <Button x:ConnectionId='19' Style="{StaticResource WbToolButtonStyle}"
+                                                  
+                        ToolTipService.ToolTip="Stop screen annotation">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE711;" FontSize="12" />
+                        <TextBlock Text="Stop" FontSize="10" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+
+            </StackPanel>
+        </Border>
+
+        <!-- ═══════════════════════════════════════════════════════════════
+             Row 2 · Canvas Area  (zoom + pan container)
+        ═══════════════════════════════════════════════════════════════════ -->
+        <Grid x:ConnectionId='3' Grid.Row="2"
+              x:Name="CanvasAreaOuter"
+              Background="{StaticResource BgBaseBrush}"
+                                                                  
+                                                        
+                                                    
+                                                          
+                                                       >
+
+            <!-- ── Transform wrapper — scale + pan applied in code ── -->
+            <Grid x:ConnectionId='4' x:Name="CanvasWrapper"
+                  HorizontalAlignment="Left"
+                  VerticalAlignment="Top">
+                <!-- Large virtual canvas for drawing -->
+                <Canvas x:ConnectionId='14' x:Name="WhiteboardCanvas"
+                        Width="4000" Height="3000"
+                        Background="{StaticResource BgBaseBrush}" />
+                <!-- Non-hit-testable overlay for in-progress shape preview -->
+                <Canvas x:ConnectionId='15' x:Name="OverlayCanvas"
+                        Width="4000" Height="3000"
+                        IsHitTestVisible="False" />
+            </Grid>
+
+            <!-- ── Participants panel (overlay, not transformed) ── -->
+            <Border x:ConnectionId='5' x:Name="ParticipantsPanel"
+                    HorizontalAlignment="Right" VerticalAlignment="Top"
+                    Margin="16" Background="{StaticResource BgSurfaceBrush}"
                     BorderBrush="{StaticResource BorderDefaultBrush}"
-                    BorderThickness="1"
-                    CornerRadius="12"
-                    Padding="12"
-                    MinWidth="160"
-                    Visibility="Collapsed">
+                    BorderThickness="1" CornerRadius="12" Padding="12"
+                    MinWidth="160" Visibility="Collapsed">
                 <StackPanel Spacing="8">
                     <TextBlock Text="PARTICIPANTS" Style="{StaticResource SectionTitleStyle}" />
                     <StackPanel Spacing="6">
@@ -240,49 +529,70 @@
                                        Foreground="{StaticResource TextPrimaryBrush}" FontSize="13" />
                             <Ellipse Grid.Column="2" Width="8" Height="8" Fill="#22C55E" />
                         </Grid>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" Width="28" Height="28" CornerRadius="14"
-                                    Background="#22C55E" Margin="0,0,8,0">
-                                <TextBlock Text="S" Foreground="White" FontWeight="Bold"
-                                           FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                            </Border>
-                            <TextBlock Grid.Column="1" Text="Sam K." VerticalAlignment="Center"
-                                       Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" />
-                            <Ellipse Grid.Column="2" Width="8" Height="8" Fill="#737373" />
-                        </Grid>
                     </StackPanel>
                 </StackPanel>
             </Border>
 
-            <!-- Zoom Controls -->
+            <!-- ── 9:16 Vertical crop overlay (TikTok / Shorts) ── -->
+            <Grid x:ConnectionId='6' x:Name="VerticalCropOverlay"
+                  IsHitTestVisible="False"
+                  Visibility="Collapsed">
+                <!-- Left dark band -->
+                <Rectangle x:ConnectionId='11' x:Name="CropBandLeft"
+                            HorizontalAlignment="Left"
+                            Fill="#BB000000" />
+                <!-- Right dark band -->
+                <Rectangle x:ConnectionId='12' x:Name="CropBandRight"
+                            HorizontalAlignment="Right"
+                            Fill="#BB000000" />
+                <!-- 9:16 crop frame border (indigo) -->
+                <Border x:ConnectionId='13' x:Name="CropFrame"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Stretch"
+                        BorderBrush="#FF6366F1"
+                        BorderThickness="2" />
+                <!-- Label badge -->
+                <Border HorizontalAlignment="Left" VerticalAlignment="Top"
+                        Margin="12,12"
+                        Padding="8,3"
+                        Background="#CC000000" CornerRadius="6"
+                        BorderBrush="#556366F1" BorderThickness="1">
+                    <StackPanel Orientation="Horizontal" Spacing="5">
+                        <TextBlock Text="9:16" FontSize="10" FontWeight="Bold"
+                                   Foreground="#FF6366F1" VerticalAlignment="Center" />
+                        <TextBlock Text="Vertical · TikTok / Shorts" FontSize="10"
+                                   Foreground="#AAFFFFFF" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- ── Zoom controls (bottom-centre, not transformed) ── -->
             <Border HorizontalAlignment="Center"
                     VerticalAlignment="Bottom"
                     Margin="0,0,0,20"
                     Background="{StaticResource BgSurfaceBrush}"
                     BorderBrush="{StaticResource BorderDefaultBrush}"
-                    BorderThickness="1"
-                    CornerRadius="20"
-                    Padding="4,2">
+                    BorderThickness="1" CornerRadius="20" Padding="4,2">
                 <StackPanel Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
-                    <Button x:ConnectionId='5' Style="{StaticResource WbToolButtonStyle}"
+                    <Button x:ConnectionId='7' Style="{StaticResource WbToolButtonStyle}"
                             Width="28" Height="28"                         
-                            ToolTipService.ToolTip="Zoom Out">
+                            ToolTipService.ToolTip="Zoom Out (Ctrl+−)">
                         <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE71F;" FontSize="13" />
                     </Button>
-                    <TextBlock x:ConnectionId='6' x:Name="ZoomLevelText" Text="100%"
+                    <TextBlock x:ConnectionId='8' x:Name="ZoomLevelText" Text="100%"
                                VerticalAlignment="Center"
                                FontSize="13" FontWeight="Medium"
                                Foreground="{StaticResource TextSecondaryBrush}"
-                               MinWidth="40" TextAlignment="Center" />
-                    <Button x:ConnectionId='7' Style="{StaticResource WbToolButtonStyle}"
+                               MinWidth="44" TextAlignment="Center" />
+                    <Button x:ConnectionId='9' Style="{StaticResource WbToolButtonStyle}"
                             Width="28" Height="28"                        
-                            ToolTipService.ToolTip="Zoom In">
+                            ToolTipService.ToolTip="Zoom In (Ctrl+=)">
                         <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8A3;" FontSize="13" />
+                    </Button>
+                    <Button x:ConnectionId='10' Style="{StaticResource WbToolButtonStyle}"
+                            Width="28" Height="28"                           
+                            ToolTipService.ToolTip="Reset zoom (Ctrl+0)">
+                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE72B;" FontSize="11" />
                     </Button>
                 </StackPanel>
             </Border>

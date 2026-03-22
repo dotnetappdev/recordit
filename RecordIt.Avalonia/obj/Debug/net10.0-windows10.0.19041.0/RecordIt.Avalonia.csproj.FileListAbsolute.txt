@@ -96,3 +96,14 @@ D:\sasproducts\recordit\RecordIt.Avalonia\obj\Debug\net10.0-windows10.0.19041.0\
 D:\sasproducts\recordit\RecordIt.Avalonia\obj\Debug\net10.0-windows10.0.19041.0\RecordIt.E9768C48.Up2Date
 D:\sasproducts\recordit\RecordIt.Avalonia\obj\Debug\net10.0-windows10.0.19041.0\RecordIt.Avalonia.genruntimeconfig.cache
 D:\sasproducts\recordit\RecordIt.Avalonia\obj\Debug\net10.0-windows10.0.19041.0\ref\RecordIt.Avalonia.dll
+D:\sasproducts\recordit2\RecordIt.Avalonia\obj\Debug\net10.0-windows10.0.19041.0\RecordIt.Avalonia.csproj.AssemblyReference.cache
+D:\sasproducts\recordit2\RecordIt.Avalonia\obj\Debug\net10.0-windows10.0.19041.0\Avalonia\Resources.Inputs.cache
+D:\sasproducts\recordit2\RecordIt.Avalonia\obj\Debug\net10.0-windows10.0.19041.0\Avalonia\resources
+D:\sasproducts\recordit2\RecordIt.Avalonia\obj\Debug\net10.0-windows10.0.19041.0\RecordIt.Avalonia.GeneratedMSBuildEditorConfig.editorconfig
+D:\sasproducts\recordit2\RecordIt.Avalonia\obj\Debug\net10.0-windows10.0.19041.0\RecordIt.Avalonia.AssemblyInfoInputs.cache
+D:\sasproducts\recordit2\RecordIt.Avalonia\obj\Debug\net10.0-windows10.0.19041.0\RecordIt.Avalonia.AssemblyInfo.cs
+D:\sasproducts\recordit2\RecordIt.Avalonia\obj\Debug\net10.0-windows10.0.19041.0\RecordIt.Avalonia.csproj.CoreCompileInputs.cache
+D:\sasproducts\recordit2\RecordIt.Avalonia\obj\Debug\net10.0-windows10.0.19041.0\RecordIt.Avalonia.sourcelink.json
+D:\sasproducts\recordit2\RecordIt.Avalonia\obj\Debug\net10.0-windows10.0.19041.0\RecordIt.Avalonia.dll
+D:\sasproducts\recordit2\RecordIt.Avalonia\obj\Debug\net10.0-windows10.0.19041.0\refint\RecordIt.Avalonia.dll
+D:\sasproducts\recordit2\RecordIt.Avalonia\obj\Debug\net10.0-windows10.0.19041.0\RecordIt.Avalonia.pdb

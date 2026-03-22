@@ -166,43 +166,50 @@ public sealed partial class SettingsPage : Page
     private async void FfmpegVerify_Click(object sender, RoutedEventArgs e)
     {
         FfmpegVerifyBtn.IsEnabled = false;
-        var exe = string.IsNullOrWhiteSpace(FfmpegPathBox.Text) ? "ffmpeg" : FfmpegPathBox.Text.Trim();
+        FfmpegStatusBadge.Visibility = Visibility.Collapsed;
 
-        try
+        // Apply any typed path first
+        if (!string.IsNullOrWhiteSpace(FfmpegPathBox.Text))
+            FfmpegLocator.Executable = FfmpegPathBox.Text.Trim();
+
+        var ok = await FfmpegLocator.EnsureAvailableAsync(installIfMissing: true);
+
+        if (ok)
         {
-            var psi = new ProcessStartInfo
+            // Re-run ffmpeg -version to get a version line
+            try
             {
-                FileName               = exe,
-                Arguments              = "-version",
-                RedirectStandardOutput = true,
-                RedirectStandardError  = true,
-                UseShellExecute        = false,
-                CreateNoWindow         = true,
-            };
-            using var p = Process.Start(psi)!;
-            var output = await p.StandardOutput.ReadToEndAsync();
-            var err    = await p.StandardError.ReadToEndAsync();
-            p.WaitForExit(4000);
-
-            bool ok          = p.ExitCode == 0;
-            var versionLine  = ((output + err).Split('\n')[0]).Trim();
-            FfmpegStatusText.Text        = ok ? $"✓  {versionLine}" : "✗  Not found or failed to run";
-            FfmpegStatusBadge.Background = ok
-                ? new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0x16, 0xA3, 0x4A))
-                : new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0xDC, 0x26, 0x26));
-            FfmpegStatusText.Foreground  = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF));
-            FfmpegStatusBadge.Visibility = Visibility.Visible;
+                var psi = new ProcessStartInfo
+                {
+                    FileName = FfmpegLocator.Executable,
+                    Arguments = "-version",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                };
+                using var p = Process.Start(psi)!;
+                var output = await p.StandardOutput.ReadToEndAsync();
+                var err = await p.StandardError.ReadToEndAsync();
+                p.WaitForExit(3000);
+                var versionLine = ((output + err).Split('\n')[0]).Trim();
+                FfmpegStatusText.Text = $"✓  {versionLine}";
+                FfmpegStatusBadge.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0x16, 0xA3, 0x4A));
+            }
+            catch
+            {
+                FfmpegStatusText.Text = "✓  FFmpeg available";
+                FfmpegStatusBadge.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0x16, 0xA3, 0x4A));
+            }
         }
-        catch
+        else
         {
-            FfmpegStatusText.Text        = "✗  Not found — check path or install FFmpeg";
+            FfmpegStatusText.Text = "✗  Not found — installation failed";
             FfmpegStatusBadge.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0xDC, 0x26, 0x26));
-            FfmpegStatusText.Foreground  = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF));
-            FfmpegStatusBadge.Visibility = Visibility.Visible;
         }
-        finally
-        {
-            FfmpegVerifyBtn.IsEnabled = true;
-        }
+
+        FfmpegStatusText.Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF));
+        FfmpegStatusBadge.Visibility = Visibility.Visible;
+        FfmpegVerifyBtn.IsEnabled = true;
     }
 }

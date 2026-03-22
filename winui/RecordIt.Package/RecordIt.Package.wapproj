@@ -53,4 +53,9 @@
 
   <Import Project="$(WapProjPath)\Microsoft.DesktopBridge.props" Condition="Exists('$(WapProjPath)\Microsoft.DesktopBridge.props')" />
   <Import Project="$(WapProjPath)\Microsoft.DesktopBridge.targets" Condition="Exists('$(WapProjPath)\Microsoft.DesktopBridge.targets')" />
+  <!-- Provide a no-op Build target when the DesktopBridge targets aren't available
+       so `dotnet build` doesn't fail on machines without Windows Packaging SDK. -->
+  <Target Name="Build" Condition=" '$(MSBuildProjectExtension)' == '.wapproj' and !Exists('$(WapProjPath)\Microsoft.DesktopBridge.targets') ">
+    <Message Text="Skipping packaging project build (Desktop Bridge targets not available)." Importance="High" />
+  </Target>
 </Project>

@@ -20,8 +20,8 @@ public partial class WhiteboardPage : UserControl
     private Point   _lastPoint;
     private Polyline? _currentLine;
 
-    private readonly Stack<IControl> _undoStack = new();
-    private readonly Stack<IControl> _redoStack = new();
+    private readonly Stack<Control> _undoStack = new();
+    private readonly Stack<Control> _redoStack = new();
 
     public WhiteboardPage()
     {
@@ -81,7 +81,7 @@ public partial class WhiteboardPage : UserControl
     private void EraseAt(Point pt)
     {
         const double eraserRadius = 16;
-        var toRemove = new List<IControl>();
+        var toRemove = new List<Control>();
         foreach (var child in DrawingCanvas.Children)
         {
             if (child is Polyline pl)
