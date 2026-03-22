@@ -493,6 +493,36 @@
                         </StackPanel>
                     </Button>
 
+                    <!-- Separate MP3 audio track option -->
+                    <Border Background="#0AFFFFFF"
+                            CornerRadius="6" Padding="8,7"
+                            BorderBrush="#1AFFFFFF" BorderThickness="1">
+                        <StackPanel Spacing="6">
+                            <CheckBox x:Name="SepAudioCheckBox"
+                                      Content="Save separate audio (MP3)"
+                                      FontSize="12"
+                                      IsChecked="False" />
+                            <StackPanel x:Name="SepAudioOptions"
+                                        Orientation="Horizontal" Spacing="8"
+                                        Visibility="{x:Bind SepAudioCheckBox.IsChecked,
+                                            Converter={StaticResource BoolToVisibilityConverter},
+                                            Mode=OneWay}">
+                                <TextBlock Text="Bitrate" FontSize="11"
+                                           Foreground="{StaticResource TextSecondaryBrush}"
+                                           VerticalAlignment="Center" />
+                                <ComboBox x:Name="Mp3BitrateCombo"
+                                          FontSize="11" Height="28"
+                                          SelectedIndex="1">
+                                    <ComboBoxItem Content="128 kbps" Tag="128" />
+                                    <ComboBoxItem Content="192 kbps" Tag="192" />
+                                    <ComboBoxItem Content="256 kbps" Tag="256" />
+                                    <ComboBoxItem Content="320 kbps — max quality" Tag="320" />
+                                    <ComboBoxItem Content="All bitrates (128 / 192 / 256 / 320)" Tag="all" />
+                                </ComboBox>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
                     <Button x:Name="StartPreviewBtn"
                             Style="{StaticResource ControlsPanelBtnStyle}"
                             Click="StartPreviewBtn_Click">

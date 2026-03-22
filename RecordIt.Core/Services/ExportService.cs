@@ -60,7 +60,45 @@ public class ExportService
         return RunFFmpegAsync(args);
     }
 
-    private Task RunFFmpegAsync(string args)
+    /// <summary>
+    /// Extract the audio track from a video file and save it as an MP3.
+    /// </summary>
+    /// <param name="videoPath">Source video (MP4, WebM, MKV …)</param>
+    /// <param name="outputMp3Path">Destination .mp3 path.  Directory must exist.</param>
+    /// <param name="bitrate">MP3 bitrate in kbps — e.g. 128, 192, 256, 320.</param>
+    public Task ExtractAudioAsync(string videoPath, string outputMp3Path, int bitrate = 192)
+    {
+        // -vn  = no video
+        // -acodec libmp3lame  = MP3 encoder
+        // -b:a  = target bitrate
+        // -ar 44100 = standard sample rate for MP3
+        var args = $"-y -i \"{videoPath}\" -vn -acodec libmp3lame -b:a {bitrate}k -ar 44100 \"{outputMp3Path}\"";
+        return RunFFmpegWithProgressAsync(args);
+    }
+
+    /// <summary>
+    /// Extract audio at multiple bitrates in parallel and return the paths written.
+    /// </summary>
+    /// <param name="videoPath">Source video.</param>
+    /// <param name="outputDir">Directory that will receive the MP3 files.</param>
+    /// <param name="bitrates">One or more bitrates in kbps (128 / 192 / 256 / 320).</param>
+    public async Task<string[]> ExtractAudioMultiBitrateAsync(
+        string videoPath, string outputDir, int[] bitrates)
+    {
+        Directory.CreateDirectory(outputDir);
+        var stem = Path.GetFileNameWithoutExtension(videoPath);
+
+        var tasks = bitrates.Select(async br =>
+        {
+            var dest = Path.Combine(outputDir, $"{stem}_{br}kbps.mp3");
+            await ExtractAudioAsync(videoPath, dest, br);
+            return dest;
+        });
+
+        return await Task.WhenAll(tasks);
+    }
+
+
     {
         var tcs = new TaskCompletionSource<int>();
         var psi = new ProcessStartInfo

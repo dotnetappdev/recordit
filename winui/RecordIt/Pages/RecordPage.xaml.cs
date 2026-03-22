@@ -706,10 +706,14 @@ public sealed partial class RecordPage : Page, IDisposable
 
         if (_outputFilePath != null && File.Exists(_outputFilePath))
         {
+            // ── Optional: extract separate MP3 audio track ────────────────
+            if (SepAudioCheckBox.IsChecked == true)
+                await ExtractSepAudioAsync(_outputFilePath);
+
             var dlg = new ContentDialog
             {
-                Title           = "Recording Saved",
-                Content         = $"Saved to:\n{_outputFilePath}",
+                Title               = "Recording Saved",
+                Content             = $"Saved to:\n{_outputFilePath}",
                 PrimaryButtonText   = "Open Folder",
                 CloseButtonText     = "OK",
                 XamlRoot            = XamlRoot,
@@ -722,6 +726,62 @@ public sealed partial class RecordPage : Page, IDisposable
                     Process.Start(new ProcessStartInfo("explorer.exe", $"\"{dir}\"")
                     { UseShellExecute = true });
             }
+        }
+    }
+
+    /// <summary>
+    /// Reads the Mp3BitrateCombo selection and runs FFmpeg to pull the audio
+    /// out of <paramref name="videoPath"/> as one or more MP3 files alongside it.
+    /// Shows a brief status message while working.
+    /// </summary>
+    private async Task ExtractSepAudioAsync(string videoPath)
+    {
+        SetStatus("Extracting audio…");
+
+        var export  = new RecordIt.Core.Services.ExportService();
+        var outDir  = Path.GetDirectoryName(videoPath) ?? "";
+        var stem    = Path.GetFileNameWithoutExtension(videoPath);
+
+        try
+        {
+            // Resolve selected bitrate(s)
+            var tag = (Mp3BitrateCombo.SelectedItem as ComboBoxItem)?.Tag as string ?? "192";
+
+            string[] mp3Paths;
+            if (tag == "all")
+            {
+                mp3Paths = await export.ExtractAudioMultiBitrateAsync(
+                    videoPath, outDir, new[] { 128, 192, 256, 320 });
+            }
+            else
+            {
+                int br = int.TryParse(tag, out var b) ? b : 192;
+                var dest = Path.Combine(outDir, $"{stem}_{br}kbps.mp3");
+                await export.ExtractAudioAsync(videoPath, dest, br);
+                mp3Paths = new[] { dest };
+            }
+
+            var saved = string.Join("\n", mp3Paths.Select(p => Path.GetFileName(p)));
+            var dlg = new ContentDialog
+            {
+                Title             = "Audio Extracted",
+                Content           = $"MP3 file(s) saved:\n{saved}",
+                PrimaryButtonText = "Open Folder",
+                CloseButtonText   = "OK",
+                XamlRoot          = XamlRoot,
+            };
+            var r = await dlg.ShowAsync();
+            if (r == ContentDialogResult.Primary && Directory.Exists(outDir))
+                Process.Start(new ProcessStartInfo("explorer.exe", $"\"{outDir}\"")
+                    { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            SetStatus($"Audio extraction failed: {ex.Message}");
+        }
+        finally
+        {
+            SetStatus("Ready");
         }
     }
 
