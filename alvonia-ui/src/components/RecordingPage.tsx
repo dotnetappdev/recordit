@@ -3,7 +3,7 @@ import {
   Monitor, Camera, Mic, MicOff, Video, VideoOff,
   Square, Circle, Plus, Trash2, RefreshCw, Settings2,
   Radio, Volume2, ChevronRight, X, Check, Layers,
-  Twitch, Youtube, Cast
+  Twitch, Youtube, Cast, Bell, ThumbsUp, Heart, Star
 } from 'lucide-react';
 import { Theme } from '../App';
 
@@ -23,11 +23,24 @@ interface SceneSource {
   locked: boolean;
 }
 
+type SceneAnimation = 'fade' | 'slide' | 'zoom' | 'cut';
+
 interface Scene {
   id: string;
   name: string;
   sources: SceneSource[];
+  animation: SceneAnimation;
 }
+
+interface SceneTemplate {
+  name: string;
+  icon: string;
+  description: string;
+  sources: Omit<SceneSource, 'id'>[];
+  animation: SceneAnimation;
+}
+
+type YtEffect = 'like' | 'subscribe' | 'bell' | null;
 
 type StreamStatus = 'idle' | 'connecting' | 'live' | 'error';
 
@@ -65,6 +78,97 @@ const SOURCE_TYPES = [
   { type: 'color'   as const,  label: 'Colour Source',   icon: '🎨' },
 ];
 
+// ─── Scene Templates ──────────────────────────────────────────────────────────
+
+const SCENE_TEMPLATES: SceneTemplate[] = [
+  {
+    name: 'Gaming',
+    icon: '🎮',
+    description: 'Full screen game with webcam PiP overlay',
+    sources: [
+      { type: 'display', name: 'Game Capture', visible: true, locked: false },
+      { type: 'webcam',  name: 'Face Cam',     visible: true, locked: false },
+    ],
+    animation: 'cut',
+  },
+  {
+    name: 'Podcast',
+    icon: '🎙️',
+    description: 'Webcam on coloured background with lower third',
+    sources: [
+      { type: 'color',  name: 'Background',   visible: true, locked: true },
+      { type: 'webcam', name: 'Camera',        visible: true, locked: false },
+      { type: 'image',  name: 'Lower Third',   visible: true, locked: false },
+    ],
+    animation: 'fade',
+  },
+  {
+    name: 'Tutorial',
+    icon: '📚',
+    description: 'Screen capture with presenter cam in corner',
+    sources: [
+      { type: 'display', name: 'Screen',        visible: true, locked: false },
+      { type: 'webcam',  name: 'Presenter Cam', visible: true, locked: false },
+    ],
+    animation: 'slide',
+  },
+  {
+    name: 'Just Chatting',
+    icon: '💬',
+    description: 'Full webcam with chat overlay panel',
+    sources: [
+      { type: 'webcam', name: 'Camera',       visible: true, locked: false },
+      { type: 'image',  name: 'Chat Overlay', visible: true, locked: false },
+    ],
+    animation: 'zoom',
+  },
+  {
+    name: 'Webcam Only',
+    icon: '📷',
+    description: 'Clean webcam view, no screen capture',
+    sources: [
+      { type: 'webcam', name: 'Camera', visible: true, locked: false },
+    ],
+    animation: 'fade',
+  },
+  {
+    name: 'Screen Share',
+    icon: '🖥️',
+    description: 'Full screen capture only',
+    sources: [
+      { type: 'display', name: 'Screen', visible: true, locked: false },
+    ],
+    animation: 'cut',
+  },
+  {
+    name: 'Starting Soon',
+    icon: '⏳',
+    description: 'Holding screen shown before going live',
+    sources: [
+      { type: 'image', name: 'Starting Soon Graphic', visible: true, locked: false },
+      { type: 'color', name: 'Background',             visible: true, locked: true },
+    ],
+    animation: 'fade',
+  },
+  {
+    name: 'Be Right Back',
+    icon: '☕',
+    description: 'BRB / intermission screen',
+    sources: [
+      { type: 'image', name: 'BRB Graphic', visible: true, locked: false },
+      { type: 'color', name: 'Background',  visible: true, locked: true },
+    ],
+    animation: 'fade',
+  },
+];
+
+const ANIMATION_LABELS: Record<SceneAnimation, string> = {
+  cut:   'Cut',
+  fade:  'Fade',
+  slide: 'Slide',
+  zoom:  'Zoom In',
+};
+
 const isElectron = !!(window as any).electronAPI;
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -81,9 +185,16 @@ const RecordingPage: React.FC<RecordingPageProps> = ({ isRecording, onRecordingC
   const [activePreviewId, setActivePreviewId] = useState<string | null>(null);
   const [showNewScene, setShowNewScene] = useState(false);
   const [newSceneName, setNewSceneName] = useState('');
+  const [selectedTemplate, setSelectedTemplate] = useState<SceneTemplate | null>(null);
+  const [newSceneAnimation, setNewSceneAnimation] = useState<SceneAnimation>('cut');
   const [showAddSource, setShowAddSource] = useState(false);
   const [newSourceType, setNewSourceType] = useState<SceneSource['type']>('display');
   const [newSourceName, setNewSourceName] = useState('');
+
+  // YouTube-style notification overlay
+  const [ytEffect, setYtEffect] = useState<YtEffect>(null);
+  const [ytEffectVisible, setYtEffectVisible] = useState(false);
+  const ytEffectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Capture sources
   const [captureSources, setCaptureSources] = useState<Source[]>([]);
@@ -180,9 +291,14 @@ const RecordingPage: React.FC<RecordingPageProps> = ({ isRecording, onRecordingC
 
   // ── Scene management ────────────────────────────────────────────────────────
 
-  const addScene = () => {
-    const name = newSceneName.trim() || `Scene ${scenes.length + 1}`;
-    const scene: Scene = { id: Date.now().toString(), name, sources: [] };
+  const addScene = (template?: SceneTemplate) => {
+    const tpl = template ?? selectedTemplate;
+    const name = newSceneName.trim() || tpl?.name || `Scene ${scenes.length + 1}`;
+    const animation: SceneAnimation = tpl ? tpl.animation : newSceneAnimation;
+    const templateSources: SceneSource[] = tpl
+      ? tpl.sources.map(s => ({ ...s, id: `${Date.now()}-${Math.random()}` }))
+      : [];
+    const scene: Scene = { id: Date.now().toString(), name, sources: templateSources, animation };
     setScenes(prev => {
       const next = [...prev, scene];
       if (!activeProgramId) setActiveProgramId(scene.id);
@@ -190,7 +306,19 @@ const RecordingPage: React.FC<RecordingPageProps> = ({ isRecording, onRecordingC
       return next;
     });
     setNewSceneName('');
+    setSelectedTemplate(null);
+    setNewSceneAnimation('cut');
     setShowNewScene(false);
+  };
+
+  const triggerYtEffect = (effect: Exclude<YtEffect, null>) => {
+    if (ytEffectTimer.current) clearTimeout(ytEffectTimer.current);
+    setYtEffect(effect);
+    setYtEffectVisible(true);
+    ytEffectTimer.current = setTimeout(() => {
+      setYtEffectVisible(false);
+      setTimeout(() => setYtEffect(null), 500);
+    }, 3500);
   };
 
   const removeScene = (id: string) => {
@@ -200,7 +328,12 @@ const RecordingPage: React.FC<RecordingPageProps> = ({ isRecording, onRecordingC
   };
 
   const addSource = () => {
-    if (!activeProgramId) return;
+    if (!activeProgramId) {
+      // No scene selected — prompt user to create one first
+      setShowAddSource(false);
+      setShowNewScene(true);
+      return;
+    }
     const name = newSourceName.trim() || SOURCE_TYPES.find(t => t.type === newSourceType)?.label ?? 'Source';
     const source: SceneSource = {
       id: Date.now().toString(), type: newSourceType, name, visible: true, locked: false,
@@ -406,7 +539,7 @@ const RecordingPage: React.FC<RecordingPageProps> = ({ isRecording, onRecordingC
       </div>
 
       {/* ── Main canvas area ── */}
-      <div className={`studio-canvas ${studioMode ? 'studio-mode' : ''}`}>
+      <div className={`studio-canvas ${studioMode ? 'studio-mode' : ''}`} style={{ position: 'relative' }}>
         {studioMode && (
           <div className="studio-pane studio-pane-preview">
             <div className="studio-pane-label">PREVIEW</div>
@@ -444,8 +577,13 @@ const RecordingPage: React.FC<RecordingPageProps> = ({ isRecording, onRecordingC
         <div className="studio-pane studio-pane-program">
           <div className="studio-pane-label" style={{ color: isStreaming || isRecording ? '#ff4444' : undefined }}>
             {isStreaming || isRecording ? '● ' : ''}{studioMode ? 'PROGRAM' : 'OUTPUT'}
+            {activeScene && (
+              <span style={{ marginLeft: 8, fontSize: 10, color: 'var(--color-text-tertiary)', fontWeight: 400 }}>
+                [{ANIMATION_LABELS[activeScene.animation]}]
+              </span>
+            )}
           </div>
-          <div className="studio-pane-video">
+          <div className="studio-pane-video" style={{ position: 'relative' }}>
             {activeScene ? (
               <div className="studio-scene-placeholder">
                 <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', fontWeight: 600 }}>
@@ -458,9 +596,49 @@ const RecordingPage: React.FC<RecordingPageProps> = ({ isRecording, onRecordingC
             ) : (
               <div className="studio-empty-pane">
                 <Monitor size={32} style={{ opacity: 0.3, marginBottom: 8 }} />
-                <div style={{ fontSize: 12, color: 'var(--color-text-tertiary)' }}>
+                <div style={{ fontSize: 12, color: 'var(--color-text-tertiary)', marginBottom: 12 }}>
                   Add a scene and sources to begin
                 </div>
+                <button
+                  className="btn btn-primary"
+                  style={{ fontSize: 12, padding: '6px 14px' }}
+                  onClick={() => setShowNewScene(true)}
+                >
+                  <Plus size={13} /> Create First Scene
+                </button>
+              </div>
+            )}
+
+            {/* YouTube-style notification overlay */}
+            {ytEffect && (
+              <div className={`yt-overlay ${ytEffectVisible ? 'yt-overlay-in' : 'yt-overlay-out'}`}>
+                {ytEffect === 'like' && (
+                  <div className="yt-card yt-like">
+                    <ThumbsUp size={20} className="yt-icon-anim" />
+                    <span className="yt-label">Thanks for the like!</span>
+                  </div>
+                )}
+                {ytEffect === 'subscribe' && (
+                  <div className="yt-card yt-subscribe">
+                    <div className="yt-sub-icon">▶</div>
+                    <div className="yt-sub-text">
+                      <div className="yt-sub-title">New Subscriber!</div>
+                      <div className="yt-sub-body">Hit the Subscribe button</div>
+                    </div>
+                    <button className="yt-sub-btn" onClick={() => triggerYtEffect('bell')}>
+                      <Bell size={14} />
+                    </button>
+                  </div>
+                )}
+                {ytEffect === 'bell' && (
+                  <div className="yt-card yt-bell">
+                    <Bell size={22} className="yt-bell-ring" />
+                    <div className="yt-sub-text">
+                      <div className="yt-sub-title">Ring the Bell!</div>
+                      <div className="yt-sub-body">Never miss an upload 🔔</div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -549,7 +727,18 @@ const RecordingPage: React.FC<RecordingPageProps> = ({ isRecording, onRecordingC
           </div>
           <div className="dock-body">
             {!activeProgramId ? (
-              <div className="dock-empty">Select a scene first.</div>
+              <div className="dock-empty" style={{ textAlign: 'center' }}>
+                <Monitor size={20} style={{ opacity: 0.3, marginBottom: 6 }} />
+                <div>Create a scene first,</div>
+                <div>then add sources to it.</div>
+                <button
+                  className="btn btn-primary"
+                  style={{ marginTop: 8, fontSize: 11, padding: '4px 10px' }}
+                  onClick={() => setShowNewScene(true)}
+                >
+                  <Plus size={11} /> New Scene
+                </button>
+              </div>
             ) : !activeScene || activeScene.sources.length === 0 ? (
               <div className="dock-empty">No sources.<br />Click + to add one.</div>
             ) : (
@@ -668,6 +857,30 @@ const RecordingPage: React.FC<RecordingPageProps> = ({ isRecording, onRecordingC
         )}
 
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 6, alignItems: 'center' }}>
+          {/* YouTube-style notification triggers */}
+          <div className="yt-trigger-group" title="YouTube notification effects">
+            <button
+              className="btn btn-ghost yt-trigger-btn"
+              onClick={() => triggerYtEffect('like')}
+              title="Show like notification"
+              style={{ color: '#ff4444' }}
+            ><ThumbsUp size={13} /></button>
+            <button
+              className="btn btn-ghost yt-trigger-btn"
+              onClick={() => triggerYtEffect('subscribe')}
+              title="Show subscribe notification"
+              style={{ color: '#ff0000' }}
+            ><Youtube size={13} /></button>
+            <button
+              className="btn btn-ghost yt-trigger-btn"
+              onClick={() => triggerYtEffect('bell')}
+              title="Show bell notification"
+              style={{ color: '#fbbf24' }}
+            ><Bell size={13} /></button>
+          </div>
+
+          <div style={{ width: 1, height: 18, background: 'var(--color-border-default)', margin: '0 2px' }} />
+
           <button
             className={`btn btn-ghost ${micEnabled ? '' : 'active'}`}
             onClick={() => setMicEnabled(m => !m)}
@@ -689,29 +902,78 @@ const RecordingPage: React.FC<RecordingPageProps> = ({ isRecording, onRecordingC
 
       {/* ── Dialogs ── */}
       {showNewScene && (
-        <div className="dialog-overlay" onClick={() => setShowNewScene(false)}>
-          <div className="dialog" onClick={e => e.stopPropagation()}>
+        <div className="dialog-overlay" onClick={() => { setShowNewScene(false); setSelectedTemplate(null); setNewSceneName(''); }}>
+          <div className="dialog dialog-wide" onClick={e => e.stopPropagation()}>
             <div className="dialog-header">
               <span className="dialog-title">New Scene</span>
-              <button className="dialog-close" onClick={() => setShowNewScene(false)}><X size={14} /></button>
+              <button className="dialog-close" onClick={() => { setShowNewScene(false); setSelectedTemplate(null); setNewSceneName(''); }}><X size={14} /></button>
             </div>
             <div className="dialog-body">
+              {/* Template picker */}
+              <div className="form-group">
+                <label className="form-label">Start from a template (optional)</label>
+                <div className="template-grid">
+                  {SCENE_TEMPLATES.map(tpl => (
+                    <button
+                      key={tpl.name}
+                      className={`template-card ${selectedTemplate?.name === tpl.name ? 'selected' : ''}`}
+                      onClick={() => {
+                        setSelectedTemplate(t => t?.name === tpl.name ? null : tpl);
+                        if (!newSceneName) setNewSceneName(tpl.name);
+                        setNewSceneAnimation(tpl.animation);
+                      }}
+                    >
+                      <span className="template-icon">{tpl.icon}</span>
+                      <span className="template-name">{tpl.name}</span>
+                      <span className="template-desc">{tpl.description}</span>
+                      {selectedTemplate?.name === tpl.name && <Check size={10} className="template-check" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Scene name */}
               <div className="form-group">
                 <label className="form-label">Scene Name</label>
                 <input
                   className="form-input"
-                  placeholder="e.g. Main Scene"
+                  placeholder={selectedTemplate?.name ?? 'e.g. Main Scene'}
                   value={newSceneName}
                   onChange={e => setNewSceneName(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && addScene()}
                   autoFocus
                 />
               </div>
+
+              {/* Transition animation */}
+              <div className="form-group">
+                <label className="form-label">Scene Transition</label>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {(Object.keys(ANIMATION_LABELS) as SceneAnimation[]).map(anim => (
+                    <button
+                      key={anim}
+                      className={`btn btn-ghost ${newSceneAnimation === anim ? 'active' : ''}`}
+                      style={{ fontSize: 11, padding: '4px 10px' }}
+                      onClick={() => setNewSceneAnimation(anim)}
+                    >
+                      {ANIMATION_LABELS[anim]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {selectedTemplate && (
+                <div className="template-preview">
+                  <span style={{ fontSize: 11, color: 'var(--color-text-tertiary)' }}>
+                    Template sources: {selectedTemplate.sources.map(s => s.name).join(', ')}
+                  </span>
+                </div>
+              )}
             </div>
             <div className="dialog-footer">
-              <button className="btn btn-ghost" onClick={() => setShowNewScene(false)}>Cancel</button>
-              <button className="btn btn-primary" onClick={addScene}>
-                <Plus size={13} /> Add Scene
+              <button className="btn btn-ghost" onClick={() => { setShowNewScene(false); setSelectedTemplate(null); setNewSceneName(''); }}>Cancel</button>
+              <button className="btn btn-primary" onClick={() => addScene()}>
+                <Plus size={13} /> {selectedTemplate ? `Add "${selectedTemplate.name}" Scene` : 'Add Scene'}
               </button>
             </div>
           </div>
