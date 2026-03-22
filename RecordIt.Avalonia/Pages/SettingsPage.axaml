@@ -135,6 +135,70 @@
           </StackPanel>
         </Border>
 
+        <!-- External Tools -->
+        <Border Classes="alvonia-card">
+          <StackPanel Spacing="16">
+            <TextBlock Text="External Tools"
+                       FontSize="16" FontWeight="SemiBold"
+                       Foreground="{StaticResource TextPrimaryBrush}" />
+
+            <Border Height="1" Background="{StaticResource BorderDefaultBrush}" />
+
+            <!-- FFmpeg label + inline status badge -->
+            <StackPanel Spacing="4">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="FFmpeg Executable" FontSize="13"
+                           Foreground="{StaticResource TextPrimaryBrush}"
+                           VerticalAlignment="Center" />
+                <Border x:Name="FfmpegStatusBadge"
+                        CornerRadius="4" Padding="6,2"
+                        IsVisible="False">
+                  <TextBlock x:Name="FfmpegStatusText"
+                             FontSize="11" FontWeight="Medium" />
+                </Border>
+              </StackPanel>
+              <TextBlock FontSize="12" TextWrapping="Wrap"
+                         Foreground="{StaticResource TextTertiaryBrush}">
+                Full path to ffmpeg (or ffmpeg.exe on Windows).
+                Leave blank to use the bundled binary or the system PATH.
+                Required for recording, audio extraction and export presets.
+              </TextBlock>
+            </StackPanel>
+
+            <!-- Path box + Browse + Verify -->
+            <Grid ColumnDefinitions="*,Auto,Auto" >
+              <TextBox x:Name="FfmpegPathBox"
+                       Grid.Column="0"
+                       Margin="0,0,6,0"
+                       PlaceholderText="ffmpeg  (auto-detected if blank)"
+                       FontFamily="Cascadia Code,Consolas,monospace"
+                       FontSize="12"
+                       LostFocus="FfmpegPath_LostFocus"
+                       Background="{StaticResource BgElevatedBrush}"
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       BorderBrush="{StaticResource BorderDefaultBrush}"
+                       CornerRadius="8" />
+              <Button Grid.Column="1" Margin="0,0,6,0"
+                      Classes="ghost" Content="Browse…"
+                      Padding="12,6"
+                      Click="FfmpegBrowse_Click" />
+              <Button Grid.Column="2"
+                      Classes="ghost" Content="Verify"
+                      Padding="12,6"
+                      Click="FfmpegVerify_Click" />
+            </Grid>
+
+            <!-- Install hint -->
+            <TextBlock FontSize="11" TextWrapping="Wrap"
+                       Foreground="{StaticResource TextTertiaryBrush}">
+              Don't have FFmpeg?  Run "winget install Gyan.FFmpeg" (Windows) or
+              "brew install ffmpeg" (macOS) / "sudo apt install ffmpeg" (Linux).
+              The installer bundles FFmpeg automatically — no manual install needed.
+            </TextBlock>
+
+          </StackPanel>
+        </Border>
+
         <!-- Keyboard Shortcuts -->
         <Border Classes="alvonia-card">
           <StackPanel Spacing="16">

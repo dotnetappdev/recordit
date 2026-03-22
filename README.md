@@ -119,9 +119,15 @@ recordit/
 │   ├── docs.html
 │   └── assets/
 │
+├── tools/
+│   └── ffmpeg/              # 🔧 Drop ffmpeg.exe here for local dev; CI downloads automatically
+│
+├── installers/
+│   └── RecordIt.Avalonia.iss # 📦 Inno Setup script for Avalonia Windows installer
+│
 └── .github/workflows/
     ├── docs.yml             # Auto-deploy to GitHub Pages
-    └── build.yml            # Build MSIX + NSIS releases
+    └── build.yml            # Build MSIX + Inno Setup installers (FFmpeg bundled)
 ```
 
 ---
@@ -175,16 +181,41 @@ Both apps share identical design tokens:
 
 ## 📦 Installation
 
+All Windows installers include **FFmpeg bundled** — no separate FFmpeg install needed.
+
+Download from [GitHub Releases](https://github.com/dotnetappdev/recordit/releases/latest):
+
+| File | App | Platform |
+|------|-----|----------|
+| `RecordIt.msix` | WinUI 3 (native) | Windows 10/11 |
+| `RecordIt-Avalonia-*-Setup.exe` | Avalonia (.NET cross-platform) | Windows 10/11 |
+| `RecordIt-Setup-*.exe` | Electron | Windows |
+| `RecordIt-*.dmg` | Electron | macOS |
+| `RecordIt-*.AppImage` | Electron | Linux |
+
+### Building the installers locally
+
+**WinUI 3 MSIX** — requires Visual Studio 2022 with Windows App SDK workload:
 ```powershell
-# Windows (via winget)
-winget install Alvonia.RecordIt
+# 1. Place ffmpeg.exe in tools\ffmpeg\  (downloaded by CI automatically)
+winget install Gyan.FFmpeg   # then copy ffmpeg.exe to tools\ffmpeg\
+
+# 2. Build MSIX
+cd winui
+msbuild RecordIt.sln /p:Configuration=Release /p:Platform=x64 /p:AppxBundle=Never /p:UapAppxPackageBuildMode=SideloadOnly
 ```
 
-Or download from [GitHub Releases](https://github.com/dotnetappdev/recordit/releases/latest):
-- `RecordIt.msix` — WinUI 3 MSIX installer (Windows 10/11)
-- `RecordIt-Setup-*.exe` — Electron NSIS installer (Windows)
-- `RecordIt-*.dmg` — Electron DMG (macOS)
-- `RecordIt-*.AppImage` — Electron AppImage (Linux)
+**Avalonia NSIS installer** — requires .NET 10 SDK + [Inno Setup 6](https://jrsoftware.org/isdl.php):
+```powershell
+# 1. Place ffmpeg.exe in tools\ffmpeg\  (same binary as above)
+
+# 2. Publish self-contained
+dotnet publish RecordIt.Avalonia/RecordIt.Avalonia.csproj -c Release -r win-x64 --self-contained true
+
+# 3. Build installer
+iscc installers\RecordIt.Avalonia.iss
+# Output: installers\output\RecordIt-Avalonia-*-Setup.exe
+```
 
 ---
 

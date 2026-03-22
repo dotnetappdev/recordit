@@ -6,7 +6,12 @@ on:
       - 'v*.*.*'
   workflow_dispatch:
 
+# ─── Reusable step: download FFmpeg essentials build ────────────────────────
+# Used by the WinUI MSIX job and the Avalonia installer job so both apps
+# ship ffmpeg.exe bundled in their installers.
+
 jobs:
+  # ─────────────────────────────────────────────────────────────────────────
   build-electron:
     name: Build Electron App
     runs-on: windows-latest
@@ -43,8 +48,9 @@ jobs:
             alvonia-ui/dist/*.appx
             alvonia-ui/dist/*.msix
 
+  # ─────────────────────────────────────────────────────────────────────────
   build-winui:
-    name: Build WinUI 3 App
+    name: Build WinUI 3 MSIX (+ bundled FFmpeg)
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -52,16 +58,34 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '10.0.x'
 
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v2
+
+      # Download FFmpeg essentials build and place ffmpeg.exe in tools/ffmpeg/
+      # so the csproj Content item picks it up during the build.
+      - name: Download & unpack FFmpeg (Windows x64)
+        shell: pwsh
+        run: |
+          $ver  = "7.1"
+          $url  = "https://github.com/GyanD/codexffmpeg/releases/download/$ver/ffmpeg-$ver-essentials_build.zip"
+          $zip  = "$env:RUNNER_TEMP\ffmpeg.zip"
+          Write-Host "Downloading FFmpeg $ver from $url"
+          Invoke-WebRequest -Uri $url -OutFile $zip -UseBasicParsing
+          Expand-Archive -Path $zip -DestinationPath "$env:RUNNER_TEMP\ffmpeg_unpack" -Force
+          $exePath = Get-ChildItem "$env:RUNNER_TEMP\ffmpeg_unpack" -Recurse -Filter "ffmpeg.exe" `
+                     | Where-Object { $_.DirectoryName -like "*bin*" } `
+                     | Select-Object -First 1 -ExpandProperty FullName
+          New-Item -ItemType Directory -Force -Path "tools\ffmpeg" | Out-Null
+          Copy-Item $exePath "tools\ffmpeg\ffmpeg.exe" -Force
+          Write-Host "Placed: tools\ffmpeg\ffmpeg.exe"
 
       - name: Restore NuGet packages
         working-directory: winui
         run: nuget restore RecordIt.sln
 
-      - name: Build WinUI app
+      - name: Build WinUI MSIX
         working-directory: winui
         run: |
           msbuild RecordIt.sln `
@@ -70,15 +94,69 @@ jobs:
             /p:AppxBundle=Never `
             /p:UapAppxPackageBuildMode=SideloadOnly
 
-      - name: Upload WinUI artifacts
+      - name: Upload WinUI MSIX
         uses: actions/upload-artifact@v4
         with:
-          name: winui-windows
+          name: winui-msix
           path: winui/RecordIt.Package/bin/x64/Release/**/*.msix
 
+  # ─────────────────────────────────────────────────────────────────────────
+  build-avalonia:
+    name: Build Avalonia Installer (+ bundled FFmpeg)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      # Same FFmpeg download as the WinUI job
+      - name: Download & unpack FFmpeg (Windows x64)
+        shell: pwsh
+        run: |
+          $ver  = "7.1"
+          $url  = "https://github.com/GyanD/codexffmpeg/releases/download/$ver/ffmpeg-$ver-essentials_build.zip"
+          $zip  = "$env:RUNNER_TEMP\ffmpeg.zip"
+          Write-Host "Downloading FFmpeg $ver from $url"
+          Invoke-WebRequest -Uri $url -OutFile $zip -UseBasicParsing
+          Expand-Archive -Path $zip -DestinationPath "$env:RUNNER_TEMP\ffmpeg_unpack" -Force
+          $exePath = Get-ChildItem "$env:RUNNER_TEMP\ffmpeg_unpack" -Recurse -Filter "ffmpeg.exe" `
+                     | Where-Object { $_.DirectoryName -like "*bin*" } `
+                     | Select-Object -First 1 -ExpandProperty FullName
+          New-Item -ItemType Directory -Force -Path "tools\ffmpeg" | Out-Null
+          Copy-Item $exePath "tools\ffmpeg\ffmpeg.exe" -Force
+          Write-Host "Placed: tools\ffmpeg\ffmpeg.exe"
+
+      - name: Restore & publish Avalonia (self-contained, win-x64)
+        run: |
+          dotnet publish RecordIt.Avalonia/RecordIt.Avalonia.csproj `
+            -c Release `
+            -r win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=false `
+            -o RecordIt.Avalonia/bin/Release/net10.0-windows10.0.19041.0/win-x64/publish
+
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+
+      - name: Build Avalonia installer (Inno Setup)
+        shell: pwsh
+        run: |
+          $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          & $iscc "installers\RecordIt.Avalonia.iss"
+
+      - name: Upload Avalonia installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: avalonia-installer
+          path: installers/output/RecordIt-Avalonia-*-Setup.exe
+
+  # ─────────────────────────────────────────────────────────────────────────
   release:
     name: Create GitHub Release
-    needs: [build-electron, build-winui]
+    needs: [build-electron, build-winui, build-avalonia]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
@@ -93,8 +171,14 @@ jobs:
       - name: Download WinUI artifacts
         uses: actions/download-artifact@v4
         with:
-          name: winui-windows
+          name: winui-msix
           path: ./release-artifacts/winui
+
+      - name: Download Avalonia artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: avalonia-installer
+          path: ./release-artifacts/avalonia
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
@@ -104,12 +188,22 @@ jobs:
           body: |
             ## RecordIt ${{ github.ref_name }}
 
+            All installers include **FFmpeg bundled** — no separate FFmpeg install required.
+
             ### Downloads
-            | Platform | Type | File |
-            |----------|------|------|
-            | Windows Native | WinUI 3 MSIX | `RecordIt.msix` |
-            | Windows Cross-Platform | Electron NSIS | `RecordIt-Setup-*.exe` |
-            | Windows Cross-Platform | Electron AppX | `RecordIt-*.appx` |
+
+            | Platform | App | Type | File |
+            |----------|-----|------|------|
+            | Windows 10/11 | WinUI 3 (native) | MSIX package | `RecordIt.msix` |
+            | Windows 10/11 | Avalonia (cross-platform .NET) | NSIS installer | `RecordIt-Avalonia-*-Setup.exe` |
+            | Windows | Electron | NSIS installer | `RecordIt-Setup-*.exe` |
+            | Windows | Electron | AppX package | `RecordIt-*.appx` |
+
+            ### Bundled FFmpeg
+            FFmpeg ${{ env.FFMPEG_VERSION || '7.1' }} (essentials build by [Gyan.dev](https://www.gyan.dev/ffmpeg/builds/))
+            is included in all Windows installers. You can override the path in
+            **Settings → External Tools → FFmpeg Executable** if you prefer a
+            different build (e.g. one with additional codecs).
 
             ### What's Changed
             See [Changelog](https://dotnetappdev.github.io/recordit/docs.html#changelog) for details.
