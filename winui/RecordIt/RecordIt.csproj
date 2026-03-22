@@ -40,4 +40,16 @@
   <ItemGroup>
     <Manifest Include="app.manifest" />
   </ItemGroup>
+
+  <!--
+    Bundle ffmpeg.exe alongside the app so the installer ships it.
+    Place the binary in tools/ffmpeg/ffmpeg.exe (done by CI or manually for local dev).
+    FfmpegLocator auto-detects it at runtime; users can override in Settings.
+  -->
+  <ItemGroup>
+    <Content Include="..\..\tools\ffmpeg\ffmpeg.exe"
+             Condition="Exists('..\..\tools\ffmpeg\ffmpeg.exe')"
+             CopyToOutputDirectory="PreserveNewest"
+             Link="ffmpeg.exe" />
+  </ItemGroup>
 </Project>

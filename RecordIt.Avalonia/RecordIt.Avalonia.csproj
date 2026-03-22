@@ -19,4 +19,12 @@
     <ProjectReference Include="..\RecordIt.Core\RecordIt.Core.csproj" />
   </ItemGroup>
 
+  <!-- Bundle ffmpeg.exe alongside the app (placed by CI or manually for local dev) -->
+  <ItemGroup>
+    <Content Include="..\tools\ffmpeg\ffmpeg.exe"
+             Condition="Exists('..\tools\ffmpeg\ffmpeg.exe')"
+             CopyToOutputDirectory="PreserveNewest"
+             Link="ffmpeg.exe" />
+  </ItemGroup>
+
 </Project>
