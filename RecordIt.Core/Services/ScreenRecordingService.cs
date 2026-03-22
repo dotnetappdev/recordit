@@ -158,8 +158,11 @@ public class ScreenRecordingService
         Directory.CreateDirectory(outDir);
 
         // ── Build input chain ────────────────────────────────────────────
-        // Input 0 always: gdigrab desktop
-        var inputArgs = $"-f gdigrab -framerate {fps} -i desktop";
+        // Input 0: gdigrab — either full desktop or a specific window by title
+        string gdigrabTarget = sourceId.StartsWith("title=", StringComparison.OrdinalIgnoreCase)
+            ? $"title=\"{sourceId.Substring(6)}\""
+            : "desktop";
+        var inputArgs = $"-f gdigrab -framerate {fps} -i {gdigrabTarget}";
         int nextInput = 1;
         int webcamVideoInput = -1;
         int audioInputIdx = -1;

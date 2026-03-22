@@ -506,9 +506,10 @@ public sealed partial class RecordPage : Page, IDisposable
             panel.Children.Add(btn);
         }
 
-        AddSourceOption("Primary Display",    "\uE7F8", "screen",    "screen:primary");
-        AddSourceOption("All Displays",       "\uE780", "screen",    "screen:all");
-        AddSourceOption("Window Capture",     "\uE737", "window",    "screen:window");
+        AddSourceOption("Primary Display",    "\uE7F8", "screen",     "screen:primary");
+        AddSourceOption("All Displays",       "\uE780", "screen",     "screen:all");
+        AddSourceOption("Window Capture",     "\uE737", "window",     "screen:window");
+        AddSourceOption("Whiteboard Window",  "\uE70A", "whiteboard", "title=RecordIt Whiteboard");
 
         if (probed != null)
         {
@@ -547,12 +548,13 @@ public sealed partial class RecordPage : Page, IDisposable
         {
             var icon = chosen switch
             {
-                "screen" => "\uE7F8",
-                "window" => "\uE737",
-                "video"  => "\uE714",
-                "audiout"=> "\uE767",
-                "audiin" => "\uE720",
-                _        => "\uE7F8",
+                "screen"     => "\uE7F8",
+                "window"     => "\uE737",
+                "video"      => "\uE714",
+                "audiout"    => "\uE767",
+                "audiin"     => "\uE720",
+                "whiteboard" => "\uE70A",
+                _            => "\uE7F8",
             };
             Sources.Add(new SourceItem { Name = chosenName, Icon = icon, SourceType = chosen });
             SourcesList.SelectedIndex = Sources.Count - 1;
