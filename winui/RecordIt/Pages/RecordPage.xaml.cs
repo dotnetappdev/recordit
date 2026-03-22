@@ -3,7 +3,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Shapes;
 using RecordIt.Core.Services;
 using RecordIt.Services;
 using System;
@@ -42,8 +41,8 @@ internal sealed class AudioChannelView
     public bool IsMic { get; }
 
     // UI elements owned by this channel
-    public Rectangle    VuBarLeft  { get; }
-    public Rectangle    VuBarRight { get; }
+    public Microsoft.UI.Xaml.Shapes.Rectangle VuBarLeft  { get; }
+    public Microsoft.UI.Xaml.Shapes.Rectangle VuBarRight { get; }
     public TextBlock    DbLabel    { get; }
     public Slider       VolSlider  { get; }
     public ToggleButton MuteBtn    { get; }
@@ -60,8 +59,8 @@ internal sealed class AudioChannelView
         // Create UI elements on the UI thread (where this ctor is called from)
         var vuBrush = MakeVuBrush();
 
-        VuBarLeft  = new Rectangle { Width = 4, RadiusX = 2, RadiusY = 2, Fill = vuBrush };
-        VuBarRight = new Rectangle { Width = 4, RadiusX = 2, RadiusY = 2, Fill = vuBrush };
+        VuBarLeft  = new Microsoft.UI.Xaml.Shapes.Rectangle { Width = 4, RadiusX = 2, RadiusY = 2, Fill = vuBrush };
+        VuBarRight = new Microsoft.UI.Xaml.Shapes.Rectangle { Width = 4, RadiusX = 2, RadiusY = 2, Fill = vuBrush };
         DbLabel    = new TextBlock { FontSize = 9, TextAlignment = TextAlignment.Center };
         VolSlider  = new Slider();
         MuteBtn    = new ToggleButton();
@@ -170,7 +169,7 @@ internal sealed class AudioChannelView
                 ? Windows.UI.Color.FromArgb(255, 99, 102, 241)
                 : Windows.UI.Color.FromArgb(255, 139, 92, 246);
 
-        var typeDot = new Ellipse
+        var typeDot = new Microsoft.UI.Xaml.Shapes.Ellipse
         {
             Width  = 5,
             Height = 5,

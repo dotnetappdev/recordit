@@ -98,7 +98,7 @@ public class ExportService
         return await Task.WhenAll(tasks);
     }
 
-
+    private Task RunFFmpegAsync(string args)
     {
         var tcs = new TaskCompletionSource<int>();
         var psi = new ProcessStartInfo
