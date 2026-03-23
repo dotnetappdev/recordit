@@ -3,7 +3,11 @@ import {
   Monitor, Camera, Mic, MicOff, Video, VideoOff,
   Square, Circle, Plus, Trash2, RefreshCw, Settings2,
   Radio, Volume2, ChevronRight, X, Check, Layers,
-  Twitch, Youtube, Cast, Bell, ThumbsUp, Heart, Star
+  Twitch, Youtube, Cast, Bell, ThumbsUp, Heart, Star,
+  Sparkles, Palette, Droplets, Focus, Wand2, SlidersHorizontal,
+  Play, Pause, SkipBack, SkipForward, Scissors, Clock,
+  Minimize2, Maximize2, ZoomIn, Pencil, Move, GripVertical,
+  Search, MousePointer, Highlighter, Type, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { Theme } from '../App';
 
@@ -38,6 +42,49 @@ interface SceneTemplate {
   description: string;
   sources: Omit<SceneSource, 'id'>[];
   animation: SceneAnimation;
+}
+
+// ─── Effects Types ─────────────────────────────────────────────────────────
+
+type EffectType = 'blur' | 'chroma_key' | 'color_correct' | 'vignette' | 'sharpen' | 'noise_reduction' | 'brightness' | 'saturation';
+
+interface VideoEffect {
+  id: string;
+  type: EffectType;
+  name: string;
+  enabled: boolean;
+  intensity: number; // 0-100
+  params: Record<string, number>;
+}
+
+const EFFECT_PRESETS: { type: EffectType; name: string; icon: string; description: string; defaultIntensity: number }[] = [
+  { type: 'blur',             name: 'Background Blur',     icon: '🔵', description: 'Gaussian blur on background',    defaultIntensity: 50 },
+  { type: 'chroma_key',       name: 'Green Screen',        icon: '🟢', description: 'Chroma key / green screen removal', defaultIntensity: 75 },
+  { type: 'color_correct',    name: 'Color Correction',    icon: '🎨', description: 'Adjust white balance & tones',   defaultIntensity: 50 },
+  { type: 'vignette',         name: 'Vignette',            icon: '⬛', description: 'Dark edges cinematic effect',     defaultIntensity: 40 },
+  { type: 'sharpen',          name: 'Sharpen',             icon: '🔺', description: 'Enhance edge detail',            defaultIntensity: 30 },
+  { type: 'noise_reduction',  name: 'Noise Reduction',     icon: '🔇', description: 'Reduce video grain/noise',       defaultIntensity: 60 },
+  { type: 'brightness',       name: 'Brightness/Contrast', icon: '☀️', description: 'Adjust brightness and contrast',  defaultIntensity: 50 },
+  { type: 'saturation',       name: 'Saturation',          icon: '🌈', description: 'Boost or reduce color vibrance', defaultIntensity: 50 },
+];
+
+// ─── Timeline Types ────────────────────────────────────────────────────────
+
+interface TimelineClip {
+  id: string;
+  name: string;
+  type: 'video' | 'audio' | 'overlay';
+  startTime: number; // seconds
+  duration: number;  // seconds
+  track: number;
+  color: string;
+}
+
+interface TimelineMarker {
+  id: string;
+  time: number;
+  label: string;
+  color: string;
 }
 
 type YtEffect = 'like' | 'subscribe' | 'bell' | null;
@@ -224,6 +271,33 @@ const RecordingPage: React.FC<RecordingPageProps> = ({ isRecording, onRecordingC
   const [micMuted, setMicMuted] = useState(false);
   const [sysMuted, setSysMuted] = useState(false);
 
+  // Effects
+  const [effects, setEffects] = useState<VideoEffect[]>([]);
+  const [showEffectsPanel, setShowEffectsPanel] = useState(false);
+  const [showAddEffect, setShowAddEffect] = useState(false);
+
+  // Timeline
+  const [showTimeline, setShowTimeline] = useState(true);
+  const [timelineZoom, setTimelineZoom] = useState(1);
+  const [timelinePosition, setTimelinePosition] = useState(0); // playhead in seconds
+  const [timelinePlaying, setTimelinePlaying] = useState(false);
+  const [timelineDuration] = useState(300); // 5 min default project length
+  const [timelineClips, setTimelineClips] = useState<TimelineClip[]>([
+    { id: '1', name: 'Screen Capture', type: 'video', startTime: 0, duration: 120, track: 0, color: '#6366f1' },
+    { id: '2', name: 'Webcam', type: 'video', startTime: 10, duration: 100, track: 1, color: '#8b5cf6' },
+    { id: '3', name: 'Desktop Audio', type: 'audio', startTime: 0, duration: 120, track: 2, color: '#22c55e' },
+    { id: '4', name: 'Mic Audio', type: 'audio', startTime: 5, duration: 110, track: 3, color: '#06b6d4' },
+  ]);
+  const [timelineMarkers, setTimelineMarkers] = useState<TimelineMarker[]>([]);
+
+  // Floating Toolbar
+  const [showFloatingToolbar, setShowFloatingToolbar] = useState(false);
+  const [floatingToolbarPos, setFloatingToolbarPos] = useState({ x: 20, y: 20 });
+  const [isDraggingToolbar, setIsDraggingToolbar] = useState(false);
+  const [floatingDrawMode, setFloatingDrawMode] = useState(false);
+  const [floatingZoomLevel, setFloatingZoomLevel] = useState(100);
+  const toolbarDragRef = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
+
   // Timers
   useEffect(() => {
     let t: ReturnType<typeof setInterval>;
@@ -368,6 +442,125 @@ const RecordingPage: React.FC<RecordingPageProps> = ({ isRecording, onRecordingC
       setActiveProgramId(activePreviewId);
     }
   };
+
+  // ── Effects ────────────────────────────────────────────────────────────────
+
+  const addEffect = (type: EffectType) => {
+    const preset = EFFECT_PRESETS.find(p => p.type === type);
+    if (!preset) return;
+    const effect: VideoEffect = {
+      id: Date.now().toString(),
+      type,
+      name: preset.name,
+      enabled: true,
+      intensity: preset.defaultIntensity,
+      params: {},
+    };
+    setEffects(prev => [...prev, effect]);
+    setShowAddEffect(false);
+  };
+
+  const removeEffect = (id: string) => {
+    setEffects(prev => prev.filter(e => e.id !== id));
+  };
+
+  const toggleEffect = (id: string) => {
+    setEffects(prev => prev.map(e => e.id === id ? { ...e, enabled: !e.enabled } : e));
+  };
+
+  const setEffectIntensity = (id: string, intensity: number) => {
+    setEffects(prev => prev.map(e => e.id === id ? { ...e, intensity } : e));
+  };
+
+  // ── Timeline ──────────────────────────────────────────────────────────────
+
+  useEffect(() => {
+    let t: ReturnType<typeof setInterval>;
+    if (timelinePlaying) {
+      t = setInterval(() => {
+        setTimelinePosition(p => {
+          if (p >= timelineDuration) { setTimelinePlaying(false); return 0; }
+          return p + 0.1;
+        });
+      }, 100);
+    }
+    return () => clearInterval(t);
+  }, [timelinePlaying, timelineDuration]);
+
+  const addTimelineMarker = () => {
+    const marker: TimelineMarker = {
+      id: Date.now().toString(),
+      time: timelinePosition,
+      label: `Marker ${timelineMarkers.length + 1}`,
+      color: '#f59e0b',
+    };
+    setTimelineMarkers(prev => [...prev, marker]);
+  };
+
+  const fmtTimeline = (s: number) => {
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    const ms = Math.floor((s % 1) * 10);
+    return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}.${ms}`;
+  };
+
+  // ── Floating Toolbar ─────────────────────────────────────────────────────
+
+  // Show floating toolbar in separate window (Electron) or in-page (browser)
+  useEffect(() => {
+    if (isRecording) {
+      if (isElectron) {
+        (window as any).electronAPI.showFloatingToolbar();
+      } else {
+        setShowFloatingToolbar(true);
+      }
+    } else {
+      if (isElectron) {
+        (window as any).electronAPI.hideFloatingToolbar();
+      } else {
+        setShowFloatingToolbar(false);
+      }
+    }
+  }, [isRecording]);
+
+  // Listen for toolbar actions from separate window
+  useEffect(() => {
+    if (!isElectron) return;
+    const api = (window as any).electronAPI;
+    if (api.onToolbarAction) {
+      api.onToolbarAction((_event: any, action: string) => {
+        switch (action) {
+          case 'stop': stopRecording(); break;
+          case 'toggle-mic': setMicMuted(m => !m); break;
+          case 'toggle-cam': setCameraEnabled(c => !c); break;
+          case 'toggle-draw': setFloatingDrawMode(d => !d); break;
+        }
+      });
+    }
+  }, []);
+
+  const handleToolbarMouseDown = (e: React.MouseEvent) => {
+    setIsDraggingToolbar(true);
+    toolbarDragRef.current = {
+      startX: e.clientX, startY: e.clientY,
+      origX: floatingToolbarPos.x, origY: floatingToolbarPos.y,
+    };
+  };
+
+  useEffect(() => {
+    if (!isDraggingToolbar) return;
+    const onMove = (e: MouseEvent) => {
+      if (!toolbarDragRef.current) return;
+      setFloatingToolbarPos({
+        x: toolbarDragRef.current.origX + (e.clientX - toolbarDragRef.current.startX),
+        y: toolbarDragRef.current.origY + (e.clientY - toolbarDragRef.current.startY),
+      });
+    };
+    const onUp = () => { setIsDraggingToolbar(false); toolbarDragRef.current = null; };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
+  }, [isDraggingToolbar]);
 
   // ── Recording ───────────────────────────────────────────────────────────────
 
@@ -684,6 +877,175 @@ const RecordingPage: React.FC<RecordingPageProps> = ({ isRecording, onRecordingC
         </div>
       )}
 
+      {/* ── Timeline View (between preview and docks) ── */}
+      {showTimeline && (
+        <div className="timeline-container">
+          <div className="timeline-toolbar">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <button className="btn btn-ghost" style={{ padding: '3px 6px' }} onClick={() => { setTimelinePlaying(false); setTimelinePosition(0); }} title="Go to start">
+                <SkipBack size={12} />
+              </button>
+              <button className="btn btn-ghost" style={{ padding: '3px 6px' }} onClick={() => setTimelinePlaying(p => !p)} title={timelinePlaying ? 'Pause' : 'Play'}>
+                {timelinePlaying ? <Pause size={12} /> : <Play size={12} />}
+              </button>
+              <button className="btn btn-ghost" style={{ padding: '3px 6px' }} onClick={() => setTimelinePosition(timelineDuration)} title="Go to end">
+                <SkipForward size={12} />
+              </button>
+              <div style={{ width: 1, height: 14, background: 'var(--color-border-default)', margin: '0 4px' }} />
+              <span className="timeline-timecode">{fmtTimeline(timelinePosition)}</span>
+              <span style={{ fontSize: 10, color: 'var(--color-text-tertiary)' }}>/</span>
+              <span className="timeline-timecode" style={{ opacity: 0.5 }}>{fmtTimeline(timelineDuration)}</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <button className="btn btn-ghost" style={{ padding: '3px 6px', fontSize: 10 }} onClick={addTimelineMarker} title="Add marker">
+                <Plus size={10} /> Marker
+              </button>
+              <button className="btn btn-ghost" style={{ padding: '3px 6px', fontSize: 10 }} title="Split at playhead">
+                <Scissors size={10} /> Split
+              </button>
+              <div style={{ width: 1, height: 14, background: 'var(--color-border-default)', margin: '0 2px' }} />
+              <button className="btn btn-ghost" style={{ padding: '3px 6px' }} onClick={() => setTimelineZoom(z => Math.max(0.5, z - 0.25))} title="Zoom out">
+                <Search size={10} />−
+              </button>
+              <span style={{ fontSize: 10, color: 'var(--color-text-secondary)', minWidth: 32, textAlign: 'center' }}>{Math.round(timelineZoom * 100)}%</span>
+              <button className="btn btn-ghost" style={{ padding: '3px 6px' }} onClick={() => setTimelineZoom(z => Math.min(4, z + 0.25))} title="Zoom in">
+                <Search size={10} />+
+              </button>
+              <div style={{ width: 1, height: 14, background: 'var(--color-border-default)', margin: '0 2px' }} />
+              <button className="btn btn-ghost" style={{ padding: '3px 6px' }} onClick={() => setShowEffectsPanel(p => !p)} title="Toggle effects panel">
+                <Sparkles size={11} style={{ color: showEffectsPanel ? 'var(--color-brand-primary)' : undefined }} />
+              </button>
+              <button className="btn btn-ghost" style={{ padding: '3px 6px' }} onClick={() => setShowTimeline(false)} title="Hide timeline">
+                <ChevronDown size={11} />
+              </button>
+            </div>
+          </div>
+
+          <div className="timeline-body">
+            {/* Track labels */}
+            <div className="timeline-track-labels">
+              {['Video 1', 'Video 2', 'Audio 1', 'Audio 2'].map((label, i) => (
+                <div key={i} className="timeline-track-label">
+                  <span style={{ fontSize: 10, color: 'var(--color-text-secondary)' }}>{label}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Timeline tracks */}
+            <div className="timeline-tracks" onClick={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              const x = e.clientX - rect.left;
+              const time = (x / (rect.width * timelineZoom)) * timelineDuration;
+              setTimelinePosition(Math.max(0, Math.min(timelineDuration, time)));
+            }}>
+              {/* Time ruler */}
+              <div className="timeline-ruler">
+                {Array.from({ length: Math.ceil(timelineDuration / 30) + 1 }, (_, i) => (
+                  <div key={i} className="timeline-ruler-mark" style={{ left: `${(i * 30 / timelineDuration) * 100 * timelineZoom}%` }}>
+                    <span>{Math.floor(i * 30 / 60)}:{String((i * 30) % 60).padStart(2, '0')}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Tracks */}
+              {[0, 1, 2, 3].map(track => (
+                <div key={track} className="timeline-track">
+                  {timelineClips.filter(c => c.track === track).map(clip => (
+                    <div
+                      key={clip.id}
+                      className="timeline-clip"
+                      style={{
+                        left: `${(clip.startTime / timelineDuration) * 100 * timelineZoom}%`,
+                        width: `${(clip.duration / timelineDuration) * 100 * timelineZoom}%`,
+                        background: `${clip.color}33`,
+                        borderColor: clip.color,
+                      }}
+                      title={`${clip.name} (${Math.floor(clip.duration)}s)`}
+                    >
+                      <span className="timeline-clip-label">{clip.name}</span>
+                    </div>
+                  ))}
+                </div>
+              ))}
+
+              {/* Playhead */}
+              <div className="timeline-playhead" style={{ left: `${(timelinePosition / timelineDuration) * 100 * timelineZoom}%` }}>
+                <div className="timeline-playhead-head" />
+                <div className="timeline-playhead-line" />
+              </div>
+
+              {/* Markers */}
+              {timelineMarkers.map(m => (
+                <div key={m.id} className="timeline-marker" style={{ left: `${(m.time / timelineDuration) * 100 * timelineZoom}%` }} title={m.label}>
+                  <div style={{ width: 8, height: 8, background: m.color, borderRadius: 2, transform: 'rotate(45deg)' }} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {!showTimeline && (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: 2, background: 'var(--color-bg-surface)', borderTop: '1px solid var(--color-border-default)', cursor: 'pointer' }} onClick={() => setShowTimeline(true)}>
+          <ChevronUp size={12} style={{ color: 'var(--color-text-tertiary)' }} />
+        </div>
+      )}
+
+      {/* ── Effects Panel (slides in from right when active) ── */}
+      {showEffectsPanel && (
+        <div className="effects-panel">
+          <div className="effects-panel-header">
+            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-primary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              <Sparkles size={11} style={{ marginRight: 4, verticalAlign: 'middle' }} /> Effects
+            </span>
+            <div style={{ display: 'flex', gap: 4 }}>
+              <button className="dock-btn" onClick={() => setShowAddEffect(true)} title="Add effect"><Plus size={12} /></button>
+              <button className="dock-btn" onClick={() => setShowEffectsPanel(false)} title="Close"><X size={12} /></button>
+            </div>
+          </div>
+          <div className="effects-panel-body">
+            {effects.length === 0 ? (
+              <div className="dock-empty">
+                No effects applied.<br />Click + to add one.
+              </div>
+            ) : (
+              effects.map(effect => (
+                <div key={effect.id} className={`effect-item ${!effect.enabled ? 'disabled' : ''}`}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ fontSize: 12 }}>{EFFECT_PRESETS.find(p => p.type === effect.type)?.icon}</span>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: effect.enabled ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)' }}>
+                        {effect.name}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 2 }}>
+                      <button className="dock-item-action" onClick={() => toggleEffect(effect.id)} title={effect.enabled ? 'Disable' : 'Enable'}>
+                        {effect.enabled ? <Video size={10} /> : <VideoOff size={10} />}
+                      </button>
+                      <button className="dock-item-action" onClick={() => removeEffect(effect.id)} title="Remove">
+                        <Trash2 size={10} />
+                      </button>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <input
+                      type="range" min={0} max={100}
+                      value={effect.intensity}
+                      onChange={e => setEffectIntensity(effect.id, parseInt(e.target.value))}
+                      disabled={!effect.enabled}
+                      className="volume-slider"
+                    />
+                    <span style={{ fontSize: 10, color: 'var(--color-text-tertiary)', width: 28, textAlign: 'right' }}>
+                      {effect.intensity}%
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
       {/* ── Docks row ── */}
       <div className="studio-docks">
         {/* Scenes dock */}
@@ -975,6 +1337,113 @@ const RecordingPage: React.FC<RecordingPageProps> = ({ isRecording, onRecordingC
               <button className="btn btn-primary" onClick={() => addScene()}>
                 <Plus size={13} /> {selectedTemplate ? `Add "${selectedTemplate.name}" Scene` : 'Add Scene'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Floating Recording Toolbar (in-page fallback for browser mode) ── */}
+      {showFloatingToolbar && isRecording && !isElectron && (
+        <div
+          className="floating-toolbar"
+          style={{ left: floatingToolbarPos.x, top: floatingToolbarPos.y }}
+        >
+          <div className="floating-toolbar-drag" onMouseDown={handleToolbarMouseDown} title="Drag to move">
+            <GripVertical size={12} />
+          </div>
+
+          <div className="floating-toolbar-group">
+            <button className="floating-btn recording-active-btn" onClick={stopRecording} title="Stop Recording">
+              <Square size={13} fill="currentColor" />
+            </button>
+            <div className="floating-timer">
+              <div className="recording-dot" style={{ width: 6, height: 6 }} />
+              <span>{fmt(recDuration)}</span>
+            </div>
+          </div>
+
+          <div className="floating-toolbar-divider" />
+
+          <div className="floating-toolbar-group">
+            <button
+              className={`floating-btn ${micMuted ? 'muted' : ''}`}
+              onClick={() => setMicMuted(m => !m)}
+              title={micMuted ? 'Unmute mic' : 'Mute mic'}
+            >
+              {micMuted ? <MicOff size={13} /> : <Mic size={13} />}
+            </button>
+            <button
+              className={`floating-btn ${!cameraEnabled ? 'muted' : ''}`}
+              onClick={() => setCameraEnabled(c => !c)}
+              title={cameraEnabled ? 'Disable camera' : 'Enable camera'}
+            >
+              {cameraEnabled ? <Camera size={13} /> : <VideoOff size={13} />}
+            </button>
+          </div>
+
+          <div className="floating-toolbar-divider" />
+
+          <div className="floating-toolbar-group">
+            <button
+              className={`floating-btn ${floatingDrawMode ? 'active' : ''}`}
+              onClick={() => setFloatingDrawMode(d => !d)}
+              title="Screen annotation"
+            >
+              <Pencil size={13} />
+            </button>
+            <button
+              className="floating-btn"
+              onClick={() => setFloatingZoomLevel(z => z < 200 ? z + 25 : 100)}
+              title={`Zoom: ${floatingZoomLevel}%`}
+            >
+              <ZoomIn size={13} />
+              <span style={{ fontSize: 9 }}>{floatingZoomLevel}%</span>
+            </button>
+            <button
+              className="floating-btn"
+              onClick={() => setShowFloatingToolbar(false)}
+              title="Minimize toolbar"
+            >
+              <Minimize2 size={13} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Minimized floating toolbar restore button (browser mode only) */}
+      {!showFloatingToolbar && isRecording && !isElectron && (
+        <button
+          className="floating-restore-btn"
+          onClick={() => setShowFloatingToolbar(true)}
+          title="Show recording toolbar"
+        >
+          <Maximize2 size={12} />
+          <div className="recording-dot" style={{ width: 6, height: 6 }} />
+        </button>
+      )}
+
+      {/* ── Add Effect dialog ── */}
+      {showAddEffect && (
+        <div className="dialog-overlay" onClick={() => setShowAddEffect(false)}>
+          <div className="dialog" onClick={e => e.stopPropagation()} style={{ maxWidth: 520 }}>
+            <div className="dialog-header">
+              <span className="dialog-title"><Sparkles size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />Add Video Effect</span>
+              <button className="dialog-close" onClick={() => setShowAddEffect(false)}><X size={14} /></button>
+            </div>
+            <div className="dialog-body">
+              <div className="effect-grid">
+                {EFFECT_PRESETS.map(preset => (
+                  <button
+                    key={preset.type}
+                    className="effect-preset-card"
+                    onClick={() => addEffect(preset.type)}
+                  >
+                    <span style={{ fontSize: 24 }}>{preset.icon}</span>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-primary)' }}>{preset.name}</span>
+                    <span style={{ fontSize: 10, color: 'var(--color-text-tertiary)', lineHeight: 1.3 }}>{preset.description}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>

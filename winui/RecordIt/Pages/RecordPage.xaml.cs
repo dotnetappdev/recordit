@@ -1669,6 +1669,97 @@ public sealed partial class RecordPage : Page, IDisposable
         }
     }
 
+    // ── Timeline handlers ──────────────────────────────────────────────────────
+
+    private bool _timelinePlaying;
+
+    private void TimelinePlayBtn_Click(object sender, RoutedEventArgs e)
+    {
+        _timelinePlaying = !_timelinePlaying;
+        if (sender is Button btn && btn.Content is FontIcon icon)
+        {
+            icon.Glyph = _timelinePlaying ? "\uE769" : "\uE768"; // Pause : Play
+        }
+    }
+
+    private void AddTimelineMarkerBtn_Click(object sender, RoutedEventArgs e)
+    {
+        // Add a marker at current timeline position
+        StatusText.Text = "Marker added at current position";
+    }
+
+    // ── Effects panel handlers ──────────────────────────────────────────────
+
+    private void EffectsToggleBtn_Click(object sender, RoutedEventArgs e)
+    {
+        if (EffectsPanel.Visibility == Visibility.Visible)
+            EffectsPanel.Visibility = Visibility.Collapsed;
+        else
+            EffectsPanel.Visibility = Visibility.Visible;
+    }
+
+    private void AddEffectBtn_Click(object sender, RoutedEventArgs e)
+    {
+        // Show effects panel if hidden
+        EffectsPanel.Visibility = Visibility.Visible;
+        StatusText.Text = "Effects panel opened — drag sliders to adjust";
+    }
+
+    // ── Floating Toolbar handlers ───────────────────────────────────────────
+
+    private bool _floatingMicMuted;
+    private bool _floatingCamOn;
+    private bool _floatingDrawMode;
+
+    private void FloatingToolbar_ManipulationDelta(object sender, Microsoft.UI.Xaml.Input.ManipulationDeltaRoutedEventArgs e)
+    {
+        var margin = FloatingToolbar.Margin;
+        FloatingToolbar.Margin = new Thickness(
+            margin.Left + e.Delta.Translation.X,
+            margin.Top + e.Delta.Translation.Y,
+            0, 0);
+    }
+
+    private void FloatingMicBtn_Click(object sender, RoutedEventArgs e)
+    {
+        _floatingMicMuted = !_floatingMicMuted;
+        if (FloatingMicBtn.Content is FontIcon icon)
+            icon.Glyph = _floatingMicMuted ? "\uE720" : "\uE720"; // mic / mic off
+        StatusText.Text = _floatingMicMuted ? "Microphone muted" : "Microphone enabled";
+    }
+
+    private void FloatingCamBtn_Click(object sender, RoutedEventArgs e)
+    {
+        _floatingCamOn = !_floatingCamOn;
+        StatusText.Text = _floatingCamOn ? "Camera enabled" : "Camera disabled";
+    }
+
+    private void FloatingDrawBtn_Click(object sender, RoutedEventArgs e)
+    {
+        _floatingDrawMode = !_floatingDrawMode;
+        StatusText.Text = _floatingDrawMode ? "Screen annotation mode ON — draw on screen" : "Screen annotation mode OFF";
+    }
+
+    private void FloatingZoomBtn_Click(object sender, RoutedEventArgs e)
+    {
+        StatusText.Text = "Zoom: use Ctrl+Scroll to zoom in/out";
+    }
+
+    private void FloatingMinBtn_Click(object sender, RoutedEventArgs e)
+    {
+        FloatingToolbar.Visibility = Visibility.Collapsed;
+    }
+
+    // Show floating toolbar when recording starts, hide when stops
+    private void UpdateFloatingToolbar(bool isRecording)
+    {
+        FloatingToolbar.Visibility = isRecording ? Visibility.Visible : Visibility.Collapsed;
+        if (isRecording)
+        {
+            FloatingToolbar.Margin = new Thickness(20, 60, 0, 0);
+        }
+    }
+
     // ── IDisposable ───────────────────────────────────────────────────────────
 
     public void Dispose()

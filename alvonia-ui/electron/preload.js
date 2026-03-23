@@ -30,5 +30,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onStartRecording: (cb) => ipcRenderer.on('start-recording', cb),
   onStopRecording: (cb) => ipcRenderer.on('stop-recording', cb),
 
+  // Floating toolbar (separate window like Teams/Zoom)
+  showFloatingToolbar: () => ipcRenderer.invoke('show-floating-toolbar'),
+  hideFloatingToolbar: () => ipcRenderer.invoke('hide-floating-toolbar'),
+  sendToolbarAction: (action) => ipcRenderer.invoke('toolbar-action', action),
+  onToolbarAction: (cb) => ipcRenderer.on('toolbar-action', cb),
+
   isElectron: true,
 });

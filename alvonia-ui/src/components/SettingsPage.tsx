@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Sun, Moon, Monitor, Folder, Bell, Keyboard, Info, Globe, Shield, Radio, Eye, EyeOff, Save, Check } from 'lucide-react';
+import { Sun, Moon, Monitor, Folder, Bell, Keyboard, Info, Globe, Shield, Radio, Eye, EyeOff, Save, Check, Mic, Camera, Paintbrush, Gauge, MousePointer, Sparkles, Volume2 } from 'lucide-react';
 import { Theme } from '../App';
 
 const isElectron = !!(window as any).electronAPI;
@@ -62,6 +62,33 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ theme, onToggleTheme }) => 
   const [frameRate, setFrameRate] = useState('30');
   const [saveDir, setSaveDir] = useState('~/Videos/RecordIt');
   const [lang, setLang] = useState('en');
+
+  // Advanced / Camtasia-inspired settings
+  const [cursorEffects, setCursorEffects] = useState(true);
+  const [cursorHighlight, setCursorHighlight] = useState(true);
+  const [cursorHighlightColor, setCursorHighlightColor] = useState('#FBBF24');
+  const [clickAnimation, setClickAnimation] = useState(true);
+  const [clickAnimationColor, setClickAnimationColor] = useState('#EF4444');
+  const [audioBitrate, setAudioBitrate] = useState('192');
+  const [audioSampleRate, setAudioSampleRate] = useState('48000');
+  const [audioNoiseSuppression, setAudioNoiseSuppression] = useState(true);
+  const [audioEchoCancellation, setAudioEchoCancellation] = useState(true);
+  const [captureMouseCursor, setCaptureMouseCursor] = useState(true);
+  const [defaultMicDevice, setDefaultMicDevice] = useState('default');
+  const [defaultCamDevice, setDefaultCamDevice] = useState('default');
+  const [webcamShape, setWebcamShape] = useState<'rect' | 'circle' | 'rounded'>('rounded');
+  const [webcamPosition, setWebcamPosition] = useState<'bottom-right' | 'bottom-left' | 'top-right' | 'top-left'>('bottom-right');
+  const [webcamSize, setWebcamSize] = useState('25');
+  const [annotationSmoothing, setAnnotationSmoothing] = useState(true);
+  const [autoZoomOnClick, setAutoZoomOnClick] = useState(false);
+  const [smartFocus, setSmartFocus] = useState(false);
+  const [videoBitrate, setVideoBitrate] = useState('8000');
+  const [encoderPreset, setEncoderPreset] = useState('balanced');
+  const [recordSystemAudio, setRecordSystemAudio] = useState(true);
+  const [separateAudioTracks, setSeparateAudioTracks] = useState(false);
+  const [countdownDuration, setCountdownDuration] = useState('3');
+  const [pauseResumeSound, setPauseResumeSound] = useState(true);
+  const [recordingIndicator, setRecordingIndicator] = useState(true);
 
   return (
     <div className="page">
@@ -234,6 +261,319 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ theme, onToggleTheme }) => 
               </div>
               <label className="toggle">
                 <input type="checkbox" checked={startMinimized} onChange={e => setStartMinimized(e.target.checked)} />
+                <span className="toggle-slider" />
+              </label>
+            </div>
+          </div>
+        </div>
+
+        {/* Cursor & Mouse (Camtasia-inspired) */}
+        <div className="settings-section">
+          <div className="settings-section-title">
+            <MousePointer size={12} style={{ display: 'inline', marginRight: 4 }} />
+            Cursor & Mouse Effects
+          </div>
+          <div className="card">
+            <div className="settings-row">
+              <div>
+                <div className="settings-row-label">Capture Mouse Cursor</div>
+                <div className="settings-row-description">Include cursor in recordings</div>
+              </div>
+              <label className="toggle">
+                <input type="checkbox" checked={captureMouseCursor} onChange={e => setCaptureMouseCursor(e.target.checked)} />
+                <span className="toggle-slider" />
+              </label>
+            </div>
+            <div className="settings-row">
+              <div>
+                <div className="settings-row-label">Cursor Highlight</div>
+                <div className="settings-row-description">Show a colored circle around the cursor</div>
+              </div>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <input type="color" value={cursorHighlightColor} onChange={e => setCursorHighlightColor(e.target.value)} style={{ width: 28, height: 28, border: 'none', borderRadius: 4, cursor: 'pointer', background: 'none' }} />
+                <label className="toggle">
+                  <input type="checkbox" checked={cursorHighlight} onChange={e => setCursorHighlight(e.target.checked)} />
+                  <span className="toggle-slider" />
+                </label>
+              </div>
+            </div>
+            <div className="settings-row">
+              <div>
+                <div className="settings-row-label">Click Animation</div>
+                <div className="settings-row-description">Show ripple animation on mouse clicks</div>
+              </div>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <input type="color" value={clickAnimationColor} onChange={e => setClickAnimationColor(e.target.value)} style={{ width: 28, height: 28, border: 'none', borderRadius: 4, cursor: 'pointer', background: 'none' }} />
+                <label className="toggle">
+                  <input type="checkbox" checked={clickAnimation} onChange={e => setClickAnimation(e.target.checked)} />
+                  <span className="toggle-slider" />
+                </label>
+              </div>
+            </div>
+            <div className="settings-row">
+              <div>
+                <div className="settings-row-label">Smart Focus (Auto-Zoom)</div>
+                <div className="settings-row-description">Automatically zoom to mouse activity area</div>
+              </div>
+              <label className="toggle">
+                <input type="checkbox" checked={smartFocus} onChange={e => setSmartFocus(e.target.checked)} />
+                <span className="toggle-slider" />
+              </label>
+            </div>
+            <div className="settings-row">
+              <div>
+                <div className="settings-row-label">Auto Zoom on Click</div>
+                <div className="settings-row-description">Zoom in briefly when clicking (like Camtasia)</div>
+              </div>
+              <label className="toggle">
+                <input type="checkbox" checked={autoZoomOnClick} onChange={e => setAutoZoomOnClick(e.target.checked)} />
+                <span className="toggle-slider" />
+              </label>
+            </div>
+          </div>
+        </div>
+
+        {/* Webcam */}
+        <div className="settings-section">
+          <div className="settings-section-title">
+            <Camera size={12} style={{ display: 'inline', marginRight: 4 }} />
+            Webcam Overlay
+          </div>
+          <div className="card">
+            <div className="settings-row">
+              <div>
+                <div className="settings-row-label">Default Camera</div>
+                <div className="settings-row-description">Select default webcam device</div>
+              </div>
+              <select className="form-select" style={{ width: 180 }} value={defaultCamDevice} onChange={e => setDefaultCamDevice(e.target.value)}>
+                <option value="default">System Default</option>
+                <option value="cam1">Integrated Webcam</option>
+                <option value="cam2">External USB Camera</option>
+              </select>
+            </div>
+            <div className="settings-row">
+              <div>
+                <div className="settings-row-label">Webcam Shape</div>
+                <div className="settings-row-description">Shape of the PiP webcam overlay</div>
+              </div>
+              <div style={{ display: 'flex', gap: 6 }}>
+                {([
+                  { value: 'rect', label: 'Rectangle' },
+                  { value: 'rounded', label: 'Rounded' },
+                  { value: 'circle', label: 'Circle' },
+                ] as { value: typeof webcamShape; label: string }[]).map(s => (
+                  <button
+                    key={s.value}
+                    className="btn btn-ghost"
+                    style={{
+                      padding: '4px 10px', fontSize: 12,
+                      background: webcamShape === s.value ? 'var(--color-brand-primary)' : undefined,
+                      color: webcamShape === s.value ? 'white' : undefined,
+                    }}
+                    onClick={() => setWebcamShape(s.value)}
+                  >{s.label}</button>
+                ))}
+              </div>
+            </div>
+            <div className="settings-row">
+              <div>
+                <div className="settings-row-label">Default Position</div>
+                <div className="settings-row-description">Where to place webcam overlay</div>
+              </div>
+              <select className="form-select" style={{ width: 140 }} value={webcamPosition} onChange={e => setWebcamPosition(e.target.value as typeof webcamPosition)}>
+                <option value="bottom-right">Bottom Right</option>
+                <option value="bottom-left">Bottom Left</option>
+                <option value="top-right">Top Right</option>
+                <option value="top-left">Top Left</option>
+              </select>
+            </div>
+            <div className="settings-row">
+              <div>
+                <div className="settings-row-label">Webcam Size</div>
+                <div className="settings-row-description">Size relative to screen ({webcamSize}%)</div>
+              </div>
+              <input type="range" min="10" max="50" value={webcamSize} onChange={e => setWebcamSize(e.target.value)} className="volume-slider" style={{ width: 120 }} />
+            </div>
+          </div>
+        </div>
+
+        {/* Audio */}
+        <div className="settings-section">
+          <div className="settings-section-title">
+            <Volume2 size={12} style={{ display: 'inline', marginRight: 4 }} />
+            Audio
+          </div>
+          <div className="card">
+            <div className="settings-row">
+              <div>
+                <div className="settings-row-label">Default Microphone</div>
+                <div className="settings-row-description">Select default recording microphone</div>
+              </div>
+              <select className="form-select" style={{ width: 180 }} value={defaultMicDevice} onChange={e => setDefaultMicDevice(e.target.value)}>
+                <option value="default">System Default</option>
+                <option value="mic1">Built-in Microphone</option>
+                <option value="mic2">USB Microphone</option>
+                <option value="mic3">Headset Mic</option>
+              </select>
+            </div>
+            <div className="settings-row">
+              <div>
+                <div className="settings-row-label">Record System Audio</div>
+                <div className="settings-row-description">Capture desktop / application audio</div>
+              </div>
+              <label className="toggle">
+                <input type="checkbox" checked={recordSystemAudio} onChange={e => setRecordSystemAudio(e.target.checked)} />
+                <span className="toggle-slider" />
+              </label>
+            </div>
+            <div className="settings-row">
+              <div>
+                <div className="settings-row-label">Separate Audio Tracks</div>
+                <div className="settings-row-description">Record mic and system audio as separate tracks</div>
+              </div>
+              <label className="toggle">
+                <input type="checkbox" checked={separateAudioTracks} onChange={e => setSeparateAudioTracks(e.target.checked)} />
+                <span className="toggle-slider" />
+              </label>
+            </div>
+            <div className="settings-row">
+              <div>
+                <div className="settings-row-label">Audio Bitrate</div>
+                <div className="settings-row-description">Quality of audio encoding</div>
+              </div>
+              <select className="form-select" style={{ width: 140 }} value={audioBitrate} onChange={e => setAudioBitrate(e.target.value)}>
+                <option value="128">128 kbps</option>
+                <option value="192">192 kbps</option>
+                <option value="256">256 kbps</option>
+                <option value="320">320 kbps</option>
+              </select>
+            </div>
+            <div className="settings-row">
+              <div>
+                <div className="settings-row-label">Sample Rate</div>
+                <div className="settings-row-description">Audio sample rate</div>
+              </div>
+              <select className="form-select" style={{ width: 140 }} value={audioSampleRate} onChange={e => setAudioSampleRate(e.target.value)}>
+                <option value="44100">44.1 kHz</option>
+                <option value="48000">48 kHz</option>
+                <option value="96000">96 kHz</option>
+              </select>
+            </div>
+            <div className="settings-row">
+              <div>
+                <div className="settings-row-label">Noise Suppression</div>
+                <div className="settings-row-description">AI-powered background noise removal</div>
+              </div>
+              <label className="toggle">
+                <input type="checkbox" checked={audioNoiseSuppression} onChange={e => setAudioNoiseSuppression(e.target.checked)} />
+                <span className="toggle-slider" />
+              </label>
+            </div>
+            <div className="settings-row">
+              <div>
+                <div className="settings-row-label">Echo Cancellation</div>
+                <div className="settings-row-description">Reduce echo and feedback from speakers</div>
+              </div>
+              <label className="toggle">
+                <input type="checkbox" checked={audioEchoCancellation} onChange={e => setAudioEchoCancellation(e.target.checked)} />
+                <span className="toggle-slider" />
+              </label>
+            </div>
+          </div>
+        </div>
+
+        {/* Encoder / Performance */}
+        <div className="settings-section">
+          <div className="settings-section-title">
+            <Gauge size={12} style={{ display: 'inline', marginRight: 4 }} />
+            Encoder & Performance
+          </div>
+          <div className="card">
+            <div className="settings-row">
+              <div>
+                <div className="settings-row-label">Video Bitrate</div>
+                <div className="settings-row-description">Target bitrate in kbps</div>
+              </div>
+              <select className="form-select" style={{ width: 140 }} value={videoBitrate} onChange={e => setVideoBitrate(e.target.value)}>
+                <option value="4000">4 Mbps (Low)</option>
+                <option value="6000">6 Mbps</option>
+                <option value="8000">8 Mbps (Recommended)</option>
+                <option value="12000">12 Mbps</option>
+                <option value="20000">20 Mbps (High)</option>
+                <option value="50000">50 Mbps (Lossless)</option>
+              </select>
+            </div>
+            <div className="settings-row">
+              <div>
+                <div className="settings-row-label">Encoder Preset</div>
+                <div className="settings-row-description">Quality vs performance trade-off</div>
+              </div>
+              <select className="form-select" style={{ width: 140 }} value={encoderPreset} onChange={e => setEncoderPreset(e.target.value)}>
+                <option value="fast">Fast (Low quality)</option>
+                <option value="balanced">Balanced</option>
+                <option value="quality">Quality (Slow)</option>
+                <option value="lossless">Lossless</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Annotations */}
+        <div className="settings-section">
+          <div className="settings-section-title">
+            <Paintbrush size={12} style={{ display: 'inline', marginRight: 4 }} />
+            Annotations & Drawing
+          </div>
+          <div className="card">
+            <div className="settings-row">
+              <div>
+                <div className="settings-row-label">Annotation Smoothing</div>
+                <div className="settings-row-description">Smooth freehand drawing strokes</div>
+              </div>
+              <label className="toggle">
+                <input type="checkbox" checked={annotationSmoothing} onChange={e => setAnnotationSmoothing(e.target.checked)} />
+                <span className="toggle-slider" />
+              </label>
+            </div>
+          </div>
+        </div>
+
+        {/* Recording Behaviour */}
+        <div className="settings-section">
+          <div className="settings-section-title">
+            <Sparkles size={12} style={{ display: 'inline', marginRight: 4 }} />
+            Recording Behaviour
+          </div>
+          <div className="card">
+            <div className="settings-row">
+              <div>
+                <div className="settings-row-label">Countdown Duration</div>
+                <div className="settings-row-description">Seconds before recording starts</div>
+              </div>
+              <select className="form-select" style={{ width: 100 }} value={countdownDuration} onChange={e => setCountdownDuration(e.target.value)}>
+                <option value="0">None</option>
+                <option value="3">3 seconds</option>
+                <option value="5">5 seconds</option>
+                <option value="10">10 seconds</option>
+              </select>
+            </div>
+            <div className="settings-row">
+              <div>
+                <div className="settings-row-label">Pause/Resume Sound</div>
+                <div className="settings-row-description">Play a sound when pausing or resuming</div>
+              </div>
+              <label className="toggle">
+                <input type="checkbox" checked={pauseResumeSound} onChange={e => setPauseResumeSound(e.target.checked)} />
+                <span className="toggle-slider" />
+              </label>
+            </div>
+            <div className="settings-row">
+              <div>
+                <div className="settings-row-label">Recording Indicator</div>
+                <div className="settings-row-description">Show red border on screen while recording</div>
+              </div>
+              <label className="toggle">
+                <input type="checkbox" checked={recordingIndicator} onChange={e => setRecordingIndicator(e.target.checked)} />
                 <span className="toggle-slider" />
               </label>
             </div>

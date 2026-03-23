@@ -482,4 +482,32 @@ public partial class RecordPage : UserControl
     {
         if (VisualRoot is MainWindow mw) mw.NavigateTo(page);
     }
+
+    // ── Timeline handlers ──────────────────────────────────────────────────
+    private bool _timelinePlaying;
+
+    private void TimelinePlayBtn_Click(object? sender, RoutedEventArgs e)
+    {
+        _timelinePlaying = !_timelinePlaying;
+        if (sender is Button btn)
+            btn.Content = _timelinePlaying ? "⏸" : "▶";
+        StatusText.Text = _timelinePlaying ? "Timeline playing" : "Timeline paused";
+    }
+
+    private void AddTimelineMarkerBtn_Click(object? sender, RoutedEventArgs e)
+    {
+        StatusText.Text = "Marker added at current position";
+    }
+
+    // ── Effects panel handlers ─────────────────────────────────────────────
+    private void EffectsToggleBtn_Click(object? sender, RoutedEventArgs e)
+    {
+        EffectsPanel.IsVisible = !EffectsPanel.IsVisible;
+    }
+
+    private void AddEffectBtn_Click(object? sender, RoutedEventArgs e)
+    {
+        EffectsPanel.IsVisible = true;
+        StatusText.Text = "Effects panel opened";
+    }
 }
