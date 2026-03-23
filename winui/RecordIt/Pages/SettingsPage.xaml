@@ -221,6 +221,239 @@
                     </Border>
                 </StackPanel>
 
+                <!-- Cursor & Mouse Effects (Camtasia-inspired) -->
+                <StackPanel Spacing="12">
+                    <TextBlock Text="CURSOR &amp; MOUSE EFFECTS" Style="{StaticResource SectionTitleStyle}" />
+                    <Border Style="{StaticResource AlvoniaCardStyle}">
+                        <StackPanel>
+                            <Grid Padding="0,4" Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Capture Mouse Cursor" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Include cursor in recordings" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <ToggleSwitch x:Name="CaptureCursorToggle" Grid.Column="1" IsOn="True" Style="{StaticResource AlvoniaToggleSwitchStyle}" />
+                            </Grid>
+                            <Border BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,1,0,0" />
+                            <Grid Padding="0,12">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Cursor Highlight" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Show a colored circle around the cursor" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <ToggleSwitch x:Name="CursorHighlightToggle" Grid.Column="1" IsOn="True" Style="{StaticResource AlvoniaToggleSwitchStyle}" />
+                            </Grid>
+                            <Border BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,1,0,0" />
+                            <Grid Padding="0,12">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Click Animation" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Show ripple animation on mouse clicks" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <ToggleSwitch x:Name="ClickAnimToggle" Grid.Column="1" IsOn="True" Style="{StaticResource AlvoniaToggleSwitchStyle}" />
+                            </Grid>
+                            <Border BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,1,0,0" />
+                            <Grid Padding="0,12">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Smart Focus (Auto-Zoom)" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Automatically zoom to mouse activity area" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <ToggleSwitch x:Name="SmartFocusToggle" Grid.Column="1" IsOn="False" Style="{StaticResource AlvoniaToggleSwitchStyle}" />
+                            </Grid>
+                            <Border BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,1,0,0" />
+                            <Grid Padding="0,12,0,4">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Auto Zoom on Click" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Zoom in briefly when clicking (Camtasia-style)" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <ToggleSwitch x:Name="AutoZoomClickToggle" Grid.Column="1" IsOn="False" Style="{StaticResource AlvoniaToggleSwitchStyle}" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- Webcam Overlay -->
+                <StackPanel Spacing="12">
+                    <TextBlock Text="WEBCAM OVERLAY" Style="{StaticResource SectionTitleStyle}" />
+                    <Border Style="{StaticResource AlvoniaCardStyle}">
+                        <StackPanel>
+                            <Grid Padding="0,4" Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Webcam Shape" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Shape of the PiP webcam overlay" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <ComboBox x:Name="WebcamShapeCombo" Grid.Column="1" Style="{StaticResource AlvoniaComboBoxStyle}" Width="140" SelectedIndex="1">
+                                    <ComboBoxItem Content="Rectangle"/>
+                                    <ComboBoxItem Content="Rounded"/>
+                                    <ComboBoxItem Content="Circle"/>
+                                </ComboBox>
+                            </Grid>
+                            <Border BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,1,0,0" />
+                            <Grid Padding="0,12">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Default Position" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Where to place webcam overlay" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <ComboBox x:Name="WebcamPositionCombo" Grid.Column="1" Style="{StaticResource AlvoniaComboBoxStyle}" Width="140" SelectedIndex="0">
+                                    <ComboBoxItem Content="Bottom Right"/>
+                                    <ComboBoxItem Content="Bottom Left"/>
+                                    <ComboBoxItem Content="Top Right"/>
+                                    <ComboBoxItem Content="Top Left"/>
+                                </ComboBox>
+                            </Grid>
+                            <Border BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,1,0,0" />
+                            <Grid Padding="0,12,0,4">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Webcam Size" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Size relative to screen" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <Slider x:Name="WebcamSizeSlider" Grid.Column="1" Minimum="10" Maximum="50" Value="25" Width="140" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- Audio Advanced -->
+                <StackPanel Spacing="12">
+                    <TextBlock Text="AUDIO" Style="{StaticResource SectionTitleStyle}" />
+                    <Border Style="{StaticResource AlvoniaCardStyle}">
+                        <StackPanel>
+                            <Grid Padding="0,4" Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Record System Audio" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Capture desktop / application audio" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <ToggleSwitch x:Name="SystemAudioToggle" Grid.Column="1" IsOn="True" Style="{StaticResource AlvoniaToggleSwitchStyle}" />
+                            </Grid>
+                            <Border BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,1,0,0" />
+                            <Grid Padding="0,12">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Separate Audio Tracks" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Record mic and system audio as separate tracks" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <ToggleSwitch x:Name="SeparateTracksToggle" Grid.Column="1" IsOn="False" Style="{StaticResource AlvoniaToggleSwitchStyle}" />
+                            </Grid>
+                            <Border BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,1,0,0" />
+                            <Grid Padding="0,12">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Noise Suppression" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="AI-powered background noise removal" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <ToggleSwitch x:Name="NoiseSuppressionToggle" Grid.Column="1" IsOn="True" Style="{StaticResource AlvoniaToggleSwitchStyle}" />
+                            </Grid>
+                            <Border BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,1,0,0" />
+                            <Grid Padding="0,12">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Echo Cancellation" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Reduce echo and feedback from speakers" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <ToggleSwitch x:Name="EchoCancelToggle" Grid.Column="1" IsOn="True" Style="{StaticResource AlvoniaToggleSwitchStyle}" />
+                            </Grid>
+                            <Border BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,1,0,0" />
+                            <Grid Padding="0,12,0,4">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Audio Bitrate" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Quality of audio encoding" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <ComboBox x:Name="AudioBitrateCombo" Grid.Column="1" Style="{StaticResource AlvoniaComboBoxStyle}" Width="140" SelectedIndex="1">
+                                    <ComboBoxItem Content="128 kbps"/>
+                                    <ComboBoxItem Content="192 kbps"/>
+                                    <ComboBoxItem Content="256 kbps"/>
+                                    <ComboBoxItem Content="320 kbps"/>
+                                </ComboBox>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- Encoder & Performance -->
+                <StackPanel Spacing="12">
+                    <TextBlock Text="ENCODER &amp; PERFORMANCE" Style="{StaticResource SectionTitleStyle}" />
+                    <Border Style="{StaticResource AlvoniaCardStyle}">
+                        <StackPanel>
+                            <Grid Padding="0,4" Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Video Bitrate" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Target bitrate in kbps" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <ComboBox x:Name="VideoBitrateCombo" Grid.Column="1" Style="{StaticResource AlvoniaComboBoxStyle}" Width="160" SelectedIndex="2">
+                                    <ComboBoxItem Content="4 Mbps (Low)"/>
+                                    <ComboBoxItem Content="6 Mbps"/>
+                                    <ComboBoxItem Content="8 Mbps (Recommended)"/>
+                                    <ComboBoxItem Content="12 Mbps"/>
+                                    <ComboBoxItem Content="20 Mbps (High)"/>
+                                    <ComboBoxItem Content="50 Mbps (Lossless)"/>
+                                </ComboBox>
+                            </Grid>
+                            <Border BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,1,0,0" />
+                            <Grid Padding="0,12,0,4">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Encoder Preset" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Quality vs performance trade-off" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <ComboBox x:Name="EncoderPresetCombo" Grid.Column="1" Style="{StaticResource AlvoniaComboBoxStyle}" Width="160" SelectedIndex="1">
+                                    <ComboBoxItem Content="Fast (Low quality)"/>
+                                    <ComboBoxItem Content="Balanced"/>
+                                    <ComboBoxItem Content="Quality (Slow)"/>
+                                    <ComboBoxItem Content="Lossless"/>
+                                </ComboBox>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- Recording Behaviour -->
+                <StackPanel Spacing="12">
+                    <TextBlock Text="RECORDING BEHAVIOUR" Style="{StaticResource SectionTitleStyle}" />
+                    <Border Style="{StaticResource AlvoniaCardStyle}">
+                        <StackPanel>
+                            <Grid Padding="0,4" Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Countdown Duration" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Seconds before recording starts" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <ComboBox x:Name="CountdownDurCombo" Grid.Column="1" Style="{StaticResource AlvoniaComboBoxStyle}" Width="120" SelectedIndex="1">
+                                    <ComboBoxItem Content="None"/>
+                                    <ComboBoxItem Content="3 seconds"/>
+                                    <ComboBoxItem Content="5 seconds"/>
+                                    <ComboBoxItem Content="10 seconds"/>
+                                </ComboBox>
+                            </Grid>
+                            <Border BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,1,0,0" />
+                            <Grid Padding="0,12">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Pause/Resume Sound" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Play a sound when pausing or resuming" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <ToggleSwitch x:Name="PauseResumeSoundToggle" Grid.Column="1" IsOn="True" Style="{StaticResource AlvoniaToggleSwitchStyle}" />
+                            </Grid>
+                            <Border BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,1,0,0" />
+                            <Grid Padding="0,12,0,4">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Recording Indicator" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Show red border on screen while recording" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <ToggleSwitch x:Name="RecordingIndicatorToggle" Grid.Column="1" IsOn="True" Style="{StaticResource AlvoniaToggleSwitchStyle}" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
                 <!-- Keyboard Shortcuts -->
                 <StackPanel Spacing="12">
                     <TextBlock Text="KEYBOARD SHORTCUTS" Style="{StaticResource SectionTitleStyle}" />

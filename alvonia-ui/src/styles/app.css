@@ -1295,3 +1295,370 @@ canvas.whiteboard-canvas {
   right: 4px;
   color: var(--color-brand-primary);
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Timeline View
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.timeline-container {
+  flex-shrink: 0;
+  border-top: 1px solid var(--color-border-default);
+  background: var(--color-bg-surface);
+  display: flex;
+  flex-direction: column;
+  min-height: 120px;
+  max-height: 180px;
+}
+
+.timeline-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 10px;
+  background: var(--color-bg-elevated);
+  border-bottom: 1px solid var(--color-border-default);
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.timeline-timecode {
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.timeline-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.timeline-track-labels {
+  display: flex;
+  flex-direction: column;
+  width: 70px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--color-border-default);
+  background: var(--color-bg-elevated);
+}
+
+.timeline-track-label {
+  height: 24px;
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.timeline-tracks {
+  flex: 1;
+  position: relative;
+  overflow-x: auto;
+  overflow-y: hidden;
+  cursor: pointer;
+}
+
+.timeline-ruler {
+  height: 18px;
+  position: relative;
+  border-bottom: 1px solid var(--color-border-default);
+  background: var(--color-bg-elevated);
+}
+
+.timeline-ruler-mark {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  border-left: 1px solid var(--color-border-default);
+  padding-left: 3px;
+  display: flex;
+  align-items: center;
+}
+
+.timeline-ruler-mark span {
+  font-size: 9px;
+  color: var(--color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.timeline-track {
+  height: 24px;
+  position: relative;
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.timeline-clip {
+  position: absolute;
+  top: 2px;
+  height: 20px;
+  border: 1px solid;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  overflow: hidden;
+  cursor: grab;
+  transition: opacity var(--transition-fast);
+}
+
+.timeline-clip:hover {
+  opacity: 0.85;
+}
+
+.timeline-clip-label {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.timeline-playhead {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 10;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.timeline-playhead-head {
+  width: 10px;
+  height: 10px;
+  background: var(--color-recording);
+  border-radius: 2px 2px 0 0;
+  margin: 0 auto;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
+.timeline-playhead-line {
+  width: 1px;
+  height: 100%;
+  background: var(--color-recording);
+  margin: 0 auto;
+}
+
+.timeline-marker {
+  position: absolute;
+  top: 2px;
+  z-index: 8;
+  transform: translateX(-50%);
+  cursor: pointer;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Effects Panel
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.effects-panel {
+  flex-shrink: 0;
+  border-top: 1px solid var(--color-border-default);
+  background: var(--color-bg-surface);
+  max-height: 160px;
+  display: flex;
+  flex-direction: column;
+  animation: fade-in 0.15s ease;
+}
+
+.effects-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 10px;
+  background: var(--color-bg-elevated);
+  border-bottom: 1px solid var(--color-border-default);
+  flex-shrink: 0;
+}
+
+.effects-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.effect-item {
+  padding: 6px 8px;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.effect-item:hover {
+  border-color: var(--color-border-strong);
+}
+
+.effect-item.disabled {
+  opacity: 0.5;
+}
+
+.effect-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.effect-preset-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 6px 8px;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: center;
+}
+
+.effect-preset-card:hover {
+  border-color: var(--color-brand-primary);
+  background: var(--color-bg-hover);
+  transform: translateY(-1px);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Floating Recording Toolbar
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.floating-toolbar {
+  position: fixed;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  background: rgba(13, 13, 13, 0.95);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255,255,255,0.05);
+  backdrop-filter: blur(12px);
+  animation: scale-in 0.2s ease;
+  user-select: none;
+}
+
+.floating-toolbar-drag {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 28px;
+  cursor: grab;
+  color: var(--color-text-tertiary);
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast);
+}
+
+.floating-toolbar-drag:hover {
+  color: var(--color-text-secondary);
+}
+
+.floating-toolbar-drag:active {
+  cursor: grabbing;
+}
+
+.floating-toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.floating-toolbar-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--color-border-default);
+  margin: 0 4px;
+}
+
+.floating-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 6px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-size: 11px;
+}
+
+.floating-btn:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.floating-btn.active {
+  background: rgba(99, 102, 241, 0.2);
+  color: var(--color-brand-primary);
+}
+
+.floating-btn.muted {
+  color: var(--color-error);
+}
+
+.floating-btn.recording-active-btn {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--color-recording);
+}
+
+.floating-btn.recording-active-btn:hover {
+  background: rgba(239, 68, 68, 0.25);
+}
+
+.floating-timer {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-recording);
+  font-variant-numeric: tabular-nums;
+}
+
+.floating-restore-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: rgba(13, 13, 13, 0.9);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: var(--radius-full);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  transition: all var(--transition-fast);
+  animation: scale-in 0.2s ease;
+}
+
+.floating-restore-btn:hover {
+  background: rgba(30, 30, 30, 0.95);
+  transform: scale(1.05);
+}
+
+/* Spin animation for refresh icon */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}

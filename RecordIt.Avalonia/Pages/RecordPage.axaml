@@ -7,6 +7,8 @@
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto" />   <!-- Menu bar -->
       <RowDefinition Height="*"    />   <!-- Preview -->
+      <RowDefinition Height="Auto" />   <!-- Timeline -->
+      <RowDefinition Height="Auto" />   <!-- Effects -->
       <RowDefinition Height="220"  />   <!-- Docks -->
     </Grid.RowDefinitions>
 
@@ -143,9 +145,140 @@
     </Grid>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         Row 2 · Docked Panels
+         Row 2 · Timeline View
     ═══════════════════════════════════════════════════════════════════ -->
-    <Grid Grid.Row="2"
+    <Border x:Name="TimelinePanel" Grid.Row="2"
+            Background="{StaticResource BgSurfaceBrush}"
+            BorderBrush="{StaticResource BorderPanelBrush}"
+            BorderThickness="0,1,0,0"
+            Height="130">
+      <Grid RowDefinitions="Auto,*">
+        <!-- Timeline toolbar -->
+        <Border Grid.Row="0" Background="{StaticResource BgElevatedBrush}"
+                BorderBrush="{StaticResource BorderPanelBrush}" BorderThickness="0,0,0,1"
+                Padding="10,4">
+          <Grid ColumnDefinitions="Auto,*,Auto">
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
+              <Button Classes="obs-toolbar" ToolTip.Tip="Go to start" Content="⏮" Width="22" Height="22" />
+              <Button x:Name="TimelinePlayBtn" Classes="obs-toolbar" ToolTip.Tip="Play/Pause" Content="▶" Width="22" Height="22" Click="TimelinePlayBtn_Click" />
+              <Button Classes="obs-toolbar" ToolTip.Tip="Go to end" Content="⏭" Width="22" Height="22" />
+              <Border Width="1" Height="14" Background="{StaticResource BorderDefaultBrush}" Margin="4,0" />
+              <TextBlock x:Name="TimelinePositionText" Text="00:00.0" FontSize="11" FontWeight="Bold"
+                         FontFamily="Cascadia Code,Consolas,monospace" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+              <TextBlock Text="/" FontSize="10" Foreground="{StaticResource TextTertiaryBrush}" VerticalAlignment="Center" Margin="4,0" />
+              <TextBlock Text="05:00.0" FontSize="11" FontFamily="Cascadia Code,Consolas,monospace"
+                         Foreground="{StaticResource TextTertiaryBrush}" VerticalAlignment="Center" />
+            </StackPanel>
+            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
+              <Button Classes="obs-toolbar" ToolTip.Tip="Add marker" Content="+" Width="22" Height="22" Click="AddTimelineMarkerBtn_Click" />
+              <Button Classes="obs-toolbar" ToolTip.Tip="Split" Content="✂" Width="22" Height="22" />
+              <Border Width="1" Height="14" Background="{StaticResource BorderDefaultBrush}" Margin="2,0" />
+              <Button Classes="obs-toolbar" ToolTip.Tip="Zoom out" Content="−" Width="22" Height="22" />
+              <Button Classes="obs-toolbar" ToolTip.Tip="Zoom in" Content="+" Width="22" Height="22" />
+              <Border Width="1" Height="14" Background="{StaticResource BorderDefaultBrush}" Margin="2,0" />
+              <Button x:Name="EffectsToggleBtn" Classes="obs-toolbar" ToolTip.Tip="Toggle effects" Content="✦" Width="22" Height="22" Click="EffectsToggleBtn_Click" />
+            </StackPanel>
+          </Grid>
+        </Border>
+
+        <!-- Track area -->
+        <Grid Grid.Row="1" ColumnDefinitions="70,*">
+          <StackPanel Grid.Column="0" Background="{StaticResource BgElevatedBrush}">
+            <Border Height="18" BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,0,1,1" />
+            <Border Height="24" Padding="6,0" BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,0,1,1">
+              <TextBlock Text="Video 1" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+            </Border>
+            <Border Height="24" Padding="6,0" BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,0,1,1">
+              <TextBlock Text="Video 2" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+            </Border>
+            <Border Height="24" Padding="6,0" BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,0,1,1">
+              <TextBlock Text="Audio 1" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+            </Border>
+            <Border Height="24" Padding="6,0" BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,0,1,1">
+              <TextBlock Text="Audio 2" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+            </Border>
+          </StackPanel>
+          <Canvas x:Name="TimelineCanvas" Grid.Column="1" Background="Transparent" />
+        </Grid>
+      </Grid>
+    </Border>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Row 3 · Effects Panel (collapsible)
+    ═══════════════════════════════════════════════════════════════════ -->
+    <Border x:Name="EffectsPanel" Grid.Row="3"
+            Background="{StaticResource BgSurfaceBrush}"
+            BorderBrush="{StaticResource BorderPanelBrush}"
+            BorderThickness="0,1,0,0"
+            IsVisible="False" Height="110">
+      <Grid RowDefinitions="Auto,*">
+        <Border Grid.Row="0" Background="{StaticResource BgElevatedBrush}"
+                BorderBrush="{StaticResource BorderPanelBrush}" BorderThickness="0,0,0,1"
+                Padding="10,4">
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+              <TextBlock Text="✦" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" />
+              <TextBlock Text="EFFECTS" Classes="panel-header" VerticalAlignment="Center" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="2">
+              <Button Classes="obs-toolbar" ToolTip.Tip="Add effect" Content="+" Width="22" Height="22" Click="AddEffectBtn_Click" />
+              <Button Classes="obs-toolbar" ToolTip.Tip="Close" Content="✕" Width="22" Height="22" Click="EffectsToggleBtn_Click" />
+            </StackPanel>
+          </Grid>
+        </Border>
+        <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Padding="6,4">
+          <StackPanel x:Name="EffectsStack" Orientation="Horizontal" Spacing="8">
+            <Border Background="#1A6366F1" BorderBrush="#336366F1" BorderThickness="1" CornerRadius="8" Padding="12,8" Width="140">
+              <StackPanel Spacing="4">
+                <TextBlock Text="Background Blur" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
+                <TextBlock Text="Gaussian blur" FontSize="10" Foreground="{StaticResource TextTertiaryBrush}" />
+                <Slider Minimum="0" Maximum="100" Value="50" Height="24" />
+              </StackPanel>
+            </Border>
+            <Border Background="#1A22C55E" BorderBrush="#3322C55E" BorderThickness="1" CornerRadius="8" Padding="12,8" Width="140">
+              <StackPanel Spacing="4">
+                <TextBlock Text="Green Screen" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
+                <TextBlock Text="Chroma key" FontSize="10" Foreground="{StaticResource TextTertiaryBrush}" />
+                <Slider Minimum="0" Maximum="100" Value="75" Height="24" />
+              </StackPanel>
+            </Border>
+            <Border Background="#1AF59E0B" BorderBrush="#33F59E0B" BorderThickness="1" CornerRadius="8" Padding="12,8" Width="140">
+              <StackPanel Spacing="4">
+                <TextBlock Text="Color Correct" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
+                <TextBlock Text="White balance" FontSize="10" Foreground="{StaticResource TextTertiaryBrush}" />
+                <Slider Minimum="0" Maximum="100" Value="50" Height="24" />
+              </StackPanel>
+            </Border>
+            <Border Background="#1AEF4444" BorderBrush="#33EF4444" BorderThickness="1" CornerRadius="8" Padding="12,8" Width="140">
+              <StackPanel Spacing="4">
+                <TextBlock Text="Vignette" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
+                <TextBlock Text="Dark edges" FontSize="10" Foreground="{StaticResource TextTertiaryBrush}" />
+                <Slider Minimum="0" Maximum="100" Value="40" Height="24" />
+              </StackPanel>
+            </Border>
+            <Border Background="#1A8B5CF6" BorderBrush="#338B5CF6" BorderThickness="1" CornerRadius="8" Padding="12,8" Width="140">
+              <StackPanel Spacing="4">
+                <TextBlock Text="Sharpen" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
+                <TextBlock Text="Edge detail" FontSize="10" Foreground="{StaticResource TextTertiaryBrush}" />
+                <Slider Minimum="0" Maximum="100" Value="30" Height="24" />
+              </StackPanel>
+            </Border>
+            <Border Background="#1A06B6D4" BorderBrush="#3306B6D4" BorderThickness="1" CornerRadius="8" Padding="12,8" Width="140">
+              <StackPanel Spacing="4">
+                <TextBlock Text="Noise Reduction" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
+                <TextBlock Text="Reduce grain" FontSize="10" Foreground="{StaticResource TextTertiaryBrush}" />
+                <Slider Minimum="0" Maximum="100" Value="60" Height="24" />
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </ScrollViewer>
+      </Grid>
+    </Border>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         Row 4 · Docked Panels
+    ═══════════════════════════════════════════════════════════════════ -->
+    <Grid Grid.Row="4"
           Background="{StaticResource BgPanelBrush}"
           BorderBrush="{StaticResource BorderPanelBrush}"
           BorderThickness="0,1,0,0">
