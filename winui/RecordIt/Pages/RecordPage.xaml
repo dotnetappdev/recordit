@@ -114,7 +114,25 @@
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Stretch">
                 <Grid>
-                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+                    <!-- Screen-capture live feed (WGC frames → SoftwareBitmapSource) -->
+                    <Image x:Name="PreviewScreenImage"
+                           Stretch="Uniform"
+                           HorizontalAlignment="Stretch"
+                           VerticalAlignment="Stretch"
+                           Visibility="Collapsed" />
+
+                    <!-- Webcam / video-device live feed -->
+                    <media:MediaPlayerElement x:Name="PreviewVideoElement"
+                                              AreTransportControlsEnabled="False"
+                                              AutoPlay="False"
+                                              Stretch="Uniform"
+                                              HorizontalAlignment="Stretch"
+                                              VerticalAlignment="Stretch"
+                                              Visibility="Collapsed" />
+
+                    <!-- Hint shown when no source is active -->
+                    <StackPanel x:Name="PreviewHintPanel"
+                                HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
                         <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE714;"
                                   FontSize="40" Foreground="#22FFFFFF"
                                   HorizontalAlignment="Center" />
@@ -638,48 +656,92 @@
                     <TextBlock Text="SOURCES" Style="{StaticResource ObsPanelHeaderTextStyle}" />
                 </Border>
 
-                <ListView Grid.Row="1"
-                          x:Name="SourcesList"
-                          Background="Transparent"
-                          ItemContainerStyle="{StaticResource ObsListItemStyle}"
-                          SelectionChanged="SourcesList_SelectionChanged"
-                          Padding="2">
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <Grid ColumnSpacing="6">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <FontIcon Grid.Column="0"
-                                          FontFamily="Segoe MDL2 Assets"
-                                          Glyph="{Binding Icon}"
-                                          FontSize="11"
-                                          Foreground="{StaticResource TextTertiaryBrush}" />
-                                <TextBlock Grid.Column="1"
-                                           Text="{Binding Name}"
-                                           FontSize="12"
-                                           Foreground="{StaticResource TextPrimaryBrush}"
-                                           VerticalAlignment="Center"
-                                           TextTrimming="CharacterEllipsis" />
-                                <!-- Visibility eye icon -->
-                                <FontIcon Grid.Column="2"
-                                          FontFamily="Segoe MDL2 Assets"
-                                          Glyph="&#xE7B3;"
-                                          FontSize="10"
-                                          Foreground="{StaticResource TextTertiaryBrush}" />
-                                <!-- Lock icon -->
-                                <FontIcon Grid.Column="3"
-                                          FontFamily="Segoe MDL2 Assets"
-                                          Glyph="&#xE72E;"
-                                          FontSize="10"
-                                          Foreground="{StaticResource TextTertiaryBrush}" />
-                            </Grid>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
+                <!-- Sources list + empty-state overlay share the same cell -->
+                <Grid Grid.Row="1">
+
+                    <ListView x:Name="SourcesList"
+                              Background="Transparent"
+                              ItemContainerStyle="{StaticResource ObsListItemStyle}"
+                              SelectionChanged="SourcesList_SelectionChanged"
+                              Padding="2">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnSpacing="6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <FontIcon Grid.Column="0"
+                                              FontFamily="Segoe MDL2 Assets"
+                                              Glyph="{Binding Icon}"
+                                              FontSize="11"
+                                              Foreground="{StaticResource TextTertiaryBrush}" />
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding Name}"
+                                               FontSize="12"
+                                               Foreground="{StaticResource TextPrimaryBrush}"
+                                               VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis" />
+                                    <!-- Visibility eye icon -->
+                                    <FontIcon Grid.Column="2"
+                                              FontFamily="Segoe MDL2 Assets"
+                                              Glyph="&#xE7B3;"
+                                              FontSize="10"
+                                              Foreground="{StaticResource TextTertiaryBrush}" />
+                                    <!-- Lock icon -->
+                                    <FontIcon Grid.Column="3"
+                                              FontFamily="Segoe MDL2 Assets"
+                                              Glyph="&#xE72E;"
+                                              FontSize="10"
+                                              Foreground="{StaticResource TextTertiaryBrush}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+
+                    <!-- Empty-state overlay — visible when scene has no sources -->
+                    <Border x:Name="SourcesEmptyState"
+                            Visibility="Visible"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            Background="Transparent"
+                            IsHitTestVisible="False">
+                        <StackPanel HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Spacing="8"
+                                    Margin="12">
+                            <!-- Dashed question-mark icon -->
+                            <Border Width="40" Height="40"
+                                    CornerRadius="6"
+                                    BorderBrush="#44FFFFFF"
+                                    BorderThickness="1.5"
+                                    HorizontalAlignment="Center">
+                                <FontIcon FontFamily="Segoe MDL2 Assets"
+                                          Glyph="&#xE897;"
+                                          FontSize="18"
+                                          Foreground="#44FFFFFF"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center" />
+                            </Border>
+                            <TextBlock Text="You don't have any sources."
+                                       FontSize="11"
+                                       Foreground="#99FFFFFF"
+                                       TextAlignment="Center"
+                                       TextWrapping="Wrap" />
+                            <TextBlock Text="Click the + button below,"
+                                       FontSize="10"
+                                       Foreground="#AA6EA0FF"
+                                       TextAlignment="Center" />
+                            <TextBlock Text="or right click here to add one."
+                                       FontSize="10"
+                                       Foreground="#AA6EA0FF"
+                                       TextAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+
+                </Grid>
 
                 <Border Grid.Row="2" Style="{StaticResource ObsPanelToolbarStyle}">
                     <StackPanel Orientation="Horizontal" Spacing="2">

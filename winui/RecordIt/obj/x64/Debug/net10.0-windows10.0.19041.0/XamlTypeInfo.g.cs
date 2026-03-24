@@ -224,7 +224,7 @@ namespace RecordIt.RecordIt_XamlTypeInfo
 
         private void InitTypeTables()
         {
-            _typeNameTable = new string[44];
+            _typeNameTable = new string[45];
             _typeNameTable[0] = "Microsoft.UI.Xaml.Controls.XamlControlsResources";
             _typeNameTable[1] = "Microsoft.UI.Xaml.ResourceDictionary";
             _typeNameTable[2] = "Object";
@@ -261,16 +261,17 @@ namespace RecordIt.RecordIt_XamlTypeInfo
             _typeNameTable[33] = "System.Collections.ObjectModel.ObservableCollection`1<RecordIt.Pages.SourceItem>";
             _typeNameTable[34] = "System.Collections.ObjectModel.Collection`1<RecordIt.Pages.SourceItem>";
             _typeNameTable[35] = "RecordIt.Pages.SourceItem";
-            _typeNameTable[36] = "RecordIt.Pages.SettingsPage";
-            _typeNameTable[37] = "RecordIt.Pages.WhiteboardPage";
-            _typeNameTable[38] = "Windows.UI.Color";
-            _typeNameTable[39] = "Byte";
-            _typeNameTable[40] = "RecordIt.WhiteboardWindow";
-            _typeNameTable[41] = "Microsoft.UI.Xaml.Controls.TreeViewNode";
-            _typeNameTable[42] = "System.Collections.Generic.IList`1<Microsoft.UI.Xaml.Controls.TreeViewNode>";
-            _typeNameTable[43] = "Int32";
+            _typeNameTable[36] = "Windows.Graphics.Capture.GraphicsCaptureItem";
+            _typeNameTable[37] = "RecordIt.Pages.SettingsPage";
+            _typeNameTable[38] = "RecordIt.Pages.WhiteboardPage";
+            _typeNameTable[39] = "Windows.UI.Color";
+            _typeNameTable[40] = "Byte";
+            _typeNameTable[41] = "RecordIt.WhiteboardWindow";
+            _typeNameTable[42] = "Microsoft.UI.Xaml.Controls.TreeViewNode";
+            _typeNameTable[43] = "System.Collections.Generic.IList`1<Microsoft.UI.Xaml.Controls.TreeViewNode>";
+            _typeNameTable[44] = "Int32";
 
-            _typeTable = new global::System.Type[44];
+            _typeTable = new global::System.Type[45];
             _typeTable[0] = typeof(global::Microsoft.UI.Xaml.Controls.XamlControlsResources);
             _typeTable[1] = typeof(global::Microsoft.UI.Xaml.ResourceDictionary);
             _typeTable[2] = typeof(global::System.Object);
@@ -307,14 +308,15 @@ namespace RecordIt.RecordIt_XamlTypeInfo
             _typeTable[33] = typeof(global::System.Collections.ObjectModel.ObservableCollection<global::RecordIt.Pages.SourceItem>);
             _typeTable[34] = typeof(global::System.Collections.ObjectModel.Collection<global::RecordIt.Pages.SourceItem>);
             _typeTable[35] = typeof(global::RecordIt.Pages.SourceItem);
-            _typeTable[36] = typeof(global::RecordIt.Pages.SettingsPage);
-            _typeTable[37] = typeof(global::RecordIt.Pages.WhiteboardPage);
-            _typeTable[38] = typeof(global::Windows.UI.Color);
-            _typeTable[39] = typeof(global::System.Byte);
-            _typeTable[40] = typeof(global::RecordIt.WhiteboardWindow);
-            _typeTable[41] = typeof(global::Microsoft.UI.Xaml.Controls.TreeViewNode);
-            _typeTable[42] = typeof(global::System.Collections.Generic.IList<global::Microsoft.UI.Xaml.Controls.TreeViewNode>);
-            _typeTable[43] = typeof(global::System.Int32);
+            _typeTable[36] = typeof(global::Windows.Graphics.Capture.GraphicsCaptureItem);
+            _typeTable[37] = typeof(global::RecordIt.Pages.SettingsPage);
+            _typeTable[38] = typeof(global::RecordIt.Pages.WhiteboardPage);
+            _typeTable[39] = typeof(global::Windows.UI.Color);
+            _typeTable[40] = typeof(global::System.Byte);
+            _typeTable[41] = typeof(global::RecordIt.WhiteboardWindow);
+            _typeTable[42] = typeof(global::Microsoft.UI.Xaml.Controls.TreeViewNode);
+            _typeTable[43] = typeof(global::System.Collections.Generic.IList<global::Microsoft.UI.Xaml.Controls.TreeViewNode>);
+            _typeTable[44] = typeof(global::System.Int32);
         }
 
         private int LookupTypeIndexByName(string typeName)
@@ -365,10 +367,10 @@ namespace RecordIt.RecordIt_XamlTypeInfo
         private object Activate_33_ObservableCollection() { return new global::System.Collections.ObjectModel.ObservableCollection<global::RecordIt.Pages.SourceItem>(); }
         private object Activate_34_Collection() { return new global::System.Collections.ObjectModel.Collection<global::RecordIt.Pages.SourceItem>(); }
         private object Activate_35_SourceItem() { return new global::RecordIt.Pages.SourceItem(); }
-        private object Activate_36_SettingsPage() { return new global::RecordIt.Pages.SettingsPage(); }
-        private object Activate_37_WhiteboardPage() { return new global::RecordIt.Pages.WhiteboardPage(); }
-        private object Activate_40_WhiteboardWindow() { return new global::RecordIt.WhiteboardWindow(); }
-        private object Activate_41_TreeViewNode() { return new global::Microsoft.UI.Xaml.Controls.TreeViewNode(); }
+        private object Activate_37_SettingsPage() { return new global::RecordIt.Pages.SettingsPage(); }
+        private object Activate_38_WhiteboardPage() { return new global::RecordIt.Pages.WhiteboardPage(); }
+        private object Activate_41_WhiteboardWindow() { return new global::RecordIt.WhiteboardWindow(); }
+        private object Activate_42_TreeViewNode() { return new global::Microsoft.UI.Xaml.Controls.TreeViewNode(); }
         private void MapAdd_0_XamlControlsResources(object instance, object key, object item)
         {
             var collection = (global::System.Collections.Generic.IDictionary<global::System.Object, global::System.Object>)instance;
@@ -424,7 +426,7 @@ namespace RecordIt.RecordIt_XamlTypeInfo
             var newItem = (global::RecordIt.Pages.SourceItem)item;
             collection.Add(newItem);
         }
-        private void VectorAdd_42_IList(object instance, object item)
+        private void VectorAdd_43_IList(object instance, object item)
         {
             var collection = (global::System.Collections.Generic.ICollection<global::Microsoft.UI.Xaml.Controls.TreeViewNode>)instance;
             var newItem = (global::Microsoft.UI.Xaml.Controls.TreeViewNode)item;
@@ -668,25 +670,32 @@ namespace RecordIt.RecordIt_XamlTypeInfo
                 userType.AddMemberName("Icon");
                 userType.AddMemberName("SourceType");
                 userType.AddMemberName("IsVisible");
+                userType.AddMemberName("CaptureItem");
                 userType.SetIsLocalType();
                 xamlType = userType;
                 break;
 
-            case 36:   //  RecordIt.Pages.SettingsPage
+            case 36:   //  Windows.Graphics.Capture.GraphicsCaptureItem
+                userType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("Object"));
+                userType.SetIsReturnTypeStub();
+                xamlType = userType;
+                break;
+
+            case 37:   //  RecordIt.Pages.SettingsPage
                 userType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("Microsoft.UI.Xaml.Controls.Page"));
-                userType.Activator = Activate_36_SettingsPage;
+                userType.Activator = Activate_37_SettingsPage;
                 userType.SetIsLocalType();
                 xamlType = userType;
                 break;
 
-            case 37:   //  RecordIt.Pages.WhiteboardPage
+            case 38:   //  RecordIt.Pages.WhiteboardPage
                 userType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("Microsoft.UI.Xaml.Controls.Page"));
-                userType.Activator = Activate_37_WhiteboardPage;
+                userType.Activator = Activate_38_WhiteboardPage;
                 userType.SetIsLocalType();
                 xamlType = userType;
                 break;
 
-            case 38:   //  Windows.UI.Color
+            case 39:   //  Windows.UI.Color
                 userType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("System.ValueType"));
                 userType.AddMemberName("A");
                 userType.AddMemberName("R");
@@ -695,22 +704,22 @@ namespace RecordIt.RecordIt_XamlTypeInfo
                 xamlType = userType;
                 break;
 
-            case 39:   //  Byte
+            case 40:   //  Byte
                 userType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("System.ValueType"));
                 userType.SetIsReturnTypeStub();
                 xamlType = userType;
                 break;
 
-            case 40:   //  RecordIt.WhiteboardWindow
+            case 41:   //  RecordIt.WhiteboardWindow
                 userType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("Microsoft.UI.Xaml.Window"));
-                userType.Activator = Activate_40_WhiteboardWindow;
+                userType.Activator = Activate_41_WhiteboardWindow;
                 userType.SetIsLocalType();
                 xamlType = userType;
                 break;
 
-            case 41:   //  Microsoft.UI.Xaml.Controls.TreeViewNode
+            case 42:   //  Microsoft.UI.Xaml.Controls.TreeViewNode
                 userType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType(this, typeName, type, GetXamlTypeByName("Microsoft.UI.Xaml.DependencyObject"));
-                userType.Activator = Activate_41_TreeViewNode;
+                userType.Activator = Activate_42_TreeViewNode;
                 userType.AddMemberName("Children");
                 userType.AddMemberName("Content");
                 userType.AddMemberName("Depth");
@@ -722,14 +731,14 @@ namespace RecordIt.RecordIt_XamlTypeInfo
                 xamlType = userType;
                 break;
 
-            case 42:   //  System.Collections.Generic.IList`1<Microsoft.UI.Xaml.Controls.TreeViewNode>
+            case 43:   //  System.Collections.Generic.IList`1<Microsoft.UI.Xaml.Controls.TreeViewNode>
                 userType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType(this, typeName, type, null);
-                userType.CollectionAdd = VectorAdd_42_IList;
+                userType.CollectionAdd = VectorAdd_43_IList;
                 userType.SetIsReturnTypeStub();
                 xamlType = userType;
                 break;
 
-            case 43:   //  Int32
+            case 44:   //  Int32
                 xamlType = new global::RecordIt.RecordIt_XamlTypeInfo.XamlSystemBaseType(typeName, type);
                 break;
             }
@@ -978,92 +987,102 @@ namespace RecordIt.RecordIt_XamlTypeInfo
             var that = (global::RecordIt.Pages.SourceItem)instance;
             that.IsVisible = (global::System.Boolean)Value;
         }
-        private object get_25_Color_A(object instance)
+        private object get_25_SourceItem_CaptureItem(object instance)
+        {
+            var that = (global::RecordIt.Pages.SourceItem)instance;
+            return that.CaptureItem;
+        }
+        private void set_25_SourceItem_CaptureItem(object instance, object Value)
+        {
+            var that = (global::RecordIt.Pages.SourceItem)instance;
+            that.CaptureItem = (global::Windows.Graphics.Capture.GraphicsCaptureItem)Value;
+        }
+        private object get_26_Color_A(object instance)
         {
             var that = (global::Windows.UI.Color)instance;
             return that.A;
         }
-        private void set_25_Color_A(object instance, object Value)
+        private void set_26_Color_A(object instance, object Value)
         {
             var that = (global::Windows.UI.Color)instance;
             that.A = (global::System.Byte)Value;
         }
-        private object get_26_Color_R(object instance)
+        private object get_27_Color_R(object instance)
         {
             var that = (global::Windows.UI.Color)instance;
             return that.R;
         }
-        private void set_26_Color_R(object instance, object Value)
+        private void set_27_Color_R(object instance, object Value)
         {
             var that = (global::Windows.UI.Color)instance;
             that.R = (global::System.Byte)Value;
         }
-        private object get_27_Color_G(object instance)
+        private object get_28_Color_G(object instance)
         {
             var that = (global::Windows.UI.Color)instance;
             return that.G;
         }
-        private void set_27_Color_G(object instance, object Value)
+        private void set_28_Color_G(object instance, object Value)
         {
             var that = (global::Windows.UI.Color)instance;
             that.G = (global::System.Byte)Value;
         }
-        private object get_28_Color_B(object instance)
+        private object get_29_Color_B(object instance)
         {
             var that = (global::Windows.UI.Color)instance;
             return that.B;
         }
-        private void set_28_Color_B(object instance, object Value)
+        private void set_29_Color_B(object instance, object Value)
         {
             var that = (global::Windows.UI.Color)instance;
             that.B = (global::System.Byte)Value;
         }
-        private object get_29_TreeViewNode_Children(object instance)
+        private object get_30_TreeViewNode_Children(object instance)
         {
             var that = (global::Microsoft.UI.Xaml.Controls.TreeViewNode)instance;
             return that.Children;
         }
-        private object get_30_TreeViewNode_Content(object instance)
+        private object get_31_TreeViewNode_Content(object instance)
         {
             var that = (global::Microsoft.UI.Xaml.Controls.TreeViewNode)instance;
             return that.Content;
         }
-        private void set_30_TreeViewNode_Content(object instance, object Value)
+        private void set_31_TreeViewNode_Content(object instance, object Value)
         {
             var that = (global::Microsoft.UI.Xaml.Controls.TreeViewNode)instance;
             that.Content = (global::System.Object)Value;
         }
-        private object get_31_TreeViewNode_Depth(object instance)
+        private object get_32_TreeViewNode_Depth(object instance)
         {
             var that = (global::Microsoft.UI.Xaml.Controls.TreeViewNode)instance;
             return that.Depth;
         }
-        private object get_32_TreeViewNode_HasChildren(object instance)
+        private object get_33_TreeViewNode_HasChildren(object instance)
         {
             var that = (global::Microsoft.UI.Xaml.Controls.TreeViewNode)instance;
             return that.HasChildren;
         }
-        private object get_33_TreeViewNode_HasUnrealizedChildren(object instance)
+        private object get_34_TreeViewNode_HasUnrealizedChildren(object instance)
         {
             var that = (global::Microsoft.UI.Xaml.Controls.TreeViewNode)instance;
             return that.HasUnrealizedChildren;
         }
-        private void set_33_TreeViewNode_HasUnrealizedChildren(object instance, object Value)
+        private void set_34_TreeViewNode_HasUnrealizedChildren(object instance, object Value)
         {
             var that = (global::Microsoft.UI.Xaml.Controls.TreeViewNode)instance;
             that.HasUnrealizedChildren = (global::System.Boolean)Value;
         }
-        private object get_34_TreeViewNode_IsExpanded(object instance)
+        private object get_35_TreeViewNode_IsExpanded(object instance)
         {
             var that = (global::Microsoft.UI.Xaml.Controls.TreeViewNode)instance;
             return that.IsExpanded;
         }
-        private void set_34_TreeViewNode_IsExpanded(object instance, object Value)
+        private void set_35_TreeViewNode_IsExpanded(object instance, object Value)
         {
             var that = (global::Microsoft.UI.Xaml.Controls.TreeViewNode)instance;
             that.IsExpanded = (global::System.Boolean)Value;
         }
-        private object get_35_TreeViewNode_Parent(object instance)
+        private object get_36_TreeViewNode_Parent(object instance)
         {
             var that = (global::Microsoft.UI.Xaml.Controls.TreeViewNode)instance;
             return that.Parent;
@@ -1233,74 +1252,80 @@ namespace RecordIt.RecordIt_XamlTypeInfo
                 xamlMember.Getter = get_24_SourceItem_IsVisible;
                 xamlMember.Setter = set_24_SourceItem_IsVisible;
                 break;
+            case "RecordIt.Pages.SourceItem.CaptureItem":
+                userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("RecordIt.Pages.SourceItem");
+                xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "CaptureItem", "Windows.Graphics.Capture.GraphicsCaptureItem");
+                xamlMember.Getter = get_25_SourceItem_CaptureItem;
+                xamlMember.Setter = set_25_SourceItem_CaptureItem;
+                break;
             case "Windows.UI.Color.A":
                 userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Windows.UI.Color");
                 xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "A", "Byte");
-                xamlMember.Getter = get_25_Color_A;
-                xamlMember.Setter = set_25_Color_A;
+                xamlMember.Getter = get_26_Color_A;
+                xamlMember.Setter = set_26_Color_A;
                 break;
             case "Windows.UI.Color.R":
                 userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Windows.UI.Color");
                 xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "R", "Byte");
-                xamlMember.Getter = get_26_Color_R;
-                xamlMember.Setter = set_26_Color_R;
+                xamlMember.Getter = get_27_Color_R;
+                xamlMember.Setter = set_27_Color_R;
                 break;
             case "Windows.UI.Color.G":
                 userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Windows.UI.Color");
                 xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "G", "Byte");
-                xamlMember.Getter = get_27_Color_G;
-                xamlMember.Setter = set_27_Color_G;
+                xamlMember.Getter = get_28_Color_G;
+                xamlMember.Setter = set_28_Color_G;
                 break;
             case "Windows.UI.Color.B":
                 userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Windows.UI.Color");
                 xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "B", "Byte");
-                xamlMember.Getter = get_28_Color_B;
-                xamlMember.Setter = set_28_Color_B;
+                xamlMember.Getter = get_29_Color_B;
+                xamlMember.Setter = set_29_Color_B;
                 break;
             case "Microsoft.UI.Xaml.Controls.TreeViewNode.Children":
                 userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Microsoft.UI.Xaml.Controls.TreeViewNode");
                 xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "Children", "System.Collections.Generic.IList`1<Microsoft.UI.Xaml.Controls.TreeViewNode>");
-                xamlMember.Getter = get_29_TreeViewNode_Children;
+                xamlMember.Getter = get_30_TreeViewNode_Children;
                 xamlMember.SetIsReadOnly();
                 break;
             case "Microsoft.UI.Xaml.Controls.TreeViewNode.Content":
                 userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Microsoft.UI.Xaml.Controls.TreeViewNode");
                 xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "Content", "Object");
                 xamlMember.SetIsDependencyProperty();
-                xamlMember.Getter = get_30_TreeViewNode_Content;
-                xamlMember.Setter = set_30_TreeViewNode_Content;
+                xamlMember.Getter = get_31_TreeViewNode_Content;
+                xamlMember.Setter = set_31_TreeViewNode_Content;
                 break;
             case "Microsoft.UI.Xaml.Controls.TreeViewNode.Depth":
                 userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Microsoft.UI.Xaml.Controls.TreeViewNode");
                 xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "Depth", "Int32");
                 xamlMember.SetIsDependencyProperty();
-                xamlMember.Getter = get_31_TreeViewNode_Depth;
+                xamlMember.Getter = get_32_TreeViewNode_Depth;
                 xamlMember.SetIsReadOnly();
                 break;
             case "Microsoft.UI.Xaml.Controls.TreeViewNode.HasChildren":
                 userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Microsoft.UI.Xaml.Controls.TreeViewNode");
                 xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "HasChildren", "Boolean");
                 xamlMember.SetIsDependencyProperty();
-                xamlMember.Getter = get_32_TreeViewNode_HasChildren;
+                xamlMember.Getter = get_33_TreeViewNode_HasChildren;
                 xamlMember.SetIsReadOnly();
                 break;
             case "Microsoft.UI.Xaml.Controls.TreeViewNode.HasUnrealizedChildren":
                 userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Microsoft.UI.Xaml.Controls.TreeViewNode");
                 xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "HasUnrealizedChildren", "Boolean");
-                xamlMember.Getter = get_33_TreeViewNode_HasUnrealizedChildren;
-                xamlMember.Setter = set_33_TreeViewNode_HasUnrealizedChildren;
+                xamlMember.Getter = get_34_TreeViewNode_HasUnrealizedChildren;
+                xamlMember.Setter = set_34_TreeViewNode_HasUnrealizedChildren;
                 break;
             case "Microsoft.UI.Xaml.Controls.TreeViewNode.IsExpanded":
                 userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Microsoft.UI.Xaml.Controls.TreeViewNode");
                 xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "IsExpanded", "Boolean");
                 xamlMember.SetIsDependencyProperty();
-                xamlMember.Getter = get_34_TreeViewNode_IsExpanded;
-                xamlMember.Setter = set_34_TreeViewNode_IsExpanded;
+                xamlMember.Getter = get_35_TreeViewNode_IsExpanded;
+                xamlMember.Setter = set_35_TreeViewNode_IsExpanded;
                 break;
             case "Microsoft.UI.Xaml.Controls.TreeViewNode.Parent":
                 userType = (global::RecordIt.RecordIt_XamlTypeInfo.XamlUserType)GetXamlTypeByName("Microsoft.UI.Xaml.Controls.TreeViewNode");
                 xamlMember = new global::RecordIt.RecordIt_XamlTypeInfo.XamlMember(this, "Parent", "Microsoft.UI.Xaml.Controls.TreeViewNode");
-                xamlMember.Getter = get_35_TreeViewNode_Parent;
+                xamlMember.Getter = get_36_TreeViewNode_Parent;
                 xamlMember.SetIsReadOnly();
                 break;
             }

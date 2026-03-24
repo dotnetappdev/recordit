@@ -17,16 +17,14 @@ namespace RecordIt.Core.Services;
 /// </summary>
 public class MultiStreamService : IDisposable
 {
-    private readonly FfmpegLocator _locator;
     private readonly StreamingDatabase _db;
     private readonly List<Process> _processes = [];
     private bool _disposed;
 
     public event EventHandler<StreamStatusEventArgs>? StatusChanged;
 
-    public MultiStreamService(FfmpegLocator locator, StreamingDatabase db)
+    public MultiStreamService(StreamingDatabase db)
     {
-        _locator = locator;
         _db = db;
     }
 
@@ -166,7 +164,7 @@ public class MultiStreamService : IDisposable
 
     private Process CreateProcess(string args)
     {
-        var ffmpegPath = _locator.FindFfmpegPath();
+        var ffmpegPath = FfmpegLocator.Executable;
         return new Process
         {
             StartInfo = new ProcessStartInfo

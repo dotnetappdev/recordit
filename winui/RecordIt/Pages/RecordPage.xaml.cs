@@ -1,8 +1,10 @@
+using Microsoft.Graphics.Canvas;
 using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Imaging;
 using RecordIt.Core.Services;
 using RecordIt.Services;
 using System;
@@ -13,11 +15,16 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Windows.Foundation;
-using Windows.Media.Capture;
-using Windows.Media.Playback;
-using Windows.Media.Core;
+using Microsoft.UI.Windowing;
 using Windows.Devices.Enumeration;
+using Windows.Foundation;
+using Windows.Graphics.Capture;
+using Windows.Graphics.DirectX;
+using Windows.Graphics.Imaging;
+using Windows.Media.Capture;
+using Windows.Media.Core;
+using Windows.Media.Devices;
+using Windows.Media.Playback;
 using Windows.Storage.Pickers;
 using Windows.UI;
 using WinRT.Interop;
@@ -37,6 +44,8 @@ public sealed class SourceItem
     public string Icon { get; set; } = "\uE7F8";  // default: screen
     public string SourceType { get; set; } = "screen";
     public bool IsVisible { get; set; } = true;
+    /// <summary>Stored WGC item after the user picks a display in Properties.</summary>
+    public GraphicsCaptureItem? CaptureItem { get; set; }
 }
 
 // ── AudioChannelView - represents one fader strip in the mixer ────────────────
@@ -47,15 +56,17 @@ internal sealed class AudioChannelView
     public bool IsDesktop { get; }
     public bool IsMic { get; }
 
-    // UI elements owned by this channel
     public Microsoft.UI.Xaml.Shapes.Rectangle VuBarLeft  { get; }
     public Microsoft.UI.Xaml.Shapes.Rectangle VuBarRight { get; }
-    public TextBlock    DbLabel    { get; }
-    public Slider       VolSlider  { get; }
-    public ToggleButton MuteBtn    { get; }
+    public TextBlock    DbLabel  { get; }
+    public Slider       VolSlider { get; }
+    public ToggleButton MuteBtn  { get; }
 
     public float Volume  => (float)VolSlider.Value;
     public bool  IsMuted => MuteBtn.IsChecked == true;
+
+    // Fixed meter height used by BuildChannelStrip and UpdatePeak
+    public const double MeterH = 180;
 
     public AudioChannelView(string name, bool isDesktop = false, bool isMic = false)
     {
@@ -63,152 +74,203 @@ internal sealed class AudioChannelView
         IsDesktop = isDesktop;
         IsMic     = isMic;
 
-        // Create UI elements on the UI thread (where this ctor is called from)
         var vuBrush = MakeVuBrush();
 
-        VuBarLeft  = new Microsoft.UI.Xaml.Shapes.Rectangle { Width = 4, RadiusX = 2, RadiusY = 2, Fill = vuBrush };
-        VuBarRight = new Microsoft.UI.Xaml.Shapes.Rectangle { Width = 4, RadiusX = 2, RadiusY = 2, Fill = vuBrush };
-        DbLabel    = new TextBlock { FontSize = 9, TextAlignment = TextAlignment.Center };
-        VolSlider  = new Slider();
-        MuteBtn    = new ToggleButton();
-
-        VolSlider.Minimum = 0;
-        VolSlider.Maximum = 1;
-        VolSlider.Value   = 1;
-        VolSlider.StepFrequency = 0.01;
-
-        DbLabel.Text = "0.0 dB";
-        DbLabel.Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 153, 153, 153));
-
-        MuteBtn.Content = "M";
-        MuteBtn.FontSize = 10;
-        MuteBtn.FontWeight = Microsoft.UI.Text.FontWeights.Bold;
+        VuBarLeft  = new Microsoft.UI.Xaml.Shapes.Rectangle { Fill = vuBrush };
+        VuBarRight = new Microsoft.UI.Xaml.Shapes.Rectangle { Fill = vuBrush };
+        DbLabel    = new TextBlock
+        {
+            FontSize      = 11,
+            Text          = "0.0 dB",
+            TextAlignment = TextAlignment.Center,
+            Foreground    = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 81, 162, 222)),
+            Margin        = new Thickness(0, 2, 0, 4),
+        };
+        VolSlider = new Slider
+        {
+            Orientation     = Orientation.Vertical,
+            Minimum         = 0,
+            Maximum         = 1,
+            Value           = 1,
+            StepFrequency   = 0.01,
+            Height          = MeterH,
+            Width           = 20,
+            VerticalAlignment = VerticalAlignment.Top,
+        };
+        MuteBtn = new ToggleButton { Padding = new Thickness(4, 2, 4, 2) };
 
         VolSlider.ValueChanged += (_, _) =>
         {
             var db = Volume > 0 ? 20.0 * Math.Log10(Volume) : -60.0;
-            DbLabel.Text = db < -59.9 ? "-∞ dB" : $"{db:+0.0;-0.0} dB";
+            DbLabel.Text = db < -59.9 ? "-∞ dB" : $"{db:0.0} dB";
         };
     }
 
-    /// <summary>Update VU bar heights (0.0 – 1.0). MaxHeight is the container height.</summary>
-    public void UpdatePeak(float left, float right, double maxHeight)
+    public void UpdatePeak(float left, float right, double _ignored)
     {
-        if (IsMuted) { left = 0; right = 0; }
-        VuBarLeft.Height  = Math.Clamp(left,  0f, 1f) * maxHeight;
-        VuBarRight.Height = Math.Clamp(right, 0f, 1f) * maxHeight;
+        if (IsMuted) { left = right = 0; }
+        VuBarLeft.Height  = Math.Clamp(left,  0f, 1f) * MeterH;
+        VuBarRight.Height = Math.Clamp(right, 0f, 1f) * MeterH;
     }
 
     private static LinearGradientBrush MakeVuBrush()
     {
-        var b = new LinearGradientBrush();
-        b.StartPoint = new Point(0, 1);
-        b.EndPoint   = new Point(0, 0);
-        b.GradientStops.Add(new GradientStop { Color = Windows.UI.Color.FromArgb(255, 34, 197, 94),  Offset = 0.0 });
-        b.GradientStops.Add(new GradientStop { Color = Windows.UI.Color.FromArgb(255, 234, 179, 8),  Offset = 0.70 });
-        b.GradientStops.Add(new GradientStop { Color = Windows.UI.Color.FromArgb(255, 239, 68,  68), Offset = 1.0 });
+        var b = new LinearGradientBrush { StartPoint = new Point(0, 1), EndPoint = new Point(0, 0) };
+        b.GradientStops.Add(new GradientStop { Color = Windows.UI.Color.FromArgb(255, 34,  197, 94),  Offset = 0.00 });
+        b.GradientStops.Add(new GradientStop { Color = Windows.UI.Color.FromArgb(255, 134, 197, 94),  Offset = 0.60 });
+        b.GradientStops.Add(new GradientStop { Color = Windows.UI.Color.FromArgb(255, 234, 179, 8),   Offset = 0.80 });
+        b.GradientStops.Add(new GradientStop { Color = Windows.UI.Color.FromArgb(255, 239, 68,  68),  Offset = 1.00 });
         return b;
     }
 
-    /// <summary>Build the full channel strip UI element.</summary>
     public UIElement BuildChannelStrip()
     {
-        const double VuHeight   = 110;
-        const double VuBarW     = 4;
-        const double StripWidth = 72;
+        const double BarW       = 12;   // per L/R bar
+        const double StripWidth = 100;
 
-        // VU meter container (two bars side by side)
-        var vuContainer = new Border
+        // ── Status label ──────────────────────────────────────────────────────
+        var statusLbl = new TextBlock
         {
-            Width        = VuBarW * 2 + 6,
-            Height       = VuHeight,
-            Background   = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 18, 18, 18)),
-            CornerRadius = new CornerRadius(3),
-            BorderBrush  = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 40, 40, 40)),
-            BorderThickness = new Thickness(1),
-            Margin       = new Thickness(0, 0, 0, 4),
-        };
-
-        // Grid stretches to fill the full Border height; bars align to bottom and grow upward
-        var vuGrid = new Grid
-        {
-            VerticalAlignment   = VerticalAlignment.Stretch,
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-        };
-        vuGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        vuGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2) });
-        vuGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-
-        VuBarLeft.VerticalAlignment  = VerticalAlignment.Bottom;
-        VuBarRight.VerticalAlignment = VerticalAlignment.Bottom;
-        VuBarLeft.Height = 0;
-        VuBarRight.Height = 0;
-
-        Grid.SetColumn(VuBarLeft, 0);
-        Grid.SetColumn(VuBarRight, 2);
-        vuGrid.Children.Add(VuBarLeft);
-        vuGrid.Children.Add(VuBarRight);
-        vuContainer.Child = vuGrid;
-
-        // Volume slider (horizontal, narrow)
-        VolSlider.HorizontalAlignment = HorizontalAlignment.Stretch;
-        VolSlider.Margin = new Thickness(0, 2, 0, 2);
-
-        // Mute button
-        MuteBtn.HorizontalAlignment = HorizontalAlignment.Center;
-        MuteBtn.Style = (Style)Application.Current.Resources["MuteButtonStyle"];
-
-        // Name label
-        var nameLabel = new TextBlock
-        {
-            Text              = Name,
-            FontSize          = 10,
-            TextAlignment     = TextAlignment.Center,
-            TextTrimming      = TextTrimming.CharacterEllipsis,
-            Foreground        = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 200, 200, 200)),
+            Text              = IsDesktop || IsMic ? "Global" : "Active",
+            FontSize          = 9,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            Foreground        = new SolidColorBrush(
+                IsDesktop ? Windows.UI.Color.FromArgb(255, 81, 162, 222)
+                          : Windows.UI.Color.FromArgb(255, 81, 200, 120)),
             Margin            = new Thickness(0, 0, 0, 2),
         };
 
-        // Channel type indicator dot
-        var accent = IsDesktop
-            ? Windows.UI.Color.FromArgb(255, 6, 182, 212)
-            : IsMic
-                ? Windows.UI.Color.FromArgb(255, 99, 102, 241)
-                : Windows.UI.Color.FromArgb(255, 139, 92, 246);
-
-        var typeDot = new Microsoft.UI.Xaml.Shapes.Ellipse
+        // ── Name + chevron ────────────────────────────────────────────────────
+        var namePanel = new StackPanel
         {
-            Width  = 5,
-            Height = 5,
-            Fill   = new SolidColorBrush(accent),
+            Orientation         = Orientation.Horizontal,
             HorizontalAlignment = HorizontalAlignment.Center,
-            Margin = new Thickness(0, 0, 0, 4),
+            Spacing             = 3,
+            Margin              = new Thickness(0, 0, 0, 2),
+        };
+        namePanel.Children.Add(new TextBlock
+        {
+            Text        = Name,
+            FontSize    = 10,
+            MaxWidth    = StripWidth - 22,
+            TextTrimming = TextTrimming.CharacterEllipsis,
+            Foreground  = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 210, 210, 210)),
+        });
+        namePanel.Children.Add(new FontIcon
+        {
+            FontFamily = new FontFamily("Segoe MDL2 Assets"),
+            Glyph      = "\uE70D",
+            FontSize   = 7,
+            Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 160, 160, 160)),
+            VerticalAlignment = VerticalAlignment.Center,
+        });
+
+        // ── VU bars ───────────────────────────────────────────────────────────
+        VuBarLeft.Width            = BarW;
+        VuBarLeft.Height           = 0;
+        VuBarLeft.VerticalAlignment = VerticalAlignment.Bottom;
+
+        VuBarRight.Width            = BarW;
+        VuBarRight.Height           = 0;
+        VuBarRight.VerticalAlignment = VerticalAlignment.Bottom;
+
+        var vuBg = new Border
+        {
+            Width           = BarW * 2 + 2,
+            Height          = MeterH,
+            Background      = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 20, 20, 20)),
+            BorderBrush     = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 50, 50, 50)),
+            BorderThickness = new Thickness(1),
+        };
+        var vuGrid = new Grid { VerticalAlignment = VerticalAlignment.Stretch };
+        vuGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(BarW) });
+        vuGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2) });
+        vuGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(BarW) });
+        Grid.SetColumn(VuBarLeft,  0);
+        Grid.SetColumn(VuBarRight, 2);
+        vuGrid.Children.Add(VuBarLeft);
+        vuGrid.Children.Add(VuBarRight);
+        vuBg.Child = vuGrid;
+
+        // ── dB scale ──────────────────────────────────────────────────────────
+        var scaleCanvas = new Canvas { Width = 24, Height = MeterH };
+        var dbStops = new[] { 0, -6, -12, -18, -24, -30, -36, -42, -48, -54, -60 };
+        for (int i = 0; i < dbStops.Length; i++)
+        {
+            double y = i / (double)(dbStops.Length - 1) * MeterH;
+            var lbl = new TextBlock
+            {
+                Text       = dbStops[i].ToString(),
+                FontSize   = 8,
+                Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 100, 100, 100)),
+            };
+            Canvas.SetLeft(lbl, 2);
+            Canvas.SetTop(lbl, y - 6);
+            scaleCanvas.Children.Add(lbl);
+        }
+
+        // ── Meter row: [slider] [bars] [scale] ────────────────────────────────
+        var meterRow = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing     = 3,
+            Margin      = new Thickness(0, 0, 0, 4),
+        };
+        meterRow.Children.Add(VolSlider);
+        meterRow.Children.Add(vuBg);
+        meterRow.Children.Add(scaleCanvas);
+
+        // ── Bottom buttons ────────────────────────────────────────────────────
+        MuteBtn.Content = new FontIcon
+        {
+            FontFamily = new FontFamily("Segoe MDL2 Assets"),
+            Glyph      = "\uE767",
+            FontSize   = 11,
+        };
+        MuteBtn.Width  = 28;
+        MuteBtn.Height = 24;
+
+        var settingsBtn = new Button
+        {
+            Content = new FontIcon
+            {
+                FontFamily = new FontFamily("Segoe MDL2 Assets"),
+                Glyph      = "\uE713",
+                FontSize   = 11,
+            },
+            Width   = 28,
+            Height  = 24,
+            Padding = new Thickness(2),
         };
 
+        var bottomRow = new StackPanel
+        {
+            Orientation         = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            Spacing             = 4,
+        };
+        bottomRow.Children.Add(MuteBtn);
+        bottomRow.Children.Add(settingsBtn);
+
+        // ── Assemble strip ────────────────────────────────────────────────────
         var strip = new StackPanel
         {
             Orientation = Orientation.Vertical,
             Width       = StripWidth,
-            Padding     = new Thickness(6, 6, 6, 6),
-            Spacing     = 0,
+            Padding     = new Thickness(4, 4, 4, 6),
         };
-
-        strip.Children.Add(nameLabel);
-        strip.Children.Add(typeDot);
-        strip.Children.Add(vuContainer);
+        strip.Children.Add(statusLbl);
+        strip.Children.Add(namePanel);
         strip.Children.Add(DbLabel);
-        strip.Children.Add(VolSlider);
-        strip.Children.Add(MuteBtn);
+        strip.Children.Add(meterRow);
+        strip.Children.Add(bottomRow);
 
-        // Wrap in a border for channel separation
-        var channelBorder = new Border
+        return new Border
         {
-            BorderBrush     = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 35, 35, 35)),
+            BorderBrush     = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 55, 55, 55)),
             BorderThickness = new Thickness(0, 0, 1, 0),
             Child           = strip,
         };
-
-        return channelBorder;
     }
 }
 
@@ -247,11 +309,21 @@ public sealed partial class RecordPage : Page, IDisposable
     private AudioChannelView? _desktopChannel;
     private AudioChannelView? _micChannel;
 
+    // Main preview — screen capture (WGC)
+    private readonly SoftwareBitmapSource _mainBitmapSrc = new();
+    private CanvasDevice?               _mainCaptureDevice;
+    private Direct3D11CaptureFramePool? _mainCapturePool;
+    private GraphicsCaptureSession?     _mainCaptureSession;
+    private bool                        _mainCaptureBusy;
+
+    // Main preview — webcam
+    private MediaPlayer? _mainVideoPlayer;
+
     // Collections
     public ObservableCollection<SceneItem>  Scenes  { get; } = new();
     public ObservableCollection<SourceItem> Sources { get; } = new();
 
-    private const double VuMaxHeight = 110;
+    private const double VuMaxHeight = AudioChannelView.MeterH;
 
     public RecordPage()
     {
@@ -269,13 +341,27 @@ public sealed partial class RecordPage : Page, IDisposable
 
     private async Task InitAsync()
     {
+        // Attach the persistent SoftwareBitmapSource to the screen-preview Image
+        PreviewScreenImage.Source = _mainBitmapSrc;
+
         // Check ffmpeg first — prompt the user if it's not installed
         await ShowFfmpegSetupIfNeededAsync();
 
-        await LoadCaptureSources();
+        // Sources start empty — user adds them per scene via the + button
+        UpdateSourcesEmptyState();
+
         await ProbeAndPopulateDevicesAsync();
         BuildDefaultMixerChannels();
         StartMeterTimer();
+    }
+
+    /// <summary>Show the OBS-style empty-state overlay when the current scene has no sources.</summary>
+    private void UpdateSourcesEmptyState()
+    {
+        if (SourcesEmptyState == null) return;
+        SourcesEmptyState.Visibility = Sources.Count == 0
+            ? Visibility.Visible
+            : Visibility.Collapsed;
     }
 
     // ── FFmpeg first-run setup dialog ─────────────────────────────────────────
@@ -515,6 +601,8 @@ public sealed partial class RecordPage : Page, IDisposable
     private void AddScene(string name)
     {
         var scene = new SceneItem { Name = name };
+        // Ensure the new scene starts with an empty source list
+        _sceneSources[name] = new List<SourceItem>();
         Scenes.Add(scene);
         RebuildSceneQuickBar();
         if (Scenes.Count == 1) ScenesList.SelectedIndex = 0;
@@ -557,23 +645,28 @@ public sealed partial class RecordPage : Page, IDisposable
         if (e.RemovedItems.Count > 0 && e.RemovedItems[0] is SceneItem leaving)
             _sceneSources[leaving.Name] = new List<SourceItem>(Sources);
 
-        // Restore sources for the scene we're entering
-        if (e.AddedItems.Count > 0 && e.AddedItems[0] is SceneItem entering
-            && _sceneSources.TryGetValue(entering.Name, out var saved))
+        // Restore sources for the scene we're entering (empty list if never populated)
+        Sources.Clear();
+        if (e.AddedItems.Count > 0 && e.AddedItems[0] is SceneItem entering)
         {
-            Sources.Clear();
-            foreach (var s in saved) Sources.Add(s);
-            _selectedSourceId = Sources.Count > 0 ? Sources[0].SourceType : null;
+            if (_sceneSources.TryGetValue(entering.Name, out var saved))
+                foreach (var s in saved) Sources.Add(s);
         }
+        _selectedSourceId = Sources.Count > 0 ? Sources[0].SourceType : null;
+        UpdateSourcesEmptyState();
     }
 
     private void AddSceneBtn_Click(object sender, RoutedEventArgs e)
     {
-        // Snapshot current sources into the new scene before adding
+        // Snapshot current sources into the scene we're leaving
         if (ScenesList.SelectedItem is SceneItem current)
             _sceneSources[current.Name] = new List<SourceItem>(Sources);
 
         AddScene($"Scene {Scenes.Count + 1}");
+        // New scene is now selected — its source list is empty
+        Sources.Clear();
+        _selectedSourceId = null;
+        UpdateSourcesEmptyState();
     }
 
     private void RemoveSceneBtn_Click(object sender, RoutedEventArgs e)
@@ -615,50 +708,53 @@ public sealed partial class RecordPage : Page, IDisposable
 
     private void SourcesList_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (SourcesList.SelectedItem is SourceItem src)
+        if (SourcesList.SelectedItem is not SourceItem src)
         {
-            _selectedSourceId = src.SourceType;
-            PreviewHintText.Text = $"Source: {src.Name}";
-            // If this is a video device, start a live camera preview in the right-hand pane
-            if (src.SourceType != null && src.SourceType.StartsWith("video=", StringComparison.OrdinalIgnoreCase))
-            {
-                _ = StartCameraPreviewAsync(src.Name);
-            }
+            ShowPreviewHint();
+            return;
+        }
+
+        _selectedSourceId = src.SourceType;
+
+        if (src.SourceType is "screen" or "window")
+        {
+            if (src.CaptureItem != null)
+                StartMainScreenPreview(src.CaptureItem);
             else
-            {
-                _ = StopCameraPreviewAsync();
-            }
+                ShowPreviewHint($"Source: {src.Name}\n(open Properties to pick display)");
+        }
+        else if (src.SourceType != null &&
+                 src.SourceType.StartsWith("video", StringComparison.OrdinalIgnoreCase))
+        {
+            _ = StartMainVideoPreviewAsync(src.Name);
+        }
+        else
+        {
+            // Audio or other source — show a label
+            ShowPreviewHint($"Source: {src.Name}");
+            _ = StopCameraPreviewAsync();
         }
     }
 
     private async void AddSourceBtn_Click(object sender, RoutedEventArgs e)
     {
-        // Show source type picker dialog
-        var dialog = new ContentDialog
+        // ── Step 1: pick source type ──────────────────────────────────────────
+        var typeDlg = new ContentDialog
         {
-            Title          = "Add Source",
+            Title           = "Add Source",
             CloseButtonText = "Cancel",
-            XamlRoot       = XamlRoot,
+            XamlRoot        = XamlRoot,
         };
 
-        // Build a list of all available source types including audio
-        var panel = new StackPanel { Spacing = 6, Width = 300 };
-        panel.Children.Add(new TextBlock
-        {
-            Text = "Choose a source type to add:",
-            FontSize = 12,
-            Foreground = (Brush)Application.Current.Resources["TextSecondaryBrush"],
-            Margin = new Thickness(0, 0, 0, 8),
-        });
+        var panel = new StackPanel { Spacing = 4, Width = 300 };
 
-        // Probe devices for the dialog
         DshowDeviceList? probed = null;
         try { probed = await _recordingService.ProbeDevicesAsync(); } catch { }
 
-        string? chosen = null;
+        string? chosen     = null;
         string? chosenName = null;
 
-        void AddSourceOption(string label, string icon, string type, string id)
+        void AddSourceOption(string label, string icon, string type)
         {
             var btn = new Button
             {
@@ -669,87 +765,149 @@ public sealed partial class RecordPage : Page, IDisposable
             inner.Children.Add(new FontIcon
             {
                 FontFamily = new FontFamily("Segoe MDL2 Assets"),
-                Glyph = icon,
-                FontSize = 14,
+                Glyph      = icon,
+                FontSize   = 14,
             });
             inner.Children.Add(new TextBlock { Text = label, VerticalAlignment = VerticalAlignment.Center });
             btn.Content = inner;
-            btn.Click += (_, _) =>
-            {
-                chosen     = type;
-                chosenName = label;
-                dialog.Hide();
-            };
+            btn.Click += (_, _) => { chosen = type; chosenName = label; typeDlg.Hide(); };
             panel.Children.Add(btn);
         }
 
-        AddSourceOption("Primary Display",    "\uE7F8", "screen",     "screen:primary");
-        AddSourceOption("All Displays",       "\uE780", "screen",     "screen:all");
-        AddSourceOption("Window Capture",     "\uE737", "window",     "screen:window");
-        AddSourceOption("Whiteboard Window",  "\uE70A", "whiteboard", "title=RecordIt Whiteboard");
-
-        if (probed != null)
+        // Section header helper
+        void AddSeparator(string title)
         {
-            foreach (var v in probed.VideoDevices)
-                AddSourceOption(v, "\uE714", "video", $"video={v}");
+            panel.Children.Add(new Border
+            {
+                Height = 1,
+                Background = (Brush)Application.Current.Resources["BorderDefaultBrush"],
+                Margin = new Thickness(0, 6, 0, 4),
+            });
+            panel.Children.Add(new TextBlock
+            {
+                Text = title,
+                FontSize = 10,
+                FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                Foreground = (Brush)Application.Current.Resources["TextTertiaryBrush"],
+                Margin = new Thickness(0, 0, 0, 2),
+            });
         }
 
-        // Audio sources section
-        panel.Children.Add(new Border
+        AddSourceOption("Display Capture",    "\uE7F8", "screen");
+        AddSourceOption("Window Capture",     "\uE737", "window");
+        AddSourceOption("Whiteboard Window",  "\uE70A", "whiteboard");
+
+        AddSeparator("Video Sources");
+        AddSourceOption("Video Capture Device", "\uE714", "video");
+        if (probed != null)
+            foreach (var v in probed.VideoDevices)
+                AddSourceOption(v, "\uE714", $"video={v}");
+
+        AddSeparator("Audio Sources");
+        AddSourceOption("Audio Output Capture",  "\uE767", "audiout");
+        AddSourceOption("Audio Input Capture",   "\uE720", "audiin");
+        if (probed != null)
+            foreach (var a in probed.AudioDevices.Skip(1))
+                AddSourceOption(a, "\uE720", "audiin");
+
+        typeDlg.Content = new ScrollViewer { MaxHeight = 360, Content = panel };
+        await typeDlg.ShowAsync();
+
+        if (chosen == null) return;
+
+        // ── Step 2: enter source name (OBS "Create/Select Source" style) ──────
+        var nameBox = new TextBox
+        {
+            Text                = chosenName,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            SelectionStart      = 0,
+            SelectionLength     = chosenName?.Length ?? 0,
+        };
+        var createRadio   = new RadioButton { Content = "Create new", IsChecked = true, GroupName = "SourceMode" };
+        var existingRadio = new RadioButton { Content = "Add Existing", GroupName = "SourceMode" };
+        var existingList  = new ListBox { IsEnabled = false, Height = 80 };
+        var visibleChk    = new CheckBox { Content = "Make source visible", IsChecked = true };
+
+        // Populate "Add Existing" list with same-type sources already in other scenes
+        foreach (var saved in _sceneSources.Values)
+            foreach (var s in saved.Where(s => s.SourceType == chosen))
+                if (!existingList.Items.Contains(s.Name))
+                    existingList.Items.Add(s.Name);
+
+        createRadio.Checked   += (_, _) => { nameBox.IsEnabled = true;  existingList.IsEnabled = false; };
+        existingRadio.Checked += (_, _) => { nameBox.IsEnabled = false; existingList.IsEnabled = true; };
+
+        var nameContent = new StackPanel { Spacing = 8, Width = 320 };
+        nameContent.Children.Add(createRadio);
+        nameContent.Children.Add(nameBox);
+        nameContent.Children.Add(existingRadio);
+        nameContent.Children.Add(existingList);
+        nameContent.Children.Add(new Border
         {
             Height = 1,
             Background = (Brush)Application.Current.Resources["BorderDefaultBrush"],
             Margin = new Thickness(0, 4, 0, 4),
         });
-        panel.Children.Add(new TextBlock
+        nameContent.Children.Add(visibleChk);
+
+        var nameDlg = new ContentDialog
         {
-            Text = "Audio Sources",
-            FontSize = 10, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-            Foreground = (Brush)Application.Current.Resources["TextTertiaryBrush"],
-        });
+            Title               = "Create/Select Source",
+            Content             = nameContent,
+            PrimaryButtonText   = "OK",
+            CloseButtonText     = "Cancel",
+            DefaultButton       = ContentDialogButton.Primary,
+            XamlRoot            = XamlRoot,
+        };
+        var nameResult = await nameDlg.ShowAsync();
+        if (nameResult != ContentDialogResult.Primary) return;
 
-        AddSourceOption("Desktop Audio (Loopback)", "\uE767", "audiout", "Desktop Audio (Loopback)");
-        AddSourceOption("Default Microphone",       "\uE720", "audiin",  "Default Microphone");
+        // Resolve final name
+        string finalName;
+        if (existingRadio.IsChecked == true && existingList.SelectedItem is string existingName)
+            finalName = existingName;
+        else
+            finalName = string.IsNullOrWhiteSpace(nameBox.Text) ? chosenName! : nameBox.Text.Trim();
 
-        if (probed != null)
+        var icon = chosen switch
         {
-            foreach (var a in probed.AudioDevices.Skip(1)) // skip "Desktop Audio (Loopback)" already added
-                AddSourceOption(a, "\uE720", "audiin", a);
-        }
+            "screen"     => "\uE7F8",
+            "window"     => "\uE737",
+            "video"      => "\uE714",
+            "audiout"    => "\uE767",
+            "audiin"     => "\uE720",
+            "whiteboard" => "\uE70A",
+            _            => "\uE714",
+        };
+        // Strip the "video=" prefix for video device sources
+        string srcType = chosen.StartsWith("video=") ? "video" : chosen;
 
-        var sv = new ScrollViewer { MaxHeight = 340, Content = panel };
-        dialog.Content = sv;
-        await dialog.ShowAsync();
-
-        if (chosen != null && chosenName != null)
+        var newSrc = new SourceItem
         {
-            var icon = chosen switch
-            {
-                "screen"     => "\uE7F8",
-                "window"     => "\uE737",
-                "video"      => "\uE714",
-                "audiout"    => "\uE767",
-                "audiin"     => "\uE720",
-                "whiteboard" => "\uE70A",
-                _            => "\uE7F8",
-            };
-            Sources.Add(new SourceItem { Name = chosenName, Icon = icon, SourceType = chosen });
-            SourcesList.SelectedIndex = Sources.Count - 1;
+            Name       = finalName,
+            Icon       = icon,
+            SourceType = srcType,
+            IsVisible  = visibleChk.IsChecked == true,
+        };
+        Sources.Add(newSrc);
+        SourcesList.SelectedIndex = Sources.Count - 1;
+        UpdateSourcesEmptyState();
 
-            // If the added source is a video device, start preview
-            if (chosen.StartsWith("video", StringComparison.OrdinalIgnoreCase))
-                _ = StartCameraPreviewAsync(chosenName);
+        // Add mixer channel for audio sources
+        if (srcType is "audiout" or "audiin")
+            AddMixerChannel(finalName, isDesktop: srcType == "audiout", isMic: srcType == "audiin");
 
-            // If it's an audio source, add a mixer channel
-            if (chosen is "audiout" or "audiin")
-                AddMixerChannel(chosenName, isDesktop: chosen == "audiout", isMic: chosen == "audiin");
-        }
+        // ── Step 3: auto-open Properties ──────────────────────────────────────
+        await ShowSourcePropertiesAsync(newSrc);
     }
 
     private void RemoveSourceBtn_Click(object sender, RoutedEventArgs e)
     {
         if (SourcesList.SelectedItem is SourceItem src)
+        {
             Sources.Remove(src);
+            UpdateSourcesEmptyState();
+        }
     }
 
     private void SourceUpBtn_Click(object sender, RoutedEventArgs e)
@@ -778,16 +936,521 @@ public sealed partial class RecordPage : Page, IDisposable
 
     private async void SourceSettingsBtn_Click(object sender, RoutedEventArgs e)
     {
-        if (SourcesList.SelectedItem is not SourceItem src) return;
+        if (SourcesList.SelectedItem is SourceItem src)
+            await ShowSourcePropertiesAsync(src);
+    }
+
+    private async void SourcesList_DoubleTapped(object sender, Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs e)
+    {
+        if (SourcesList.SelectedItem is SourceItem src)
+            await ShowSourcePropertiesAsync(src);
+    }
+
+    private Task ShowSourcePropertiesAsync(SourceItem src) => src.SourceType switch
+    {
+        "screen"  => ShowDisplayCapturePropertiesAsync(src),
+        "window"  => ShowWindowCapturePropertiesAsync(src),
+        "video"   => ShowVideoCapturePropertiesAsync(src),
+        "audiout" => ShowAudioOutputPropertiesAsync(src),
+        "audiin"  => ShowAudioInputPropertiesAsync(src),
+        _         => Task.CompletedTask,
+    };
+
+    // ── Display Capture Properties ───────────────────────────────────────────
+
+    private async Task ShowDisplayCapturePropertiesAsync(SourceItem src)
+    {
+        var monitors = await Windows.Devices.Display.DisplayMonitor.FindAllAsync();
+
+        var bitmapSrc  = new SoftwareBitmapSource();
+        var previewImg = new Image
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Height  = 290,
+            Stretch = Stretch.Uniform,
+            Source  = bitmapSrc,
+        };
+        var previewBorder = new Border
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Height       = 290,
+            Background   = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 10, 10, 10)),
+            CornerRadius = new CornerRadius(4),
+            Child        = previewImg,
+        };
+
+        var captureMethodCombo = MakeWideCombo(
+            new[] { "Automatic", "DXGI Desktop Duplication", "Windows Graphics Capture" }, 0);
+
+        // Build display list and map index → GraphicsCaptureItem
+        var displayCombo = MakeWideCombo(new[] { "[Select a display to capture]" }, 0);
+        var monitorList  = monitors.ToList();
+        int primaryIdx   = 1;
+        for (int i = 0; i < monitorList.Count; i++)
+        {
+            var m   = monitorList[i];
+            var res = m.NativeResolutionInRawPixels;
+            var pos = m.PhysicalPosition;
+            var lbl = $"{m.DisplayName}: {res.Width}x{res.Height} @ {pos.X},{pos.Y}";
+            if (i == 0) { lbl += " (Primary Monitor)"; primaryIdx = 1; }
+            displayCombo.Items.Add(lbl);
+        }
+
+        var cursorChk = new CheckBox { Content = "Capture Cursor", IsChecked = true,
+                                       Margin  = new Thickness(0, 6, 0, 0) };
+
+        // WGC state
+        CanvasDevice?               dlgDevice  = null;
+        Direct3D11CaptureFramePool? dlgPool    = null;
+        GraphicsCaptureSession?     dlgSession = null;
+        bool                        dlgBusy    = false;
+        GraphicsCaptureItem?        pickedItem = null;
+
+        void StopDlgCapture()
+        {
+            dlgSession?.Dispose(); dlgSession = null;
+            dlgPool?.Dispose();    dlgPool    = null;
+        }
+
+        void StartCaptureFromItem(GraphicsCaptureItem item)
+        {
+            StopDlgCapture();
+            pickedItem = item;
+            try
+            {
+                dlgDevice ??= new CanvasDevice();
+                dlgPool    = Direct3D11CaptureFramePool.Create(
+                    dlgDevice, DirectXPixelFormat.B8G8R8A8UIntNormalized, 2, item.Size);
+                dlgSession = dlgPool.CreateCaptureSession(item);
+                dlgSession.IsCursorCaptureEnabled = cursorChk.IsChecked == true;
+                dlgPool.FrameArrived += (pool, _) =>
+                {
+                    if (dlgBusy) { pool.TryGetNextFrame()?.Dispose(); return; }
+                    dlgBusy = true;
+                    var frame = pool.TryGetNextFrame();
+                    if (frame == null) { dlgBusy = false; return; }
+                    DispatcherQueue.TryEnqueue(async () =>
+                    {
+                        try
+                        {
+                            var sb = await SoftwareBitmap.CreateCopyFromSurfaceAsync(frame.Surface);
+                            if (sb.BitmapPixelFormat != BitmapPixelFormat.Bgra8 ||
+                                sb.BitmapAlphaMode   != BitmapAlphaMode.Premultiplied)
+                                sb = SoftwareBitmap.Convert(sb, BitmapPixelFormat.Bgra8,
+                                                            BitmapAlphaMode.Premultiplied);
+                            await bitmapSrc.SetBitmapAsync(sb);
+                        }
+                        catch { }
+                        finally { frame.Dispose(); dlgBusy = false; }
+                    });
+                };
+                dlgSession.StartCapture();
+            }
+            catch { }
+        }
+
+        // Auto-preview when display dropdown changes
+        void TryStartPreviewForIndex(int idx)
+        {
+            int monIdx = idx - 1; // offset for [Select...] placeholder
+            if (monIdx < 0 || monIdx >= monitorList.Count) { StopDlgCapture(); return; }
+            var m   = monitorList[monIdx];
+            var gid = new Windows.Graphics.DisplayId { Value = m.DisplayId.Value };
+            var item = GraphicsCaptureItem.TryCreateFromDisplayId(gid);
+            if (item != null) StartCaptureFromItem(item);
+        }
+
+        displayCombo.SelectionChanged += (_, _) => TryStartPreviewForIndex(displayCombo.SelectedIndex);
+        cursorChk.Checked   += (_, _) => { if (dlgSession != null) dlgSession.IsCursorCaptureEnabled = true;  };
+        cursorChk.Unchecked += (_, _) => { if (dlgSession != null) dlgSession.IsCursorCaptureEnabled = false; };
+
+        var content = new StackPanel { Spacing = 8, Width = 620 };
+        content.Children.Add(previewBorder);
+        content.Children.Add(MakePropRow("Capture Method", captureMethodCombo));
+        content.Children.Add(MakePropRow("Display",        displayCombo));
+        content.Children.Add(cursorChk);
+
         var dlg = new ContentDialog
         {
-            Title           = $"Properties: {src.Name}",
-            Content         = new TextBlock { Text = $"Type: {src.SourceType}\nVisibility: {(src.IsVisible ? "Visible" : "Hidden")}", FontSize = 13 },
-            CloseButtonText = "Close",
-            XamlRoot        = XamlRoot,
+            Title               = $"Properties for '{src.Name}'",
+            Content             = content,
+            PrimaryButtonText   = "OK",
+            SecondaryButtonText = "Defaults",
+            CloseButtonText     = "Cancel",
+            XamlRoot            = XamlRoot,
         };
-        await dlg.ShowAsync();
+
+        // Auto-select primary monitor and start preview
+        displayCombo.SelectedIndex = monitorList.Count > 0 ? primaryIdx : 0;
+
+        var result = await dlg.ShowAsync();
+        StopDlgCapture();
+        dlgDevice?.Dispose();
+
+        if (result == ContentDialogResult.Primary && pickedItem != null)
+        {
+            src.CaptureItem = pickedItem;
+            StartMainScreenPreview(pickedItem);
+        }
     }
+
+    // ── Window Capture Properties ────────────────────────────────────────────
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool EnumWindows(EnumWindowsCallback lpEnumFunc, nint lParam);
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool IsWindowVisible(nint hWnd);
+    [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    private static extern int GetWindowText(nint hWnd, System.Text.StringBuilder sb, int nMaxCount);
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern int GetWindowTextLength(nint hWnd);
+    private delegate bool EnumWindowsCallback(nint hWnd, nint lParam);
+
+    private static List<(nint Hwnd, string Title)> GetOpenWindows()
+    {
+        var list = new List<(nint, string)>();
+        EnumWindows((hwnd, _) =>
+        {
+            if (!IsWindowVisible(hwnd)) return true;
+            var len = GetWindowTextLength(hwnd);
+            if (len == 0) return true;
+            var sb = new System.Text.StringBuilder(len + 1);
+            GetWindowText(hwnd, sb, sb.Capacity);
+            var t = sb.ToString();
+            if (!string.IsNullOrWhiteSpace(t)) list.Add((hwnd, t));
+            return true;
+        }, 0);
+        return list;
+    }
+
+    private async Task ShowWindowCapturePropertiesAsync(SourceItem src)
+    {
+        var windows = GetOpenWindows();
+
+        var bitmapSrc  = new SoftwareBitmapSource();
+        var previewImg = new Image
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Height  = 290,
+            Stretch = Stretch.Uniform,
+            Source  = bitmapSrc,
+        };
+        var previewBorder = new Border
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Height       = 290,
+            Background   = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 10, 10, 10)),
+            CornerRadius = new CornerRadius(4),
+            Child        = previewImg,
+        };
+
+        var windowCombo = MakeWideCombo(new[] { "[Select a window to capture]" }, 0);
+        foreach (var (_, title) in windows) windowCombo.Items.Add(title);
+
+        var captureMethodCombo = MakeWideCombo(
+            new[] { "Automatic", "BitBlt", "Windows Graphics Capture" }, 0);
+        var matchPriorityCombo = MakeWideCombo(
+            new[] { "Match title, otherwise find window of same type",
+                    "Match title, otherwise find window of same executable",
+                    "Match title only" }, 0);
+
+        var captureAudioChk = new CheckBox { Content = "Capture Audio (BETA)", IsChecked = false };
+        var cursorChk       = new CheckBox { Content = "Capture Cursor",        IsChecked = true  };
+        var multiAdapterChk = new CheckBox { Content = "Multi-adapter Compatibility", IsChecked = false };
+
+        // WGC state for dialog preview
+        CanvasDevice?               dlgDevice  = null;
+        Direct3D11CaptureFramePool? dlgPool    = null;
+        GraphicsCaptureSession?     dlgSession = null;
+        bool                        dlgBusy    = false;
+        GraphicsCaptureItem?        pickedItem = null;
+
+        void StopDlgCapture()
+        {
+            dlgSession?.Dispose(); dlgSession = null;
+            dlgPool?.Dispose();    dlgPool    = null;
+        }
+
+        void StartCaptureFromItem(GraphicsCaptureItem item)
+        {
+            StopDlgCapture();
+            pickedItem = item;
+            try
+            {
+                dlgDevice ??= new CanvasDevice();
+                dlgPool    = Direct3D11CaptureFramePool.Create(
+                    dlgDevice, DirectXPixelFormat.B8G8R8A8UIntNormalized, 2, item.Size);
+                dlgSession = dlgPool.CreateCaptureSession(item);
+                dlgSession.IsCursorCaptureEnabled = cursorChk.IsChecked == true;
+                dlgPool.FrameArrived += (pool, _) =>
+                {
+                    if (dlgBusy) { pool.TryGetNextFrame()?.Dispose(); return; }
+                    dlgBusy = true;
+                    var frame = pool.TryGetNextFrame();
+                    if (frame == null) { dlgBusy = false; return; }
+                    DispatcherQueue.TryEnqueue(async () =>
+                    {
+                        try
+                        {
+                            var sb = await SoftwareBitmap.CreateCopyFromSurfaceAsync(frame.Surface);
+                            if (sb.BitmapPixelFormat != BitmapPixelFormat.Bgra8 ||
+                                sb.BitmapAlphaMode   != BitmapAlphaMode.Premultiplied)
+                                sb = SoftwareBitmap.Convert(sb, BitmapPixelFormat.Bgra8,
+                                                            BitmapAlphaMode.Premultiplied);
+                            await bitmapSrc.SetBitmapAsync(sb);
+                        }
+                        catch { }
+                        finally { frame.Dispose(); dlgBusy = false; }
+                    });
+                };
+                dlgSession.StartCapture();
+            }
+            catch { }
+        }
+
+        // Use WGC picker for window selection (shows the nice thumbnail grid)
+        var pickerBtn = new Button
+        {
+            Content             = "Pick Window with Capture Picker…",
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Margin              = new Thickness(0, 0, 0, 4),
+        };
+        pickerBtn.Click += async (_, _) =>
+        {
+            try
+            {
+                var picker = new GraphicsCapturePicker();
+                InitializeWithWindow.Initialize(picker,
+                    WindowNativeInterop.GetWindowHandle(App.MainWindow!));
+                var item = await picker.PickSingleItemAsync();
+                if (item == null) return;
+                // Update window dropdown to show selected item name
+                if (!windowCombo.Items.Contains(item.DisplayName))
+                    windowCombo.Items.Add(item.DisplayName);
+                windowCombo.SelectedItem = item.DisplayName;
+                StartCaptureFromItem(item);
+            }
+            catch { }
+        };
+
+        cursorChk.Checked   += (_, _) => { if (dlgSession != null) dlgSession.IsCursorCaptureEnabled = true;  };
+        cursorChk.Unchecked += (_, _) => { if (dlgSession != null) dlgSession.IsCursorCaptureEnabled = false; };
+
+        var content = new StackPanel { Spacing = 8, Width = 620 };
+        content.Children.Add(previewBorder);
+        content.Children.Add(pickerBtn);
+        content.Children.Add(MakePropRow("Window",               windowCombo));
+        content.Children.Add(MakePropRow("Capture Method",       captureMethodCombo));
+        content.Children.Add(MakePropRow("Window Match Priority", matchPriorityCombo));
+        content.Children.Add(captureAudioChk);
+        content.Children.Add(cursorChk);
+        content.Children.Add(multiAdapterChk);
+
+        var dlg = new ContentDialog
+        {
+            Title               = $"Properties for '{src.Name}'",
+            Content             = content,
+            PrimaryButtonText   = "OK",
+            SecondaryButtonText = "Defaults",
+            CloseButtonText     = "Cancel",
+            XamlRoot            = XamlRoot,
+        };
+
+        // If source already has a capture item, resume preview
+        if (src.CaptureItem != null) StartCaptureFromItem(src.CaptureItem);
+
+        var result = await dlg.ShowAsync();
+        StopDlgCapture();
+        dlgDevice?.Dispose();
+
+        if (result == ContentDialogResult.Primary && pickedItem != null)
+        {
+            src.CaptureItem = pickedItem;
+            StartMainScreenPreview(pickedItem);
+        }
+    }
+
+    // ── Video Capture Device Properties ─────────────────────────────────────
+
+    private async Task ShowVideoCapturePropertiesAsync(SourceItem src)
+    {
+        var videoDevices = await DeviceInformation.FindAllAsync(DeviceClass.VideoCapture);
+
+        // Live preview element
+        var previewElem = new MediaPlayerElement
+        {
+            HorizontalAlignment        = HorizontalAlignment.Stretch,
+            Height                     = 290,
+            AreTransportControlsEnabled = false,
+            AutoPlay                   = false,
+            Stretch                    = Stretch.Uniform,
+            Background                 = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 10, 10, 10)),
+        };
+
+        var deviceNames = videoDevices.Select(d => d.Name).ToList();
+        var deviceCombo = MakeWideComboList(deviceNames, 0);
+        int matchIdx = deviceNames.FindIndex(n =>
+            n.Contains(src.Name, StringComparison.OrdinalIgnoreCase));
+        if (matchIdx >= 0) deviceCombo.SelectedIndex = matchIdx;
+
+        var deactivateChk = new CheckBox { Content = "Deactivate when not showing",
+                                           IsChecked = false, Margin = new Thickness(0, 4, 0, 0) };
+        var resFpsCombo   = MakeWideCombo(new[] { "Device Default", "Custom" }, 0);
+        var resCombo      = MakeWideCombo(Array.Empty<string>(), -1);
+        resCombo.IsEnabled = false;
+
+        MediaCapture? previewCapture = null;
+        MediaPlayer?  previewPlayer  = null;
+
+        async Task StartVideoPreviewAsync(int idx)
+        {
+            previewPlayer?.Dispose(); previewPlayer = null;
+            if (previewCapture != null)
+            {
+                try { await previewCapture.StopPreviewAsync(); } catch { }
+                previewCapture.Dispose(); previewCapture = null;
+            }
+            if (idx < 0 || idx >= videoDevices.Count) return;
+            try
+            {
+                previewCapture = new MediaCapture();
+                await previewCapture.InitializeAsync(new MediaCaptureInitializationSettings
+                {
+                    VideoDeviceId       = videoDevices[idx].Id,
+                    StreamingCaptureMode = StreamingCaptureMode.Video,
+                });
+                var fs = previewCapture.FrameSources.Values.FirstOrDefault(
+                    f => f.Info.MediaStreamType is MediaStreamType.VideoPreview
+                                               or MediaStreamType.VideoRecord);
+                if (fs != null)
+                {
+                    var ms = MediaSource.CreateFromMediaFrameSource(fs);
+                    previewPlayer = new MediaPlayer { Source = ms };
+                    previewElem.SetMediaPlayer(previewPlayer);
+                    previewPlayer.Play();
+                }
+            }
+            catch { }
+        }
+
+        deviceCombo.SelectionChanged += async (_, _) =>
+            await StartVideoPreviewAsync(deviceCombo.SelectedIndex);
+
+        var content = new StackPanel { Spacing = 8, Width = 620 };
+        content.Children.Add(new Border
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Height     = 290,
+            CornerRadius = new CornerRadius(4),
+            Background = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 10, 10, 10)),
+            Child      = previewElem,
+        });
+        content.Children.Add(MakePropRow("Device",              deviceCombo));
+        content.Children.Add(deactivateChk);
+        content.Children.Add(MakePropRow("Resolution/FPS Type", resFpsCombo));
+        content.Children.Add(MakePropRow("Resolution",          resCombo));
+
+        var dlg = new ContentDialog
+        {
+            Title               = $"Properties for '{src.Name}'",
+            Content             = content,
+            PrimaryButtonText   = "OK",
+            SecondaryButtonText = "Defaults",
+            CloseButtonText     = "Cancel",
+            XamlRoot            = XamlRoot,
+        };
+
+        _ = StartVideoPreviewAsync(deviceCombo.SelectedIndex);
+        try { await dlg.ShowAsync(); }
+        finally
+        {
+            previewPlayer?.Dispose();
+            if (previewCapture != null)
+            {
+                try { await previewCapture.StopPreviewAsync(); } catch { }
+                previewCapture.Dispose();
+            }
+        }
+    }
+
+    // ── Audio Output Capture Properties ─────────────────────────────────────
+
+    private async Task ShowAudioOutputPropertiesAsync(SourceItem src)
+    {
+        var devices = await DeviceInformation.FindAllAsync(
+            MediaDevice.GetAudioRenderSelector());
+        var names = new[] { "Default" }.Concat(devices.Select(d => d.Name)).ToList();
+        var combo = MakeWideComboList(names, 0);
+
+        var content = new StackPanel { Spacing = 8, Width = 500 };
+        content.Children.Add(MakePropRow("Device", combo));
+
+        await new ContentDialog
+        {
+            Title               = $"Properties for '{src.Name}'",
+            Content             = content,
+            PrimaryButtonText   = "OK",
+            SecondaryButtonText = "Defaults",
+            CloseButtonText     = "Cancel",
+            XamlRoot            = XamlRoot,
+        }.ShowAsync();
+    }
+
+    // ── Audio Input Capture Properties ───────────────────────────────────────
+
+    private async Task ShowAudioInputPropertiesAsync(SourceItem src)
+    {
+        var devices = await DeviceInformation.FindAllAsync(
+            MediaDevice.GetAudioCaptureSelector());
+        var names = new[] { "Default" }.Concat(devices.Select(d => d.Name)).ToList();
+        var combo = MakeWideComboList(names, 0);
+
+        var content = new StackPanel { Spacing = 8, Width = 500 };
+        content.Children.Add(MakePropRow("Device", combo));
+
+        await new ContentDialog
+        {
+            Title               = $"Properties for '{src.Name}'",
+            Content             = content,
+            PrimaryButtonText   = "OK",
+            SecondaryButtonText = "Defaults",
+            CloseButtonText     = "Cancel",
+            XamlRoot            = XamlRoot,
+        }.ShowAsync();
+    }
+
+    // ── Dialog layout helpers ────────────────────────────────────────────────
+
+    private static Grid MakePropRow(string label, FrameworkElement control)
+    {
+        var g = new Grid { Margin = new Thickness(0, 2, 0, 2) };
+        g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(140) });
+        g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        var lbl = new TextBlock
+        {
+            Text              = label,
+            FontSize          = 13,
+            VerticalAlignment = VerticalAlignment.Center,
+            Foreground        = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 200, 200, 200)),
+        };
+        Grid.SetColumn(lbl,     0);
+        Grid.SetColumn(control, 1);
+        g.Children.Add(lbl);
+        g.Children.Add(control);
+        return g;
+    }
+
+    private static ComboBox MakeWideCombo(IEnumerable<string> items, int selectedIndex)
+    {
+        var cb = new ComboBox { HorizontalAlignment = HorizontalAlignment.Stretch, FontSize = 13 };
+        foreach (var it in items) cb.Items.Add(it);
+        if (selectedIndex >= 0 && selectedIndex < cb.Items.Count)
+            cb.SelectedIndex = selectedIndex;
+        return cb;
+    }
+
+    private static ComboBox MakeWideComboList(IList<string> items, int selectedIndex)
+        => MakeWideCombo(items, selectedIndex);
 
     // ── Camera preview (live webcam feed via MediaCapture) ───────────────
 
@@ -866,6 +1529,110 @@ public sealed partial class RecordPage : Page, IDisposable
             _mediaCapture.Dispose();
             _mediaCapture = null;
         }
+    }
+
+    // ── Main preview helpers (screen capture + webcam) ───────────────────────
+
+    /// <summary>Start streaming a WGC item into the main PreviewHost canvas.</summary>
+    private void StartMainScreenPreview(GraphicsCaptureItem item)
+    {
+        StopMainScreenPreview();
+        StopMainVideoPreview();
+        try
+        {
+            _mainCaptureDevice ??= new CanvasDevice();
+            _mainCapturePool = Direct3D11CaptureFramePool.Create(
+                _mainCaptureDevice, DirectXPixelFormat.B8G8R8A8UIntNormalized, 2, item.Size);
+            _mainCaptureSession = _mainCapturePool.CreateCaptureSession(item);
+            _mainCaptureSession.IsCursorCaptureEnabled = true;
+            _mainCapturePool.FrameArrived += (pool, _) =>
+            {
+                if (_mainCaptureBusy) { pool.TryGetNextFrame()?.Dispose(); return; }
+                _mainCaptureBusy = true;
+                var frame = pool.TryGetNextFrame();
+                if (frame == null) { _mainCaptureBusy = false; return; }
+                DispatcherQueue.TryEnqueue(async () =>
+                {
+                    try
+                    {
+                        var sb = await SoftwareBitmap.CreateCopyFromSurfaceAsync(frame.Surface);
+                        if (sb.BitmapPixelFormat != BitmapPixelFormat.Bgra8 ||
+                            sb.BitmapAlphaMode   != BitmapAlphaMode.Premultiplied)
+                            sb = SoftwareBitmap.Convert(sb, BitmapPixelFormat.Bgra8,
+                                                        BitmapAlphaMode.Premultiplied);
+                        await _mainBitmapSrc.SetBitmapAsync(sb);
+                    }
+                    catch { }
+                    finally { frame.Dispose(); _mainCaptureBusy = false; }
+                });
+            };
+            _mainCaptureSession.StartCapture();
+
+            PreviewScreenImage.Visibility = Visibility.Visible;
+            PreviewHintPanel.Visibility   = Visibility.Collapsed;
+        }
+        catch { /* leave hint visible if capture fails */ }
+    }
+
+    private void StopMainScreenPreview()
+    {
+        _mainCaptureSession?.Dispose(); _mainCaptureSession = null;
+        _mainCapturePool?.Dispose();    _mainCapturePool    = null;
+        PreviewScreenImage.Visibility = Visibility.Collapsed;
+    }
+
+    /// <summary>Start streaming a webcam device into the main PreviewHost canvas.</summary>
+    private async Task StartMainVideoPreviewAsync(string deviceName)
+    {
+        StopMainScreenPreview();
+        StopMainVideoPreview();
+        try
+        {
+            var devs = await DeviceInformation.FindAllAsync(DeviceClass.VideoCapture);
+            var dev  = devs.FirstOrDefault(d => d.Name.Equals(deviceName, StringComparison.OrdinalIgnoreCase))
+                       ?? devs.FirstOrDefault();
+            if (dev == null) return;
+
+            _mediaCapture = new MediaCapture();
+            await _mediaCapture.InitializeAsync(new MediaCaptureInitializationSettings
+            {
+                VideoDeviceId        = dev.Id,
+                StreamingCaptureMode = StreamingCaptureMode.Video,
+            });
+            var fs = _mediaCapture.FrameSources.Values.FirstOrDefault(
+                f => f.Info.MediaStreamType is MediaStreamType.VideoPreview
+                                           or MediaStreamType.VideoRecord);
+            if (fs == null) return;
+
+            var ms = MediaSource.CreateFromMediaFrameSource(fs);
+            _mainVideoPlayer = new MediaPlayer { Source = ms };
+            PreviewVideoElement.SetMediaPlayer(_mainVideoPlayer);
+            _mainVideoPlayer.Play();
+
+            PreviewVideoElement.Visibility = Visibility.Visible;
+            PreviewHintPanel.Visibility    = Visibility.Collapsed;
+
+            // Also show in side panel
+            LivePreviewElement.SetMediaPlayer(new MediaPlayer { Source = ms });
+            LivePreviewElement.Visibility = Visibility.Visible;
+            LivePreviewHint.Visibility    = Visibility.Collapsed;
+        }
+        catch { /* leave hint visible */ }
+    }
+
+    private void StopMainVideoPreview()
+    {
+        PreviewVideoElement.SetMediaPlayer(null);
+        _mainVideoPlayer?.Dispose(); _mainVideoPlayer = null;
+        PreviewVideoElement.Visibility = Visibility.Collapsed;
+    }
+
+    private void ShowPreviewHint(string text = "No source selected")
+    {
+        StopMainScreenPreview();
+        StopMainVideoPreview();
+        PreviewHintText.Text        = text;
+        PreviewHintPanel.Visibility = Visibility.Visible;
     }
 
     // ── Studio Mode ─────────────────────────────────────────────────────────

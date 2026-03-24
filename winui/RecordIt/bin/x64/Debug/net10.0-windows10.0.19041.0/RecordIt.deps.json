@@ -191,6 +191,25 @@
           }
         }
       },
+      "FFMpegCore/5.1.0": {
+        "dependencies": {
+          "Instances": "3.0.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/FFMpegCore.dll": {
+            "assemblyVersion": "5.0.0.0",
+            "fileVersion": "5.0.0.0"
+          }
+        }
+      },
+      "Instances/3.0.0": {
+        "runtime": {
+          "lib/netstandard2.0/Instances.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
       "Microsoft.Data.Sqlite/8.0.0": {
         "dependencies": {
           "Microsoft.Data.Sqlite.Core": "8.0.0",
@@ -469,6 +488,7 @@
       },
       "RecordIt.Core/1.0.0": {
         "dependencies": {
+          "FFMpegCore": "5.1.0",
           "Microsoft.Data.Sqlite": "8.0.0"
         },
         "runtime": {
@@ -596,6 +616,20 @@
       "sha512": "sha512-mNtVRpBVnFzSywRzzLPXBIoYm4UWJPZkpNPNAu75lnl4KcnkfjjyQg90hkfF9MT/JkBJQG0z5XOdMCksn7EiMQ==",
       "path": "communitytoolkit.winui.ui.controls.primitives/7.1.2",
       "hashPath": "communitytoolkit.winui.ui.controls.primitives.7.1.2.nupkg.sha512"
+    },
+    "FFMpegCore/5.1.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-cCzfCElrq9IziByiho3oeK/T2hDfM0jjMQmo22cLoAt7bptNNhEiRhF9X0lKwLBoK9vjZKn06+gaUfbfmS9m3Q==",
+      "path": "ffmpegcore/5.1.0",
+      "hashPath": "ffmpegcore.5.1.0.nupkg.sha512"
+    },
+    "Instances/3.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-wlZ0V+S7X7kMKbjC7EZJf5A1FNlldQrS0tKMNXP1Ued/6XCo6t5kpFDS3X72cd+SGaX+q+FOlWO7r18GlxcKAQ==",
+      "path": "instances/3.0.0",
+      "hashPath": "instances.3.0.0.nupkg.sha512"
     },
     "Microsoft.Data.Sqlite/8.0.0": {
       "type": "package",

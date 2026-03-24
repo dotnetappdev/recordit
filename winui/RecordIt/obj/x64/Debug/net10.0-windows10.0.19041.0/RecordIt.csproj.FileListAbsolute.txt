@@ -741,3 +741,5 @@ D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.
 D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.0\qualifiers.txt
 D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.0\qualifiers.txt.intermediate
 D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.0\MultipleQualifiersPerDimensionFound.txt
+D:\sasproducts\recordit2\winui\RecordIt\bin\x64\Debug\net10.0-windows10.0.19041.0\FFMpegCore.dll
+D:\sasproducts\recordit2\winui\RecordIt\bin\x64\Debug\net10.0-windows10.0.19041.0\Instances.dll

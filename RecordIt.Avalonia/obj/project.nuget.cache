@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "f0GZ+XMpHTU=",
+  "dgSpecHash": "hPcZJstCrrg=",
   "success": true,
-  "projectFilePath": "d:\\sasproducts\\recordit2\\RecordIt.Avalonia\\RecordIt.Avalonia.csproj",
+  "projectFilePath": "D:\\sasproducts\\recordit2\\RecordIt.Avalonia\\RecordIt.Avalonia.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\David\\.nuget\\packages\\avalonia\\11.0.0\\avalonia.11.0.0.nupkg.sha512",
     "C:\\Users\\David\\.nuget\\packages\\avalonia.angle.windows.natives\\2.1.0.2023020321\\avalonia.angle.windows.natives.2.1.0.2023020321.nupkg.sha512",
@@ -17,11 +17,13 @@
     "C:\\Users\\David\\.nuget\\packages\\avalonia.win32\\11.0.0\\avalonia.win32.11.0.0.nupkg.sha512",
     "C:\\Users\\David\\.nuget\\packages\\avalonia.x11\\11.0.0\\avalonia.x11.11.0.0.nupkg.sha512",
     "C:\\Users\\David\\.nuget\\packages\\dynamicdata\\7.9.5\\dynamicdata.7.9.5.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\ffmpegcore\\5.1.0\\ffmpegcore.5.1.0.nupkg.sha512",
     "C:\\Users\\David\\.nuget\\packages\\harfbuzzsharp\\2.8.2.3\\harfbuzzsharp.2.8.2.3.nupkg.sha512",
     "C:\\Users\\David\\.nuget\\packages\\harfbuzzsharp.nativeassets.linux\\2.8.2.3\\harfbuzzsharp.nativeassets.linux.2.8.2.3.nupkg.sha512",
     "C:\\Users\\David\\.nuget\\packages\\harfbuzzsharp.nativeassets.macos\\2.8.2.3\\harfbuzzsharp.nativeassets.macos.2.8.2.3.nupkg.sha512",
     "C:\\Users\\David\\.nuget\\packages\\harfbuzzsharp.nativeassets.webassembly\\2.8.2.3\\harfbuzzsharp.nativeassets.webassembly.2.8.2.3.nupkg.sha512",
     "C:\\Users\\David\\.nuget\\packages\\harfbuzzsharp.nativeassets.win32\\2.8.2.3\\harfbuzzsharp.nativeassets.win32.2.8.2.3.nupkg.sha512",
+    "C:\\Users\\David\\.nuget\\packages\\instances\\3.0.0\\instances.3.0.0.nupkg.sha512",
     "C:\\Users\\David\\.nuget\\packages\\microcom.runtime\\0.11.0\\microcom.runtime.0.11.0.nupkg.sha512",
     "C:\\Users\\David\\.nuget\\packages\\microsoft.data.sqlite\\8.0.0\\microsoft.data.sqlite.8.0.0.nupkg.sha512",
     "C:\\Users\\David\\.nuget\\packages\\microsoft.data.sqlite.core\\8.0.0\\microsoft.data.sqlite.core.8.0.0.nupkg.sha512",
@@ -48,12 +50,12 @@
       "code": "NU1903",
       "level": "Warning",
       "message": "Package 'SkiaSharp' 2.88.3 has a known high severity vulnerability, https://github.com/advisories/GHSA-j7hp-h8jx-5ppr",
-      "projectPath": "d:\\sasproducts\\recordit2\\RecordIt.Avalonia\\RecordIt.Avalonia.csproj",
+      "projectPath": "D:\\sasproducts\\recordit2\\RecordIt.Avalonia\\RecordIt.Avalonia.csproj",
       "warningLevel": 1,
-      "filePath": "d:\\sasproducts\\recordit2\\RecordIt.Avalonia\\RecordIt.Avalonia.csproj",
+      "filePath": "D:\\sasproducts\\recordit2\\RecordIt.Avalonia\\RecordIt.Avalonia.csproj",
       "libraryId": "SkiaSharp",
       "targetGraphs": [
-        "net10.0-windows10.0.19041"
+        "net10.0-windows10.0.19041.0"
       ]
     }
   ]

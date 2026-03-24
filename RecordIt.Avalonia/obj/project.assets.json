@@ -282,6 +282,18 @@
           }
         }
       },
+      "FFMpegCore/5.1.0": {
+        "type": "package",
+        "dependencies": {
+          "Instances": "3.0.0"
+        },
+        "compile": {
+          "lib/netstandard2.0/FFMpegCore.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/FFMpegCore.dll": {}
+        }
+      },
       "HarfBuzzSharp/2.8.2.3": {
         "type": "package",
         "dependencies": {
@@ -377,6 +389,22 @@
           "runtimes/win-x86/native/libHarfBuzzSharp.dll": {
             "assetType": "native",
             "rid": "win-x86"
+          }
+        }
+      },
+      "Instances/3.0.0": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/Instances.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/Instances.dll": {}
+        },
+        "contentFiles": {
+          "contentFiles/any/any/_._": {
+            "buildAction": "None",
+            "codeLanguage": "any",
+            "copyToOutput": false
           }
         }
       },
@@ -766,6 +794,7 @@
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "dependencies": {
+          "FFMpegCore": "5.1.0",
           "Microsoft.Data.Sqlite": "8.0.0"
         },
         "compile": {
@@ -1181,6 +1210,19 @@
         "logo.png"
       ]
     },
+    "FFMpegCore/5.1.0": {
+      "sha512": "cCzfCElrq9IziByiho3oeK/T2hDfM0jjMQmo22cLoAt7bptNNhEiRhF9X0lKwLBoK9vjZKn06+gaUfbfmS9m3Q==",
+      "type": "package",
+      "path": "ffmpegcore/5.1.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "ffmpegcore.5.1.0.nupkg.sha512",
+        "ffmpegcore.nuspec",
+        "lib/netstandard2.0/FFMpegCore.dll"
+      ]
+    },
     "HarfBuzzSharp/2.8.2.3": {
       "sha512": "8MwXm9J4dXHuTdzPo29nHgDbt4+6P+RrPrH/qrxcERf29cpLlFbjvP3eFPwHmdUrl4KL2SHEZi2ZuQ5ndeIL1w==",
       "type": "package",
@@ -1345,6 +1387,20 @@
         "runtimes/win-arm64/native/libHarfBuzzSharp.dll",
         "runtimes/win-x64/native/libHarfBuzzSharp.dll",
         "runtimes/win-x86/native/libHarfBuzzSharp.dll"
+      ]
+    },
+    "Instances/3.0.0": {
+      "sha512": "wlZ0V+S7X7kMKbjC7EZJf5A1FNlldQrS0tKMNXP1Ued/6XCo6t5kpFDS3X72cd+SGaX+q+FOlWO7r18GlxcKAQ==",
+      "type": "package",
+      "path": "instances/3.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "content/README.md",
+        "contentFiles/any/netstandard2.0/README.md",
+        "instances.3.0.0.nupkg.sha512",
+        "instances.nuspec",
+        "lib/netstandard2.0/Instances.dll"
       ]
     },
     "MicroCom.Runtime/0.11.0": {
@@ -1944,11 +2000,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "d:\\sasproducts\\recordit2\\RecordIt.Avalonia\\RecordIt.Avalonia.csproj",
+      "projectUniqueName": "D:\\sasproducts\\recordit2\\RecordIt.Avalonia\\RecordIt.Avalonia.csproj",
       "projectName": "RecordIt.Avalonia",
-      "projectPath": "d:\\sasproducts\\recordit2\\RecordIt.Avalonia\\RecordIt.Avalonia.csproj",
+      "projectPath": "D:\\sasproducts\\recordit2\\RecordIt.Avalonia\\RecordIt.Avalonia.csproj",
       "packagesPath": "C:\\Users\\David\\.nuget\\packages\\",
-      "outputPath": "d:\\sasproducts\\recordit2\\RecordIt.Avalonia\\obj\\",
+      "outputPath": "D:\\sasproducts\\recordit2\\RecordIt.Avalonia\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
@@ -1972,8 +2028,8 @@
         "net10.0-windows10.0.19041": {
           "targetAlias": "net10.0-windows10.0.19041.0",
           "projectReferences": {
-            "d:\\sasproducts\\recordit2\\RecordIt.Core\\RecordIt.Core.csproj": {
-              "projectPath": "d:\\sasproducts\\recordit2\\RecordIt.Core\\RecordIt.Core.csproj"
+            "D:\\sasproducts\\recordit2\\RecordIt.Core\\RecordIt.Core.csproj": {
+              "projectPath": "D:\\sasproducts\\recordit2\\RecordIt.Core\\RecordIt.Core.csproj"
             },
             "D:\\sasproducts\\recordit2\\RecordIt.Encoder\\RecordIt.Encoder.csproj": {
               "projectPath": "D:\\sasproducts\\recordit2\\RecordIt.Encoder\\RecordIt.Encoder.csproj"
@@ -2325,7 +2381,7 @@
       "message": "Package 'SkiaSharp' 2.88.3 has a known high severity vulnerability, https://github.com/advisories/GHSA-j7hp-h8jx-5ppr",
       "libraryId": "SkiaSharp",
       "targetGraphs": [
-        "net10.0-windows10.0.19041"
+        "net10.0-windows10.0.19041.0"
       ]
     }
   ]
