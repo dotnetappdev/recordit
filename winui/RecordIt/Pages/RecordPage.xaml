@@ -213,6 +213,12 @@
                     <StackPanel Spacing="6">
                         <TextBlock Text="LIVE PREVIEW" FontSize="11" FontWeight="Bold" Foreground="#AAFFFFFF" />
 
+                        <!-- Screen-capture live feed -->
+                        <Image x:Name="LivePreviewScreenImage"
+                               Stretch="UniformToFill"
+                               Height="200"
+                               Visibility="Collapsed" />
+
                         <!-- Webcam live feed via MediaPlayer -->
                         <media:MediaPlayerElement x:Name="LivePreviewElement"
                                                   AreTransportControlsEnabled="False"

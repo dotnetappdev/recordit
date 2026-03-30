@@ -88,6 +88,12 @@ jobs:
           Copy-Item "$binDir\ffmpeg.exe" "tools\ffmpeg\ffmpeg.exe" -Force
           Write-Host "Placed: tools\ffmpeg\ffmpeg.exe"
 
+          # Copy ffplay.exe (used for live preview)
+          if (Test-Path "$binDir\ffplay.exe") {
+            Copy-Item "$binDir\ffplay.exe" "tools\ffmpeg\ffplay.exe" -Force
+            Write-Host "Placed: tools\ffmpeg\ffplay.exe"
+          }
+
           # Copy core shared DLLs: avcodec, avformat, avutil, avdevice, avfilter, swscale, swresample
           $dllPatterns = @("avcodec-*.dll","avformat-*.dll","avutil-*.dll",
                            "avdevice-*.dll","avfilter-*.dll","swscale-*.dll","swresample-*.dll")
@@ -150,6 +156,12 @@ jobs:
           New-Item -ItemType Directory -Force -Path "tools\ffmpeg" | Out-Null
           Copy-Item "$binDir\ffmpeg.exe" "tools\ffmpeg\ffmpeg.exe" -Force
           Write-Host "Placed: tools\ffmpeg\ffmpeg.exe"
+
+          # Copy ffplay.exe (used for live preview)
+          if (Test-Path "$binDir\ffplay.exe") {
+            Copy-Item "$binDir\ffplay.exe" "tools\ffmpeg\ffplay.exe" -Force
+            Write-Host "Placed: tools\ffmpeg\ffplay.exe"
+          }
 
           $dllPatterns = @("avcodec-*.dll","avformat-*.dll","avutil-*.dll",
                            "avdevice-*.dll","avfilter-*.dll","swscale-*.dll","swresample-*.dll")

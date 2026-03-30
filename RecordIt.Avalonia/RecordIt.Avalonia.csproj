@@ -26,6 +26,11 @@
              Condition="Exists('..\tools\ffmpeg\ffmpeg.exe')"
              CopyToOutputDirectory="PreserveNewest"
              Link="ffmpeg.exe" />
+
+    <Content Include="..\tools\ffmpeg\ffplay.exe"
+             Condition="Exists('..\tools\ffmpeg\ffplay.exe')"
+             CopyToOutputDirectory="PreserveNewest"
+             Link="ffplay.exe" />
   </ItemGroup>
 
 </Project>

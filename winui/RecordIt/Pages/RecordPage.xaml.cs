@@ -282,6 +282,7 @@ public sealed partial class RecordPage : Page, IDisposable
     private readonly ScreenRecordingService _recordingService = new();
     private readonly AudioMeterService      _audioMeter       = new();
     private readonly SpeechCaptionService   _captionService   = new();
+    private readonly SettingsService        _settings         = new();
 
     // State
     private string?  _selectedSourceId;
@@ -341,6 +342,9 @@ public sealed partial class RecordPage : Page, IDisposable
 
     private async Task InitAsync()
     {
+        // Load caption defaults from app settings so the CC toggle uses them.
+        LoadCaptionConfigFromSettings();
+
         // Attach the persistent SoftwareBitmapSource to the screen-preview Image
         PreviewScreenImage.Source = _mainBitmapSrc;
 
@@ -353,6 +357,57 @@ public sealed partial class RecordPage : Page, IDisposable
         await ProbeAndPopulateDevicesAsync();
         BuildDefaultMixerChannels();
         StartMeterTimer();
+    }
+
+    private void LoadCaptionConfigFromSettings()
+    {
+        // Caption style preset
+        if (_settings.Get("caption_style") is { } s &&
+            Enum.TryParse<CaptionStyle>(s, out var cs))
+            _captionConfig.Style = cs;
+
+        // Language
+        _captionConfig.Language = _settings.Get("caption_language") ?? _captionConfig.Language;
+
+        // Text colour key (Custom/White/Yellow/etc)
+        _captionConfig.TextColor = _settings.Get("caption_text_color") ?? _captionConfig.TextColor;
+
+        // Font size
+        if (double.TryParse(_settings.Get("caption_font_size"), out var fs))
+            _captionConfig.FontSize = fs;
+
+        // Background opacity
+        if (double.TryParse(_settings.Get("caption_bg_opacity"), out var bo))
+            _captionConfig.BgOpacity = bo;
+
+        // Position
+        _captionConfig.Position = _settings.Get("caption_position") ?? _captionConfig.Position;
+
+        // Auto-clear delay
+        if (int.TryParse(_settings.Get("caption_clear_after_sec"), out var c))
+            _captionConfig.ClearAfterSec = c;
+
+        // Burn-in into recording
+        _captionConfig.BurnIntoRecording =
+            (_settings.Get("caption_burn_into_recording") ?? "0") == "1";
+
+        // Note: MaxLineChars is not exposed in the current CC settings dialog,
+        // but we still support persistence for future UI.
+        if (int.TryParse(_settings.Get("caption_max_line_chars"), out var mlc) && mlc > 0)
+            _captionConfig.MaxLineChars = mlc;
+    }
+
+    private void SaveCaptionConfigToSettings()
+    {
+        _settings.Set("caption_style", _captionConfig.Style.ToString());
+        _settings.Set("caption_language", _captionConfig.Language);
+        _settings.Set("caption_text_color", _captionConfig.TextColor);
+        _settings.Set("caption_font_size", _captionConfig.FontSize.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        _settings.Set("caption_bg_opacity", _captionConfig.BgOpacity.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        _settings.Set("caption_position", _captionConfig.Position);
+        _settings.Set("caption_clear_after_sec", _captionConfig.ClearAfterSec.ToString());
+        _settings.Set("caption_burn_into_recording", _captionConfig.BurnIntoRecording ? "1" : "0");
+        _settings.Set("caption_max_line_chars", _captionConfig.MaxLineChars.ToString());
     }
 
     /// <summary>Show the OBS-style empty-state overlay when the current scene has no sources.</summary>
@@ -1360,15 +1415,33 @@ public sealed partial class RecordPage : Page, IDisposable
             XamlRoot            = XamlRoot,
         };
 
+        ContentDialogResult result = ContentDialogResult.None;
         _ = StartVideoPreviewAsync(deviceCombo.SelectedIndex);
-        try { await dlg.ShowAsync(); }
+
+        try
+        {
+            result = await dlg.ShowAsync();
+        }
         finally
         {
+            // Stop the dialog preview first so the main preview can open the camera
+            // without "device already in use" conflicts.
             previewPlayer?.Dispose();
             if (previewCapture != null)
             {
                 try { await previewCapture.StopPreviewAsync(); } catch { }
                 previewCapture.Dispose();
+            }
+        }
+
+        if (result == ContentDialogResult.Primary)
+        {
+            var selected = deviceCombo.SelectedItem as string;
+            if (!string.IsNullOrWhiteSpace(selected))
+            {
+                // Persist selection so SourcesList_SelectionChanged / main preview use it.
+                src.Name = selected;
+                await StartMainVideoPreviewAsync(selected);
             }
         }
     }
@@ -1568,6 +1641,14 @@ public sealed partial class RecordPage : Page, IDisposable
             };
             _mainCaptureSession.StartCapture();
 
+            // Show the same screen feed in the side "LIVE PREVIEW" panel.
+            // (The panel originally only supported webcams via MediaPlayerElement.)
+            LivePreviewScreenImage.Source     = _mainBitmapSrc;
+            LivePreviewScreenImage.Visibility = Visibility.Visible;
+            LivePreviewElement.SetMediaPlayer(null);
+            LivePreviewElement.Visibility     = Visibility.Collapsed;
+            LivePreviewHint.Visibility       = Visibility.Collapsed;
+
             PreviewScreenImage.Visibility = Visibility.Visible;
             PreviewHintPanel.Visibility   = Visibility.Collapsed;
         }
@@ -1579,6 +1660,12 @@ public sealed partial class RecordPage : Page, IDisposable
         _mainCaptureSession?.Dispose(); _mainCaptureSession = null;
         _mainCapturePool?.Dispose();    _mainCapturePool    = null;
         PreviewScreenImage.Visibility = Visibility.Collapsed;
+
+        LivePreviewScreenImage.Visibility = Visibility.Collapsed;
+        LivePreviewElement.SetMediaPlayer(null);
+        LivePreviewElement.Visibility = Visibility.Collapsed;
+        LivePreviewHint.Visibility   = Visibility.Visible;
+        LivePreviewHint.Text         = "No live source";
     }
 
     /// <summary>Start streaming a webcam device into the main PreviewHost canvas.</summary>
@@ -1616,6 +1703,8 @@ public sealed partial class RecordPage : Page, IDisposable
             LivePreviewElement.SetMediaPlayer(new MediaPlayer { Source = ms });
             LivePreviewElement.Visibility = Visibility.Visible;
             LivePreviewHint.Visibility    = Visibility.Collapsed;
+
+            LivePreviewScreenImage.Visibility = Visibility.Collapsed;
         }
         catch { /* leave hint visible */ }
     }
@@ -1625,6 +1714,12 @@ public sealed partial class RecordPage : Page, IDisposable
         PreviewVideoElement.SetMediaPlayer(null);
         _mainVideoPlayer?.Dispose(); _mainVideoPlayer = null;
         PreviewVideoElement.Visibility = Visibility.Collapsed;
+
+        LivePreviewElement.SetMediaPlayer(null);
+        LivePreviewElement.Visibility = Visibility.Collapsed;
+        LivePreviewScreenImage.Visibility = Visibility.Collapsed;
+        LivePreviewHint.Visibility   = Visibility.Visible;
+        LivePreviewHint.Text         = "No live source";
     }
 
     private void ShowPreviewHint(string text = "No source selected")
@@ -1896,7 +1991,7 @@ public sealed partial class RecordPage : Page, IDisposable
             if (_previewProcess is { HasExited: false }) return;
             var psi = new ProcessStartInfo
             {
-                FileName        = "ffplay",
+                FileName        = FfmpegLocator.FfplayExecutable,
                 Arguments       = "-f gdigrab -framerate 30 -i desktop -window_title \"RecordIt Preview\"",
                 UseShellExecute = false,
                 CreateNoWindow  = false,
@@ -2301,6 +2396,7 @@ public sealed partial class RecordPage : Page, IDisposable
             _captionConfig.ClearAfterSec     = (int)clearSlider.Value;
             _captionConfig.BurnIntoRecording = burnCheckBox.IsChecked == true;
             _captionService.Config           = _captionConfig;
+            SaveCaptionConfigToSettings();
             ApplyCaptionStyle();
             SetStatus("Caption settings saved");
         }

@@ -39,6 +39,20 @@ public static class FfmpegLocator
 
     private static string _executable;
 
+    /// <summary>
+    /// The ffplay executable to invoke for live preview.
+    /// </summary>
+    public static string FfplayExecutable
+    {
+        get
+        {
+            var dir = BundledDirectory;
+            if (dir is null) return "ffplay";
+            var p = Path.Combine(dir, "ffplay.exe");
+            return File.Exists(p) ? p : "ffplay";
+        }
+    }
+
     static FfmpegLocator()
     {
         _executable = DetectDefault();
