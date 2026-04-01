@@ -13,12 +13,14 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.UI.Windowing;
 using Windows.Devices.Enumeration;
 using Windows.Foundation;
 using Windows.Graphics.Capture;
+using System.Runtime.InteropServices;
 using Windows.Graphics.DirectX;
 using Windows.Graphics.Imaging;
 using Windows.Media.Capture;
@@ -46,6 +48,13 @@ public sealed class SourceItem
     public bool IsVisible { get; set; } = true;
     /// <summary>Stored WGC item after the user picks a display in Properties.</summary>
     public GraphicsCaptureItem? CaptureItem { get; set; }
+    // Capture method preference shown in the Properties dialog (e.g. Automatic, BitBlt, Windows 10...)
+    public string CaptureMethod { get; set; } = "Automatic";
+    // Transform properties for preview/recording placement
+    public double TranslateX { get; set; } = 0.0;
+    public double TranslateY { get; set; } = 0.0;
+    public double Scale { get; set; } = 1.0;
+    public double Rotation { get; set; } = 0.0; // degrees
 }
 
 // ── AudioChannelView - represents one fader strip in the mixer ────────────────
@@ -293,6 +302,13 @@ public sealed partial class RecordPage : Page, IDisposable
 
     // Studio Mode
     private bool _isStudioMode;
+    // Preview/LIVE splitter drag state
+    private bool _isResizingPreviewSplitter;
+    private double _splitterStartX;
+    private double _previewStartWidth;
+    private double _liveStartWidth;
+    private const double MinPreviewWidth = 200;
+    private const double MinLiveWidth = 120;
 
     // Lower Third
     private bool _lowerThirdVisible;
@@ -323,6 +339,16 @@ public sealed partial class RecordPage : Page, IDisposable
     // Collections
     public ObservableCollection<SceneItem>  Scenes  { get; } = new();
     public ObservableCollection<SourceItem> Sources { get; } = new();
+    // Vertical-mode collections (separate sources/scenes)
+    public ObservableCollection<SceneItem>  VerticalScenes  { get; } = new();
+    public ObservableCollection<SourceItem> VerticalSources { get; } = new();
+
+    // Floating vertical window state
+    private Window? _verticalWindow;
+    private ListBox? _floatingVerticalSourcesList;
+    private ListBox? _floatingVerticalScenesList;
+    private Image?   _floatingVerticalPreviewImage;
+    private bool     _verticalUndocked = false;
 
     private const double VuMaxHeight = AudioChannelView.MeterH;
 
@@ -332,12 +358,50 @@ public sealed partial class RecordPage : Page, IDisposable
         ScenesList.ItemsSource  = Scenes;
         SourcesList.ItemsSource = Sources;
 
+        // Bind vertical lists
+        VerticalScenesList.ItemsSource  = VerticalScenes;
+        VerticalSourcesList.ItemsSource = VerticalSources;
+
         // Seed with a default scene
         AddScene("Scene 1");
         SetStatus("Ready · select a capture source");
 
         // Auto-probe devices on load (async, non-blocking)
         _ = InitAsync();
+    }
+
+    // Win32 interop for window positioning
+    [StructLayout(LayoutKind.Sequential)]
+    private struct RECT { public int Left, Top, Right, Bottom; }
+
+    [DllImport("user32.dll")]
+    private static extern bool GetWindowRect(nint hWnd, out RECT lpRect);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool SetWindowPos(nint hWnd, nint hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+
+    private const uint SWP_NOZORDER = 0x0004;
+    private const uint SWP_NOACTIVATE = 0x0010;
+
+    private void PositionFloatingWindow(Window win, int width, int height)
+    {
+        try
+        {
+            var mainHwnd = WindowNativeInterop.GetWindowHandle(App.MainWindow!);
+            if (!GetWindowRect(mainHwnd, out var r)) return;
+            int mainWidth = r.Right - r.Left;
+            int mainHeight = r.Bottom - r.Top;
+
+            // Place floating window flush-right of main window with slight inset
+            int x = r.Right - width - 8; // align to right edge inside
+            int y = r.Top + 40; // below menu bar
+
+            // Activate then set size/position
+            win.Activate();
+            var hwnd = WindowNativeInterop.GetWindowHandle(win);
+            SetWindowPos(hwnd, 0, x, y, width, Math.Min(height, mainHeight - 80), SWP_NOZORDER | SWP_NOACTIVATE);
+        }
+        catch { }
     }
 
     private async Task InitAsync()
@@ -789,6 +853,8 @@ public sealed partial class RecordPage : Page, IDisposable
             ShowPreviewHint($"Source: {src.Name}");
             _ = StopCameraPreviewAsync();
         }
+        // Apply any per-source transform to the visible preview elements
+        try { ApplySourceTransform(src); } catch { }
     }
 
     private async void AddSourceBtn_Click(object sender, RoutedEventArgs e)
@@ -995,6 +1061,198 @@ public sealed partial class RecordPage : Page, IDisposable
             await ShowSourcePropertiesAsync(src);
     }
 
+    // Vertical preview handlers
+    private void VerticalSourcesList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (VerticalSourcesList.SelectedItem is not SourceItem src)
+        {
+            VerticalPreviewImage.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        // If the vertical source uses a WGC CaptureItem, show the shared bitmap source
+        if (src.CaptureItem != null)
+        {
+            VerticalPreviewImage.Source = _mainBitmapSrc;
+            VerticalPreviewImage.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            // For simple cases we fall back to a hint (video preview not handled here)
+            VerticalPreviewImage.Visibility = Visibility.Visible;
+        }
+    }
+
+    private void AddVerticalSourceBtn_Click(object sender, RoutedEventArgs e)
+    {
+        // If a main source is selected, clone it into vertical sources for convenience
+        if (SourcesList.SelectedItem is SourceItem mainSrc)
+        {
+            var clone = new SourceItem
+            {
+                Name = mainSrc.Name,
+                Icon = mainSrc.Icon,
+                SourceType = mainSrc.SourceType,
+                CaptureItem = mainSrc.CaptureItem,
+            };
+            VerticalSources.Add(clone);
+        }
+        else
+        {
+            VerticalSources.Add(new SourceItem { Name = "Vertical Source", Icon = "\uE7F8", SourceType = "screen" });
+        }
+    }
+
+    private void RemoveVerticalSourceBtn_Click(object sender, RoutedEventArgs e)
+    {
+        var sel = VerticalSourcesList.SelectedItem as SourceItem;
+        if (sel != null) VerticalSources.Remove(sel);
+    }
+
+    private async void VerticalSourceSettingsBtn_Click(object sender, RoutedEventArgs e)
+    {
+        if (VerticalSourcesList.SelectedItem is SourceItem src)
+            await ShowSourcePropertiesAsync(src);
+    }
+
+    private void AddVerticalSceneBtn_Click(object sender, RoutedEventArgs e)
+    {
+        VerticalScenes.Add(new SceneItem { Name = $"Vertical Scene {VerticalScenes.Count + 1}" });
+    }
+
+    private void RemoveVerticalSceneBtn_Click(object sender, RoutedEventArgs e)
+    {
+        if (VerticalScenesList.SelectedItem is SceneItem s)
+            VerticalScenes.Remove(s);
+    }
+
+    // Undock/dock vertical preview into a floating window (OBS-style detachable dock)
+
+    private void VerticalUndockBtn_Click(object sender, RoutedEventArgs e)
+    {
+        if (_verticalUndocked)
+        {
+            _verticalWindow?.Activate();
+            return;
+        }
+
+        var win = new Window();
+        win.Title = "Vertical Preview";
+
+        var root = new Grid { Background = (Brush)Application.Current.Resources["BgBaseBrush"] };
+        root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+
+        var header = new Border { Background = (Brush)Application.Current.Resources["BgPanelHeaderBrush"], Padding = new Thickness(8) };
+        var headerRow = new Grid();
+        headerRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        headerRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        var title = new TextBlock { Text = "Vertical Preview", FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Foreground = (Brush)Application.Current.Resources["TextPrimaryBrush"] };
+        Grid.SetColumn(title, 0);
+        headerRow.Children.Add(title);
+        var dockBtn = new Button { Content = "Dock", Margin = new Thickness(8,0,0,0), Style = (Style)Application.Current.Resources["AlvoniaGhostButtonStyle"] };
+        dockBtn.Click += (_, _) => CloseFloatingVerticalWindow();
+        Grid.SetColumn(dockBtn, 1);
+        headerRow.Children.Add(dockBtn);
+        header.Child = headerRow;
+
+        Grid.SetRow(header, 0);
+        root.Children.Add(header);
+
+        var contentGrid = new Grid { Padding = new Thickness(8) };
+        contentGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        contentGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(300) });
+
+        _floatingVerticalPreviewImage = new Image { Stretch = Stretch.UniformToFill, Source = _mainBitmapSrc };
+        var previewBorder = new Border { Background = (Brush)Application.Current.Resources["BgSurfaceBrush"], Child = _floatingVerticalPreviewImage, Height = 480, CornerRadius = new CornerRadius(6), BorderBrush = (Brush)Application.Current.Resources["BorderPanelBrush"], BorderThickness = new Thickness(1) };
+        Grid.SetColumn(previewBorder, 0);
+        contentGrid.Children.Add(previewBorder);
+
+        var rightStack = new StackPanel { Spacing = 8 };
+        rightStack.Children.Add(new TextBlock { Text = "Vertical Sources", FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
+        _floatingVerticalSourcesList = new ListBox { Height = 220 };
+        _floatingVerticalSourcesList.ItemsSource = VerticalSources;
+        _floatingVerticalSourcesList.SelectionChanged += FloatingVerticalSources_SelectionChanged;
+        rightStack.Children.Add(_floatingVerticalSourcesList);
+
+        var btnRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
+        var addBtn = new Button { Content = "Add", Style = (Style)Application.Current.Resources["ObsToolbarBtnStyle"] };
+        addBtn.Click += (s, a) => AddVerticalSourceBtn_Click(s, a);
+        var removeBtn = new Button { Content = "Remove", Style = (Style)Application.Current.Resources["ObsToolbarBtnStyle"] };
+        removeBtn.Click += (s, a) =>
+        {
+            var sel = _floatingVerticalSourcesList.SelectedItem as SourceItem;
+            if (sel != null) VerticalSources.Remove(sel);
+        };
+        var settingsBtn = new Button { Content = "Settings", Style = (Style)Application.Current.Resources["ObsToolbarBtnStyle"] };
+        settingsBtn.Click += (s, a) =>
+        {
+            if (_floatingVerticalSourcesList.SelectedItem is SourceItem sitem) _ = ShowSourcePropertiesAsync(sitem);
+        };
+        btnRow.Children.Add(addBtn); btnRow.Children.Add(removeBtn); btnRow.Children.Add(settingsBtn);
+        rightStack.Children.Add(btnRow);
+
+        rightStack.Children.Add(new TextBlock { Text = "Scenes", FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Margin = new Thickness(0,8,0,0) });
+        _floatingVerticalScenesList = new ListBox { Height = 160 };
+        _floatingVerticalScenesList.ItemsSource = VerticalScenes;
+        rightStack.Children.Add(_floatingVerticalScenesList);
+
+        contentGrid.Children.Add(rightStack);
+        Grid.SetColumn(rightStack, 1);
+
+        Grid.SetRow(contentGrid, 1);
+        root.Children.Add(contentGrid);
+
+        win.Content = root;
+
+        _verticalWindow = win;
+        _verticalUndocked = true;
+        VerticalTabItem.Visibility = Visibility.Collapsed;
+        win.Closed += (_, _) => CloseFloatingVerticalWindow();
+        win.Activate();
+        // Position the floating window near the right edge of the main window
+        PositionFloatingWindow(win, 340, 720);
+    }
+
+    private void CloseFloatingVerticalWindow()
+    {
+        if (_verticalWindow != null)
+        {
+            try { _verticalWindow.Close(); } catch { }
+            _verticalWindow = null;
+        }
+        _floatingVerticalSourcesList = null;
+        _floatingVerticalScenesList = null;
+        _floatingVerticalPreviewImage = null;
+        _verticalUndocked = false;
+        VerticalTabItem.Visibility = Visibility.Visible;
+    }
+
+    private void FloatingVerticalSources_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (sender is not ListBox lb) return;
+        if (lb.SelectedItem is not SourceItem src)
+        {
+            if (_floatingVerticalPreviewImage != null) _floatingVerticalPreviewImage.Visibility = Visibility.Collapsed;
+            return;
+        }
+        if (src.CaptureItem != null)
+        {
+            if (_floatingVerticalPreviewImage != null)
+            {
+                _floatingVerticalPreviewImage.Source = _mainBitmapSrc;
+                _floatingVerticalPreviewImage.Visibility = Visibility.Visible;
+            }
+        }
+        else
+        {
+            if (_floatingVerticalPreviewImage != null)
+            {
+                _floatingVerticalPreviewImage.Visibility = Visibility.Visible;
+            }
+        }
+    }
+
     private async void SourcesList_DoubleTapped(object sender, Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs e)
     {
         if (SourcesList.SelectedItem is SourceItem src)
@@ -1013,9 +1271,10 @@ public sealed partial class RecordPage : Page, IDisposable
 
     // ── Display Capture Properties ───────────────────────────────────────────
 
-    private async Task ShowDisplayCapturePropertiesAsync(SourceItem src)
+    private Task ShowDisplayCapturePropertiesAsync(SourceItem src)
     {
-        var monitors = await Windows.Devices.Display.DisplayMonitor.FindAllAsync();
+        // Enumerate monitors synchronously via Win32
+        var monitorList = EnumerateMonitors();
 
         var bitmapSrc  = new SoftwareBitmapSource();
         var previewImg = new Image
@@ -1035,22 +1294,41 @@ public sealed partial class RecordPage : Page, IDisposable
         };
 
         var captureMethodCombo = MakeWideCombo(
-            new[] { "Automatic", "DXGI Desktop Duplication", "Windows Graphics Capture" }, 0);
+            new[] { "Automatic", "DXGI Desktop Duplication", "Windows 10 (1903 and up)" }, 0);
 
-        // Build display list and map index → GraphicsCaptureItem
+        // Build display list from Win32 HMONITOR enumeration
         var displayCombo = MakeWideCombo(new[] { "[Select a display to capture]" }, 0);
-        var monitorList  = monitors.ToList();
         int primaryIdx   = 1;
         for (int i = 0; i < monitorList.Count; i++)
         {
-            var m   = monitorList[i];
-            var res = m.NativeResolutionInRawPixels;
-            var pos = m.PhysicalPosition;
-            var lbl = $"{m.DisplayName}: {res.Width}x{res.Height} @ {pos.X},{pos.Y}";
-            if (i == 0) { lbl += " (Primary Monitor)"; primaryIdx = 1; }
-            displayCombo.Items.Add(lbl);
+            displayCombo.Items.Add(monitorList[i].Label);
+            if (monitorList[i].Label.Contains("Primary")) primaryIdx = i + 1;
         }
 
+        return ShowDisplayCapturePropertiesInnerAsync(src, monitorList, primaryIdx,
+            bitmapSrc, previewBorder, captureMethodCombo, displayCombo);
+    }
+
+    private async Task ShowDisplayCapturePropertiesInnerAsync(
+        SourceItem src,
+        List<(nint HMon, string Label)> monitorList,
+        int primaryIdx,
+        SoftwareBitmapSource bitmapSrc,
+        Border previewBorder,
+        ComboBox captureMethodCombo,
+        ComboBox displayCombo)
+    {
+        // Transform editor button
+        var editTransformBtn = new Button
+        {
+            Content = "Edit Transform…",
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Margin = new Thickness(0, 6, 0, 0),
+        };
+        editTransformBtn.Click += async (_, _) =>
+        {
+            await ShowTransformEditorAsync(src);
+        };
         var cursorChk = new CheckBox { Content = "Capture Cursor", IsChecked = true,
                                        Margin  = new Thickness(0, 6, 0, 0) };
 
@@ -1104,14 +1382,12 @@ public sealed partial class RecordPage : Page, IDisposable
             catch { }
         }
 
-        // Auto-preview when display dropdown changes
+        // Auto-preview when display dropdown changes — uses HMONITOR via Win32 interop
         void TryStartPreviewForIndex(int idx)
         {
             int monIdx = idx - 1; // offset for [Select...] placeholder
             if (monIdx < 0 || monIdx >= monitorList.Count) { StopDlgCapture(); return; }
-            var m   = monitorList[monIdx];
-            var gid = new Windows.Graphics.DisplayId { Value = m.DisplayId.Value };
-            var item = GraphicsCaptureItem.TryCreateFromDisplayId(gid);
+            var item = CaptureItemForMonitor(monitorList[monIdx].HMon);
             if (item != null) StartCaptureFromItem(item);
         }
 
@@ -1124,11 +1400,15 @@ public sealed partial class RecordPage : Page, IDisposable
         content.Children.Add(MakePropRow("Capture Method", captureMethodCombo));
         content.Children.Add(MakePropRow("Display",        displayCombo));
         content.Children.Add(cursorChk);
+        content.Children.Add(editTransformBtn);
+
+        // Wrap in a ScrollViewer so the dialog doesn't require manual resizing on small screens
+        var scroll = new ScrollViewer { Content = content, MaxHeight = 760 };
 
         var dlg = new ContentDialog
         {
             Title               = $"Properties for '{src.Name}'",
-            Content             = content,
+            Content             = scroll,
             PrimaryButtonText   = "OK",
             SecondaryButtonText = "Defaults",
             CloseButtonText     = "Cancel",
@@ -1145,12 +1425,125 @@ public sealed partial class RecordPage : Page, IDisposable
         if (result == ContentDialogResult.Primary && pickedItem != null)
         {
             src.CaptureItem = pickedItem;
+            // Persist chosen capture method
+            try { src.CaptureMethod = (captureMethodCombo.SelectedItem as string) ?? "Automatic"; } catch { }
             StartMainScreenPreview(pickedItem);
+            // Apply any per-source transform to the preview
+            try { ApplySourceTransform(src); } catch { }
         }
     }
 
     // ── Window Capture Properties ────────────────────────────────────────────
 
+    // ── Win32 / WGC interop ──────────────────────────────────────────────────
+
+    // IGraphicsCaptureItemInterop — lets us create WGC items from HWND / HMONITOR
+    [System.Runtime.InteropServices.ComImport]
+    [System.Runtime.InteropServices.Guid("3628E81B-3CAC-4C60-B7F4-23CE0E0C3356")]
+    [System.Runtime.InteropServices.InterfaceType(System.Runtime.InteropServices.ComInterfaceType.InterfaceIsIUnknown)]
+    private interface IGraphicsCaptureItemInterop
+    {
+        nint CreateForWindow([System.Runtime.InteropServices.In] nint window,
+                             [System.Runtime.InteropServices.In] ref Guid iid);
+        nint CreateForMonitor([System.Runtime.InteropServices.In] nint monitor,
+                              [System.Runtime.InteropServices.In] ref Guid iid);
+    }
+
+    [System.Runtime.InteropServices.DllImport("combase.dll", PreserveSig = false)]
+    private static extern void RoGetActivationFactory(nint hstring, ref Guid iid, out nint factory);
+    [System.Runtime.InteropServices.DllImport("combase.dll", PreserveSig = false)]
+    private static extern void WindowsCreateString(
+        [System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.LPWStr)] string str,
+        int length, out nint hstring);
+    [System.Runtime.InteropServices.DllImport("combase.dll", PreserveSig = false)]
+    private static extern void WindowsDeleteString(nint hstring);
+
+    private static GraphicsCaptureItem? CaptureItemForMonitor(nint hMonitor)
+    {
+        nint hs = 0, fp = 0;
+        try
+        {
+            const string cls = "Windows.Graphics.Capture.GraphicsCaptureItem";
+            WindowsCreateString(cls, cls.Length, out hs);
+            var iid = typeof(IGraphicsCaptureItemInterop).GUID;
+            RoGetActivationFactory(hs, ref iid, out fp);
+            var interop = (IGraphicsCaptureItemInterop)System.Runtime.InteropServices.Marshal.GetObjectForIUnknown(fp);
+            var itemIid = typeof(GraphicsCaptureItem).GUID;
+            var ptr     = interop.CreateForMonitor(hMonitor, ref itemIid);
+            return WinRT.MarshalInterface<GraphicsCaptureItem>.FromAbi(ptr);
+        }
+        catch { return null; }
+        finally
+        {
+            if (hs != 0) try { WindowsDeleteString(hs); } catch { }
+            if (fp != 0) System.Runtime.InteropServices.Marshal.Release(fp);
+        }
+    }
+
+    private static GraphicsCaptureItem? CaptureItemForWindow(nint hWnd)
+    {
+        nint hs = 0, fp = 0;
+        try
+        {
+            const string cls = "Windows.Graphics.Capture.GraphicsCaptureItem";
+            WindowsCreateString(cls, cls.Length, out hs);
+            var iid = typeof(IGraphicsCaptureItemInterop).GUID;
+            RoGetActivationFactory(hs, ref iid, out fp);
+            var interop = (IGraphicsCaptureItemInterop)System.Runtime.InteropServices.Marshal.GetObjectForIUnknown(fp);
+            var itemIid = typeof(GraphicsCaptureItem).GUID;
+            var ptr     = interop.CreateForWindow(hWnd, ref itemIid);
+            return WinRT.MarshalInterface<GraphicsCaptureItem>.FromAbi(ptr);
+        }
+        catch { return null; }
+        finally
+        {
+            if (hs != 0) try { WindowsDeleteString(hs); } catch { }
+            if (fp != 0) System.Runtime.InteropServices.Marshal.Release(fp);
+        }
+    }
+
+    // Monitor enumeration
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool EnumDisplayMonitors(nint hdc, nint lprcClip,
+        MonitorEnumProc lpfnEnum, nint dwData);
+    private delegate bool MonitorEnumProc(nint hMon, nint hdcMon, ref RectL lprc, nint dw);
+
+    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+    private struct RectL { public int L, T, R, B; }
+
+    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential, CharSet = System.Runtime.InteropServices.CharSet.Auto)]
+    private struct MonitorInfoEx
+    {
+        public int  cbSize;
+        public RectL rcMonitor, rcWork;
+        public uint dwFlags;
+        [System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.ByValTStr, SizeConst = 32)]
+        public string szDevice;
+    }
+    [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto)]
+    private static extern bool GetMonitorInfo(nint hMon, ref MonitorInfoEx lpmi);
+
+    private static List<(nint HMon, string Label)> EnumerateMonitors()
+    {
+        var result = new List<(nint, string)>();
+        int idx = 1;
+        EnumDisplayMonitors(0, 0, (hMon, _, ref rc, _) =>
+        {
+            var mi = new MonitorInfoEx { cbSize = System.Runtime.InteropServices.Marshal.SizeOf<MonitorInfoEx>() };
+            GetMonitorInfo(hMon, ref mi);
+            bool primary = (mi.dwFlags & 1) != 0;
+            int w = mi.rcMonitor.R - mi.rcMonitor.L;
+            int h = mi.rcMonitor.B - mi.rcMonitor.T;
+            var label = $"Display {idx}: {w}x{h} @ {mi.rcMonitor.L},{mi.rcMonitor.T}";
+            if (primary) label += " (Primary Monitor)";
+            result.Add((hMon, label));
+            idx++;
+            return true;
+        }, 0);
+        return result;
+    }
+
+    // Window enumeration
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     private static extern bool EnumWindows(EnumWindowsCallback lpEnumFunc, nint lParam);
     [System.Runtime.InteropServices.DllImport("user32.dll")]
@@ -1203,7 +1596,7 @@ public sealed partial class RecordPage : Page, IDisposable
         foreach (var (_, title) in windows) windowCombo.Items.Add(title);
 
         var captureMethodCombo = MakeWideCombo(
-            new[] { "Automatic", "BitBlt", "Windows Graphics Capture" }, 0);
+            new[] { "Automatic", "BitBlt", "Windows 10 (1903 and up)" }, 0);
         var matchPriorityCombo = MakeWideCombo(
             new[] { "Match title, otherwise find window of same type",
                     "Match title, otherwise find window of same executable",
@@ -1301,10 +1694,22 @@ public sealed partial class RecordPage : Page, IDisposable
         content.Children.Add(cursorChk);
         content.Children.Add(multiAdapterChk);
 
+        var editTransformBtn = new Button
+        {
+            Content = "Edit Transform…",
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Margin = new Thickness(0, 6, 0, 0),
+        };
+        editTransformBtn.Click += async (_, _) => { await ShowTransformEditorAsync(src); };
+        content.Children.Add(editTransformBtn);
+
+        // Wrap in ScrollViewer to avoid large resize on small displays
+        var scroll = new ScrollViewer { Content = content, MaxHeight = 760 };
+
         var dlg = new ContentDialog
         {
             Title               = $"Properties for '{src.Name}'",
-            Content             = content,
+            Content             = scroll,
             PrimaryButtonText   = "OK",
             SecondaryButtonText = "Defaults",
             CloseButtonText     = "Cancel",
@@ -1321,7 +1726,52 @@ public sealed partial class RecordPage : Page, IDisposable
         if (result == ContentDialogResult.Primary && pickedItem != null)
         {
             src.CaptureItem = pickedItem;
+            try { src.CaptureMethod = (captureMethodCombo.SelectedItem as string) ?? "Automatic"; } catch { }
             StartMainScreenPreview(pickedItem);
+            try { ApplySourceTransform(src); } catch { }
+        }
+    }
+
+    private async Task ShowTransformEditorAsync(SourceItem src)
+    {
+        var txBox = new TextBox { Text = src.TranslateX.ToString(CultureInfo.InvariantCulture), HorizontalAlignment = HorizontalAlignment.Stretch };
+        var tyBox = new TextBox { Text = src.TranslateY.ToString(CultureInfo.InvariantCulture), HorizontalAlignment = HorizontalAlignment.Stretch };
+        var scaleBox = new TextBox { Text = src.Scale.ToString(CultureInfo.InvariantCulture), HorizontalAlignment = HorizontalAlignment.Stretch };
+        var rotBox = new TextBox { Text = src.Rotation.ToString(CultureInfo.InvariantCulture), HorizontalAlignment = HorizontalAlignment.Stretch };
+
+        var resetBtn = new Button { Content = "Reset", HorizontalAlignment = HorizontalAlignment.Left };
+        resetBtn.Click += (_, _) =>
+        {
+            txBox.Text = "0"; tyBox.Text = "0"; scaleBox.Text = "1"; rotBox.Text = "0";
+        };
+
+        var panel = new StackPanel { Spacing = 8, Width = 420 };
+        panel.Children.Add(new TextBlock { Text = "Translate X (px)", FontSize = 12 });
+        panel.Children.Add(txBox);
+        panel.Children.Add(new TextBlock { Text = "Translate Y (px)", FontSize = 12 });
+        panel.Children.Add(tyBox);
+        panel.Children.Add(new TextBlock { Text = "Scale (1.0 = 100%)", FontSize = 12 });
+        panel.Children.Add(scaleBox);
+        panel.Children.Add(new TextBlock { Text = "Rotation (degrees)", FontSize = 12 });
+        panel.Children.Add(rotBox);
+        panel.Children.Add(resetBtn);
+
+        var dlg = new ContentDialog
+        {
+            Title = $"Edit Transform: {src.Name}",
+            Content = new ScrollViewer { Content = panel, MaxHeight = 520 },
+            PrimaryButtonText = "OK",
+            CloseButtonText = "Cancel",
+            XamlRoot = XamlRoot,
+        };
+
+        if (await dlg.ShowAsync() == ContentDialogResult.Primary)
+        {
+            if (double.TryParse(txBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var tx)) src.TranslateX = tx;
+            if (double.TryParse(tyBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var ty)) src.TranslateY = ty;
+            if (double.TryParse(scaleBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var s)) src.Scale = s <= 0 ? 1.0 : s;
+            if (double.TryParse(rotBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var r)) src.Rotation = r;
+            try { ApplySourceTransform(src); } catch { }
         }
     }
 
@@ -1645,6 +2095,11 @@ public sealed partial class RecordPage : Page, IDisposable
             // (The panel originally only supported webcams via MediaPlayerElement.)
             LivePreviewScreenImage.Source     = _mainBitmapSrc;
             LivePreviewScreenImage.Visibility = Visibility.Visible;
+                    // Apply any transform for the currently selected source
+                    if (SourcesList.SelectedItem is SourceItem sel)
+                    {
+                        try { ApplySourceTransform(sel); } catch { }
+                    }
             LivePreviewElement.SetMediaPlayer(null);
             LivePreviewElement.Visibility     = Visibility.Collapsed;
             LivePreviewHint.Visibility       = Visibility.Collapsed;
@@ -1666,6 +2121,42 @@ public sealed partial class RecordPage : Page, IDisposable
         LivePreviewElement.Visibility = Visibility.Collapsed;
         LivePreviewHint.Visibility   = Visibility.Visible;
         LivePreviewHint.Text         = "No live source";
+    }
+
+    private void ApplySourceTransform(SourceItem src)
+    {
+        var tx = src.TranslateX;
+        var ty = src.TranslateY;
+        var s  = src.Scale <= 0 ? 1.0 : src.Scale;
+        var r  = src.Rotation;
+
+        var transform = new CompositeTransform
+        {
+            TranslateX = tx,
+            TranslateY = ty,
+            ScaleX     = s,
+            ScaleY     = s,
+            Rotation   = r,
+        };
+
+        // Apply to screen preview images
+        if (src.SourceType.StartsWith("screen", StringComparison.OrdinalIgnoreCase) ||
+            src.SourceType.StartsWith("window", StringComparison.OrdinalIgnoreCase))
+        {
+            PreviewScreenImage.RenderTransform = transform;
+            PreviewScreenImage.RenderTransformOrigin = new Windows.Foundation.Point(0.5, 0.5);
+            LivePreviewScreenImage.RenderTransform = transform;
+            LivePreviewScreenImage.RenderTransformOrigin = new Windows.Foundation.Point(0.5, 0.5);
+        }
+        // Apply to video/webcam preview elements
+        if (src.SourceType.StartsWith("video", StringComparison.OrdinalIgnoreCase) ||
+            src.SourceType.StartsWith("video=", StringComparison.OrdinalIgnoreCase))
+        {
+            PreviewVideoElement.RenderTransform = transform;
+            PreviewVideoElement.RenderTransformOrigin = new Windows.Foundation.Point(0.5, 0.5);
+            LivePreviewElement.RenderTransform = transform;
+            LivePreviewElement.RenderTransformOrigin = new Windows.Foundation.Point(0.5, 0.5);
+        }
     }
 
     /// <summary>Start streaming a webcam device into the main PreviewHost canvas.</summary>
@@ -1705,6 +2196,11 @@ public sealed partial class RecordPage : Page, IDisposable
             LivePreviewHint.Visibility    = Visibility.Collapsed;
 
             LivePreviewScreenImage.Visibility = Visibility.Collapsed;
+            // Apply any transform for the currently selected source
+            if (SourcesList.SelectedItem is SourceItem sel)
+            {
+                try { ApplySourceTransform(sel); } catch { }
+            }
         }
         catch { /* leave hint visible */ }
     }
@@ -1776,6 +2272,54 @@ public sealed partial class RecordPage : Page, IDisposable
         if (ScenesList.SelectedItem is SceneItem s)
             ProgramHintText.Text = $"Program: {s.Name}";
         SetStatus("Cut transition applied");
+    }
+
+    // ── Preview/LIVE splitter handlers ──────────────────────────────
+    private void PreviewLiveSplitter_PointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        _isResizingPreviewSplitter = true;
+        (sender as UIElement)?.CapturePointer(e.Pointer);
+        _splitterStartX = e.GetCurrentPoint(this).Position.X;
+        _previewStartWidth = PreviewHost.ActualWidth;
+        _liveStartWidth = LivePreviewHost.ActualWidth;
+    }
+
+    private void PreviewLiveSplitter_PointerMoved(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (!_isResizingPreviewSplitter) return;
+        var pt = e.GetCurrentPoint(this).Position;
+        var dx = pt.X - _splitterStartX;
+        var newPreview = Math.Max(MinPreviewWidth, _previewStartWidth + dx);
+        var newLive = Math.Max(MinLiveWidth, _liveStartWidth - dx);
+        PreviewMainCol.Width = new GridLength(newPreview, GridUnitType.Pixel);
+        LiveSideCol.Width = new GridLength(newLive, GridUnitType.Pixel);
+    }
+
+    private void PreviewLiveSplitter_PointerReleased(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (!_isResizingPreviewSplitter) return;
+        _isResizingPreviewSplitter = false;
+        (sender as UIElement)?.ReleasePointerCapture(e.Pointer);
+    }
+
+    private void PreviewLiveSplitter_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        try
+        {
+            PreviewLiveSplitter.Background = (Brush)Application.Current.Resources["BgHoverBrush"];
+            Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.SizeWestEast, 1);
+        }
+        catch { }
+    }
+
+    private void PreviewLiveSplitter_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        try
+        {
+            PreviewLiveSplitter.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0,0,0,0));
+            Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Arrow, 0);
+        }
+        catch { }
     }
 
     // ── Recording ─────────────────────────────────────────────────────────────
