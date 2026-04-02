@@ -44,7 +44,7 @@ public partial class WhiteboardPage : UserControl
                 StrokeThickness = _activeTool == "highlight" ? _brushSize * 3 : _brushSize,
                 Opacity         = _activeTool == "highlight" ? 0.4 : 1.0,
                 StrokeLineCap   = PenLineCap.Round,
-                StrokeLineJoin  = PenLineJoin.Round,
+                StrokeJoin      = PenLineJoin.Round,
             };
             _currentLine.Points.Add(_lastPoint);
             DrawingCanvas.Children.Add(_currentLine);

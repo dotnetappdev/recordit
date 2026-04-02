@@ -341,6 +341,9 @@ public class ScreenRecordingService
         // ── Video codec (set in VideoEncoderSettings from the Encoder library) ─
         finalArgs += $" {VideoEncoderSettings.BuildVideoArgs(fps)}";
 
+        // Add faststart flag for better MP4 compatibility and recovery
+        finalArgs += " -movflags +faststart";
+
         // Output
         finalArgs += $" \"{outputPath}\"";
 
@@ -386,9 +389,29 @@ public class ScreenRecordingService
         {
             if (!_ffmpegProcess.HasExited)
             {
-                try { _ffmpegProcess.StandardInput.WriteLine("q"); } catch { }
-                if (!_ffmpegProcess.WaitForExit(4000))
-                    _ffmpegProcess.Kill(entireProcessTree: true);
+                try 
+                { 
+                    // Flush any pending input and send quit command
+                    _ffmpegProcess.StandardInput.Flush();
+                    _ffmpegProcess.StandardInput.WriteLine("q");
+                    _ffmpegProcess.StandardInput.Flush();
+                } 
+                catch { }
+                
+                // Give ffmpeg plenty of time to finalize the MP4 file (write moov atom)
+                // Increased from 4 seconds to 15 seconds to prevent corruption
+                if (!_ffmpegProcess.WaitForExit(15000))
+                {
+                    // If still not exited, try closing stdin
+                    try { _ffmpegProcess.StandardInput.Close(); } catch { }
+                    
+                    // Wait another 5 seconds
+                    if (!_ffmpegProcess.WaitForExit(5000))
+                    {
+                        // Last resort: forcefully terminate
+                        _ffmpegProcess.Kill(entireProcessTree: true);
+                    }
+                }
             }
         }
         catch { }

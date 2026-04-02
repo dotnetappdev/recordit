@@ -18,9 +18,9 @@
         <!-- Custom Title Bar -->
         <Grid x:Name="TitleBar"
               Grid.Row="0"
-              Height="40"
+              Height="32"
               Background="{StaticResource BgSurfaceBrush}"
-              BorderBrush="{StaticResource BorderDefaultBrush}"
+              BorderBrush="{StaticResource BorderPanelBrush}"
               BorderThickness="0,0,0,1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
@@ -28,22 +28,16 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <!-- Logo + App Name -->
+            <!-- App Name -->
             <StackPanel Grid.Column="0"
                         Orientation="Horizontal"
                         Spacing="8"
                         Margin="12,0,0,0"
                         VerticalAlignment="Center">
-                <Border Width="24" Height="24"
-                        Background="{StaticResource BrandPrimaryBrush}"
-                        CornerRadius="4">
-                    <TextBlock Text="R" Foreground="White" FontWeight="Bold"
-                               FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                </Border>
                 <TextBlock Text="RecordIt"
                            Foreground="{StaticResource TextPrimaryBrush}"
-                           FontWeight="SemiBold"
-                           FontSize="15"
+                           FontWeight="Normal"
+                           FontSize="13"
                            VerticalAlignment="Center" />
             </StackPanel>
 
@@ -67,11 +61,11 @@
                 <Border Background="#1AEF4444"
                         BorderBrush="#4DEF4444"
                         BorderThickness="1"
-                        CornerRadius="10"
+                        CornerRadius="2"
                         Padding="6,2">
                     <TextBlock Text="REC"
                                Foreground="{StaticResource RecordingBrush}"
-                               FontWeight="ExtraBold"
+                               FontWeight="Normal"
                                FontSize="10" />
                 </Border>
             </StackPanel>
@@ -128,7 +122,7 @@
             <!-- Sidebar -->
             <Border Grid.Column="0"
                     Background="{StaticResource BgSurfaceBrush}"
-                    BorderBrush="{StaticResource BorderDefaultBrush}"
+                    BorderBrush="{StaticResource BorderPanelBrush}"
                     BorderThickness="0,0,1,0">
                 <StackPanel Spacing="2" Margin="8,8,8,8">
                     <!-- Nav Items -->
@@ -137,21 +131,21 @@
                             Click="NavigateToRecord"
                             ToolTipService.ToolTip="Record">
                         <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xEA69;" FontSize="18"
-                                  Foreground="{StaticResource BrandPrimaryBrush}" />
+                                  Foreground="{StaticResource TextPrimaryBrush}" />
                     </Button>
                     <Button x:Name="WhiteboardNavBtn"
                             Style="{StaticResource AlvoniaSidebarButtonStyle}"
                             Click="NavigateToWhiteboard"
                             ToolTipService.ToolTip="Whiteboard">
                         <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xED63;" FontSize="18"
-                                  Foreground="{StaticResource TextTertiaryBrush}" />
+                                  Foreground="{StaticResource TextSecondaryBrush}" />
                     </Button>
                     <Button x:Name="LibraryNavBtn"
                             Style="{StaticResource AlvoniaSidebarButtonStyle}"
                             Click="NavigateToLibrary"
                             ToolTipService.ToolTip="Library">
                         <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8B7;" FontSize="18"
-                                  Foreground="{StaticResource TextTertiaryBrush}" />
+                                  Foreground="{StaticResource TextSecondaryBrush}" />
                     </Button>
 
                     <!-- Spacer (handled in code) -->
@@ -173,7 +167,7 @@
                     Click="NavigateToSettings"
                     ToolTipService.ToolTip="Settings">
                 <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE713;" FontSize="18"
-                          Foreground="{StaticResource TextTertiaryBrush}" />
+                          Foreground="{StaticResource TextSecondaryBrush}" />
             </Button>
         </Grid>
     </Grid>

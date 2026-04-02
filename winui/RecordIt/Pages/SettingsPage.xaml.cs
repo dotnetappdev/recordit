@@ -59,6 +59,16 @@ public sealed partial class SettingsPage : Page
         // Hardware encoding toggle
         var hwEnabled = _settings.Get("hardware_encoding");
         HardwareEncodingToggle.IsOn = hwEnabled == "1";
+
+        // Docking settings
+        var modTab = _settings.Get("docking.mod_tab") ?? "Control";
+        DockTabCombo.SelectedIndex = modTab == "Control" ? 0 : modTab == "Shift" ? 1 : modTab == "Alt" ? 2 : 3;
+
+        var modFloat = _settings.Get("docking.mod_float") ?? "Shift";
+        DockFloatCombo.SelectedIndex = modFloat == "Control" ? 0 : modFloat == "Shift" ? 1 : modFloat == "Alt" ? 2 : 3;
+
+        var hold = _settings.Get("docking.hold_ms") ?? "500";
+        HoldMsBox.Text = hold;
     }
 
     private void HookEvents()
@@ -70,6 +80,16 @@ public sealed partial class SettingsPage : Page
         CountdownToggle.Toggled         += (s, e) => _settings.Set("countdown", CountdownToggle.IsOn ? "1" : "0");
         NotificationsToggle.Toggled     += (s, e) => _settings.Set("notifications", NotificationsToggle.IsOn ? "1" : "0");
         StartMinimizedToggle.Toggled    += (s, e) => _settings.Set("start_minimized", StartMinimizedToggle.IsOn ? "1" : "0");
+
+        DockTabCombo.SelectionChanged   += (s, e) => _settings.Set("docking.mod_tab", ((ComboBoxItem)DockTabCombo.SelectedItem).Content.ToString() ?? "Control");
+        DockFloatCombo.SelectionChanged += (s, e) => _settings.Set("docking.mod_float", ((ComboBoxItem)DockFloatCombo.SelectedItem).Content.ToString() ?? "Shift");
+        HoldMsBox.LostFocus             += (s, e) =>
+        {
+            if (int.TryParse(HoldMsBox.Text.Trim(), out var v) && v > 0)
+                _settings.Set("docking.hold_ms", v.ToString());
+            else
+                HoldMsBox.Text = _settings.Get("docking.hold_ms") ?? "500";
+        };
     }
 
     // ─── Hardware encoding / GPU selector ─────────────────────────────────────
@@ -211,5 +231,32 @@ public sealed partial class SettingsPage : Page
         FfmpegStatusText.Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF));
         FfmpegStatusBadge.Visibility = Visibility.Visible;
         FfmpegVerifyBtn.IsEnabled = true;
+    }
+
+    // ─── Action buttons ───────────────────────────────────────────────────────
+
+    private void ApplyBtn_Click(object sender, RoutedEventArgs e)
+    {
+        // Settings are auto-saved on change, so just show confirmation
+        ShowStatus("Settings applied successfully");
+    }
+
+    private void CancelBtn_Click(object sender, RoutedEventArgs e)
+    {
+        // Navigate back without applying (settings already auto-saved though)
+        App.MainWindow?.NavigateTo("record");
+    }
+
+    private void CloseBtn_Click(object sender, RoutedEventArgs e)
+    {
+        // Apply and close
+        ShowStatus("Settings saved");
+        App.MainWindow?.NavigateTo("record");
+    }
+
+    private void ShowStatus(string message)
+    {
+        // Optional: Show a brief status message
+        // Could use InfoBar or transient notification
     }
 }

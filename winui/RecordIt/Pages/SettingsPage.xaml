@@ -9,27 +9,25 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <!-- Header -->
         <Border Grid.Row="0"
-                Padding="24,20"
-                BorderBrush="{StaticResource BorderDefaultBrush}"
+                Padding="12,8"
+                Background="{StaticResource BgSurfaceBrush}"
+                BorderBrush="{StaticResource BorderPanelBrush}"
                 BorderThickness="0,0,0,1">
-            <StackPanel Spacing="2">
-                <TextBlock Text="Settings" Style="{StaticResource PageTitleStyle}" />
-                <TextBlock Text="Configure RecordIt preferences"
-                           Style="{StaticResource PageSubtitleStyle}" />
-            </StackPanel>
+            <TextBlock Text="Settings" Style="{StaticResource ObsPanelHeaderTextStyle}" />
         </Border>
 
         <!-- Settings Body -->
-        <ScrollViewer Grid.Row="1" Padding="24">
-            <StackPanel Spacing="24" MaxWidth="640">
+        <ScrollViewer Grid.Row="1" Padding="16">
+            <StackPanel Spacing="16" MaxWidth="640">
 
                 <!-- Appearance -->
                 <StackPanel Spacing="12">
-                    <TextBlock Text="APPEARANCE" Style="{StaticResource SectionTitleStyle}" />
+                    <TextBlock Text="Appearance" Style="{StaticResource SectionTitleStyle}" />
                     <Border Style="{StaticResource AlvoniaCardStyle}">
                         <StackPanel>
                             <!-- Theme -->
@@ -81,7 +79,7 @@
 
                 <!-- Recording -->
                 <StackPanel Spacing="12">
-                    <TextBlock Text="RECORDING" Style="{StaticResource SectionTitleStyle}" />
+                    <TextBlock Text="Recording" Style="{StaticResource SectionTitleStyle}" />
                     <Border Style="{StaticResource AlvoniaCardStyle}">
                         <StackPanel Spacing="0">
                             <Grid Padding="0,4" Margin="0,0,0,12">
@@ -125,7 +123,7 @@
 
                 <!-- Encoding -->
                 <StackPanel Spacing="12">
-                    <TextBlock Text="ENCODING" Style="{StaticResource SectionTitleStyle}" />
+                    <TextBlock Text="Encoding" Style="{StaticResource SectionTitleStyle}" />
                     <Border Style="{StaticResource AlvoniaCardStyle}">
                         <StackPanel Spacing="0">
 
@@ -169,7 +167,7 @@
 
                         <!-- FFmpeg -->
                         <StackPanel Spacing="12">
-                            <TextBlock Text="FFMPEG" Style="{StaticResource SectionTitleStyle}" />
+                            <TextBlock Text="FFmpeg" Style="{StaticResource SectionTitleStyle}" />
                             <Border Style="{StaticResource AlvoniaCardStyle}">
                                 <StackPanel Spacing="12">
                                     <Grid Padding="0,4" Margin="0,0,0,12">
@@ -197,7 +195,7 @@
 
                         <!-- System -->
                 <StackPanel Spacing="12">
-                    <TextBlock Text="SYSTEM" Style="{StaticResource SectionTitleStyle}" />
+                    <TextBlock Text="System" Style="{StaticResource SectionTitleStyle}" />
                     <Border Style="{StaticResource AlvoniaCardStyle}">
                         <StackPanel>
                             <Grid Padding="0,4" Margin="0,0,0,12">
@@ -221,9 +219,54 @@
                     </Border>
                 </StackPanel>
 
+                <!-- Docking -->
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Docking" Style="{StaticResource SectionTitleStyle}" />
+                    <Border Style="{StaticResource AlvoniaCardStyle}">
+                        <StackPanel>
+                            <Grid Padding="0,4" Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Tab Modifier" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Modifier key to add a panel as a tab when dragging" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <ComboBox x:Name="DockTabCombo" Grid.Column="1" Style="{StaticResource AlvoniaComboBoxStyle}" Width="140" SelectedIndex="0">
+                                    <ComboBoxItem Content="Control" />
+                                    <ComboBoxItem Content="Shift" />
+                                    <ComboBoxItem Content="Alt" />
+                                    <ComboBoxItem Content="None" />
+                                </ComboBox>
+                            </Grid>
+                            <Border BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,1,0,0" />
+                            <Grid Padding="0,12" Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Float Modifier" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Modifier key to force floating when dragging" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <ComboBox x:Name="DockFloatCombo" Grid.Column="1" Style="{StaticResource AlvoniaComboBoxStyle}" Width="140" SelectedIndex="1">
+                                    <ComboBoxItem Content="Control" />
+                                    <ComboBoxItem Content="Shift" />
+                                    <ComboBoxItem Content="Alt" />
+                                    <ComboBoxItem Content="None" />
+                                </ComboBox>
+                            </Grid>
+                            <Border BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,1,0,0" />
+                            <Grid Padding="0,12,0,4">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Hold Time (ms)" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Milliseconds to hold a panel header before auto-floating" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <TextBox x:Name="HoldMsBox" Grid.Column="1" Width="80" Text="500" HorizontalAlignment="Right" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
                 <!-- Cursor & Mouse Effects (Camtasia-inspired) -->
                 <StackPanel Spacing="12">
-                    <TextBlock Text="CURSOR &amp; MOUSE EFFECTS" Style="{StaticResource SectionTitleStyle}" />
+                    <TextBlock Text="Cursor &amp; Mouse Effects" Style="{StaticResource SectionTitleStyle}" />
                     <Border Style="{StaticResource AlvoniaCardStyle}">
                         <StackPanel>
                             <Grid Padding="0,4" Margin="0,0,0,12">
@@ -276,7 +319,7 @@
 
                 <!-- Webcam Overlay -->
                 <StackPanel Spacing="12">
-                    <TextBlock Text="WEBCAM OVERLAY" Style="{StaticResource SectionTitleStyle}" />
+                    <TextBlock Text="Webcam Overlay" Style="{StaticResource SectionTitleStyle}" />
                     <Border Style="{StaticResource AlvoniaCardStyle}">
                         <StackPanel>
                             <Grid Padding="0,4" Margin="0,0,0,12">
@@ -320,7 +363,7 @@
 
                 <!-- Audio Advanced -->
                 <StackPanel Spacing="12">
-                    <TextBlock Text="AUDIO" Style="{StaticResource SectionTitleStyle}" />
+                    <TextBlock Text="Audio" Style="{StaticResource SectionTitleStyle}" />
                     <Border Style="{StaticResource AlvoniaCardStyle}">
                         <StackPanel>
                             <Grid Padding="0,4" Margin="0,0,0,12">
@@ -378,7 +421,7 @@
 
                 <!-- Encoder & Performance -->
                 <StackPanel Spacing="12">
-                    <TextBlock Text="ENCODER &amp; PERFORMANCE" Style="{StaticResource SectionTitleStyle}" />
+                    <TextBlock Text="Encoder &amp; Performance" Style="{StaticResource SectionTitleStyle}" />
                     <Border Style="{StaticResource AlvoniaCardStyle}">
                         <StackPanel>
                             <Grid Padding="0,4" Margin="0,0,0,12">
@@ -416,7 +459,7 @@
 
                 <!-- Recording Behaviour -->
                 <StackPanel Spacing="12">
-                    <TextBlock Text="RECORDING BEHAVIOUR" Style="{StaticResource SectionTitleStyle}" />
+                    <TextBlock Text="Recording Behaviour" Style="{StaticResource SectionTitleStyle}" />
                     <Border Style="{StaticResource AlvoniaCardStyle}">
                         <StackPanel>
                             <Grid Padding="0,4" Margin="0,0,0,12">
@@ -456,7 +499,7 @@
 
                 <!-- Keyboard Shortcuts -->
                 <StackPanel Spacing="12">
-                    <TextBlock Text="KEYBOARD SHORTCUTS" Style="{StaticResource SectionTitleStyle}" />
+                    <TextBlock Text="Keyboard Shortcuts" Style="{StaticResource SectionTitleStyle}" />
                     <Border Style="{StaticResource AlvoniaCardStyle}">
                         <StackPanel>
                             <ItemsControl>
@@ -487,13 +530,14 @@
 
                 <!-- About -->
                 <StackPanel Spacing="12">
-                    <TextBlock Text="ABOUT" Style="{StaticResource SectionTitleStyle}" />
+                    <TextBlock Text="About" Style="{StaticResource SectionTitleStyle}" />
                     <Border Style="{StaticResource AlvoniaCardStyle}">
                         <StackPanel Spacing="12">
                             <StackPanel Orientation="Horizontal" Spacing="12">
-                                <Border Width="48" Height="48" CornerRadius="12"
-                                        Background="{StaticResource BrandPrimaryBrush}">
-                                    <TextBlock Text="R" Foreground="White" FontWeight="Bold"
+                                <Border Width="48" Height="48" CornerRadius="2"
+                                        Background="{StaticResource BgElevatedBrush}"
+                                        BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="1">
+                                    <TextBlock Text="R" Foreground="{StaticResource TextPrimaryBrush}" FontWeight="Normal"
                                                FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 </Border>
                                 <StackPanel VerticalAlignment="Center" Spacing="2">
@@ -521,5 +565,33 @@
                 </StackPanel>
             </StackPanel>
         </ScrollViewer>
+
+        <!-- Action Buttons -->
+        <Border Grid.Row="2"
+                Background="{StaticResource BgSurfaceBrush}"
+                BorderBrush="{StaticResource BorderPanelBrush}"
+                BorderThickness="0,1,0,0"
+                Padding="16,12">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                <Button x:Name="ApplyBtn"
+                        Content="Apply"
+                        Style="{StaticResource AlvoniaPrimaryButtonStyle}"
+                        MinWidth="80"
+                        Click="ApplyBtn_Click"
+                        ToolTipService.ToolTip="Apply settings" />
+                <Button x:Name="CancelBtn"
+                        Content="Cancel"
+                        Style="{StaticResource ControlsPanelBtnStyle}"
+                        MinWidth="80"
+                        Click="CancelBtn_Click"
+                        ToolTipService.ToolTip="Discard changes and close" />
+                <Button x:Name="CloseBtn"
+                        Content="OK"
+                        Style="{StaticResource ControlsPanelBtnStyle}"
+                        MinWidth="80"
+                        Click="CloseBtn_Click"
+                        ToolTipService.ToolTip="Save settings and close" />
+            </StackPanel>
+        </Border>
     </Grid>
 </Page>

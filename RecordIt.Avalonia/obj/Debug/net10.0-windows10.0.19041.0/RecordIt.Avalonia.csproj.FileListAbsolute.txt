@@ -107,3 +107,7 @@ D:\sasproducts\recordit2\RecordIt.Avalonia\obj\Debug\net10.0-windows10.0.19041.0
 D:\sasproducts\recordit2\RecordIt.Avalonia\obj\Debug\net10.0-windows10.0.19041.0\RecordIt.Avalonia.dll
 D:\sasproducts\recordit2\RecordIt.Avalonia\obj\Debug\net10.0-windows10.0.19041.0\refint\RecordIt.Avalonia.dll
 D:\sasproducts\recordit2\RecordIt.Avalonia\obj\Debug\net10.0-windows10.0.19041.0\RecordIt.Avalonia.pdb
+D:\sasproducts\recordit2\RecordIt.Avalonia\obj\Debug\net10.0-windows10.0.19041.0\Avalonia\references
+D:\sasproducts\recordit2\RecordIt.Avalonia\obj\Debug\net10.0-windows10.0.19041.0\Avalonia\original.dll
+D:\sasproducts\recordit2\RecordIt.Avalonia\obj\Debug\net10.0-windows10.0.19041.0\Avalonia\original.pdb
+D:\sasproducts\recordit2\RecordIt.Avalonia\obj\Debug\net10.0-windows10.0.19041.0\Avalonia\original.ref.dll

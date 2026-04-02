@@ -157,10 +157,144 @@
         </Grid>
       </Border>
 
-      <!-- Content area -->
-      <ContentControl x:Name="ContentPanel"
-                      Grid.Column="1"
-                      Background="{StaticResource BgBaseBrush}" />
+                <!-- Content area: OBS-like dockable layout with splitters and tabs -->
+                <Grid Grid.Column="1" Background="{StaticResource BgBaseBrush}">
+                        <!-- Columns: Scenes/Sources | Main Preview area | Right Column -->
+                        <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="260" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="320" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Rows: Top (preview/program) | Bottom (mixer/controls) -->
+                        <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="220" />
+                        </Grid.RowDefinitions>
+
+                        <!-- Left column: Scenes (top) and Sources (bottom tabs) -->
+                        <Grid Grid.Row="0" Grid.Column="0" RowSpan="2" Background="{StaticResource BgSurfaceBrush}"
+                                                BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,0,1,0">
+                                <Grid.RowDefinitions>
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="260" />
+                                </Grid.RowDefinitions>
+
+                                <!-- Scenes list (like OBS) -->
+                                <Border Grid.Row="0" Padding="8">
+                                        <StackPanel Spacing="6">
+                                                <TextBlock Text="Scenes" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
+                                                <ListBox x:Name="ScenesList" Height="400" />
+                                        </StackPanel>
+                                </Border>
+
+                                <!-- Sources consolidated with tabs -->
+                                <Border Grid.Row="1" Padding="8" BorderThickness="1,0,0,0" BorderBrush="{StaticResource BorderSubtleBrush}">
+                                        <StackPanel Spacing="6">
+                                                <TextBlock Text="Sources" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
+                                                <TabControl x:Name="SourcesTabs" Margin="0,6,0,0">
+                                                        <TabItem Header="Displays">
+                                                                <StackPanel Padding="6">
+                                                                        <TextBlock Text="Select a display to capture" FontSize="12" Foreground="{StaticResource TextTertiaryBrush}" />
+                                                                        <ListBox x:Name="DisplayList" Height="120" />
+                                                                </StackPanel>
+                                                        </TabItem>
+                                                        <TabItem Header="Windows">
+                                                                <StackPanel Padding="6">
+                                                                        <TextBlock Text="Select an application window" FontSize="12" Foreground="{StaticResource TextTertiaryBrush}" />
+                                                                        <ListBox x:Name="WindowList" Height="120" />
+                                                                </StackPanel>
+                                                        </TabItem>
+                                                        <TabItem Header="Video Capture">
+                                                                <StackPanel Padding="6">
+                                                                        <TextBlock Text="Select a camera" FontSize="12" Foreground="{StaticResource TextTertiaryBrush}" />
+                                                                        <ListBox x:Name="CameraList" Height="120" />
+                                                                </StackPanel>
+                                                        </TabItem>
+                                                </TabControl>
+                                        </StackPanel>
+                                </Border>
+                        </Grid>
+
+                        <!-- Vertical splitter between left and main -->
+                        <GridSplitter Grid.Row="0" Grid.Column="0" Grid.RowSpan="2"
+                                                                                Width="6" HorizontalAlignment="Right"
+                                                                                Background="{StaticResource BorderDefaultBrush}" />
+
+                        <!-- Main center area: Preview (left) and Program (right) -->
+                        <Grid Grid.Row="0" Grid.Column="1" Margin="8">
+                                <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="6" />
+                                        <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Preview (left) -->
+                                <Border Grid.Column="0" Background="{StaticResource BgSurfaceBrush}" BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,0,1,0" Padding="6">
+                                        <StackPanel>
+                                                <TextBlock Text="Preview" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
+                                                <Border x:Name="PreviewArea" Background="#0D000000" Height="360" Margin="0,8,0,0"/>
+                                        </StackPanel>
+                                </Border>
+
+                                <!-- Horizontal GridSplitter (between preview and program) -->
+                                <GridSplitter Grid.Column="1" Width="6" Background="{StaticResource BorderDefaultBrush}" HorizontalAlignment="Stretch" />
+
+                                <!-- Program (right) -->
+                                <Border Grid.Column="2" Background="{StaticResource BgSurfaceBrush}" BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="1,0,0,0" Padding="6">
+                                        <StackPanel>
+                                                <TextBlock Text="Program" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
+                                                <Border Background="#0D000000" Height="360" Margin="0,8,0,0">
+                                                    <ContentControl x:Name="ContentPanel" />
+                                                </Border>
+                                        </StackPanel>
+                                </Border>
+                        </Grid>
+
+                        <!-- Right column: small vertical preview / properties -->
+                        <Border Grid.Row="0" Grid.Column="2" Margin="8" Background="{StaticResource BgSurfaceBrush}" BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="1,0,0,0" Padding="6">
+                                <StackPanel>
+                                        <TextBlock Text="Vertical" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
+                                        <Border Height="200" Background="#0D000000" Margin="0,8,0,0" />
+                                        <StackPanel Margin="0,8,0,0">
+                                                <TextBlock Text="Properties" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
+                                                <TextBlock Text="(contextual controls)" Foreground="{StaticResource TextTertiaryBrush}" FontSize="12" />
+                                        </StackPanel>
+                                </StackPanel>
+                        </Border>
+
+                        <!-- Horizontal splitter between main and bottom -->
+                        <GridSplitter Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
+                                                                                Height="6" VerticalAlignment="Top" Background="{StaticResource BorderDefaultBrush}" />
+
+                        <!-- Bottom area: Audio Mixer (left) and Scene Transitions + Controls (right) -->
+                        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Margin="8">
+                                <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="320" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Background="{StaticResource BgSurfaceBrush}" Padding="8" BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="0,1,0,0">
+                                        <StackPanel>
+                                                <TextBlock Text="Audio Mixer" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
+                                                <Border Height="120" Background="#0D000000" Margin="0,8,0,0" />
+                                        </StackPanel>
+                                </Border>
+
+                                <Border Grid.Column="1" Background="{StaticResource BgSurfaceBrush}" Padding="8" BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="1,1,0,0">
+                                        <StackPanel Spacing="8">
+                                                <TextBlock Text="Scene Transitions" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
+                                                <ComboBox x:Name="TransitionSelect" Width="180" />
+                                                <TextBlock Text="Controls" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,8,0,0" />
+                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                        <Button x:Name="StartStreamingBtn" Content="Start Streaming" />
+                                                        <Button x:Name="StopRecordingBtn" Content="Stop Recording" />
+                                                        <Button x:Name="StudioModeBtn" Content="Studio Mode" />
+                                                </StackPanel>
+                                        </StackPanel>
+                                </Border>
+                        </Grid>
+                </Grid>
 
     </Grid>
   </Grid>

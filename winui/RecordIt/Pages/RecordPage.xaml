@@ -12,17 +12,32 @@
     Background="{StaticResource BgBaseBrush}"
     FontSize="12">
 
+    <!-- Dock overlay visuals (moved into main Grid to avoid duplicate Page content) -->
+
     <Page.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+
+        <!-- Chevron animations for dock accept indicators -->
+        <Storyboard x:Key="LeftChevronStoryboard" RepeatBehavior="Forever">
+            <DoubleAnimation Storyboard.TargetName="LeftChevronTranslate" Storyboard.TargetProperty="X" From="-8" To="8" Duration="0:0:0.6" AutoReverse="True" />
+        </Storyboard>
+        <Storyboard x:Key="RightChevronStoryboard" RepeatBehavior="Forever">
+            <DoubleAnimation Storyboard.TargetName="RightChevronTranslate" Storyboard.TargetProperty="X" From="8" To="-8" Duration="0:0:0.6" AutoReverse="True" />
+        </Storyboard>
+        <Storyboard x:Key="TopChevronStoryboard" RepeatBehavior="Forever">
+            <DoubleAnimation Storyboard.TargetName="TopChevronTranslate" Storyboard.TargetProperty="Y" From="-6" To="6" Duration="0:0:0.6" AutoReverse="True" />
+        </Storyboard>
+        <Storyboard x:Key="BottomChevronStoryboard" RepeatBehavior="Forever">
+            <DoubleAnimation Storyboard.TargetName="BottomChevronTranslate" Storyboard.TargetProperty="Y" From="6" To="-6" Duration="0:0:0.6" AutoReverse="True" />
+        </Storyboard>
     </Page.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />  <!-- Menu bar -->
-            <RowDefinition Height="*"    />  <!-- Preview -->
-            <RowDefinition Height="Auto" />  <!-- Timeline -->
-            <RowDefinition Height="Auto" />  <!-- Effects -->
-            <RowDefinition Height="220"  />  <!-- Docks (panels) -->
+            <RowDefinition Height="Auto" />  <!-- Row 0: Menu bar -->
+            <RowDefinition Height="*"    />  <!-- Row 1: Main content (left panels + preview) -->
+            <RowDefinition Height="220"  />  <!-- Row 2: Bottom docks (Mixer | Transitions | Controls) -->
+            <RowDefinition Height="22"   />  <!-- Row 3: Status bar -->
         </Grid.RowDefinitions>
 
         <!-- ═══════════════════════════════════════════════════════════════
@@ -133,11 +148,273 @@
         </Border>
 
         <!-- ═══════════════════════════════════════════════════════════════
-             Row 1 · Preview Area
-             Normal mode  : [PREVIEW *] | [Live side 360px]
-             Studio mode  : [PREVIEW *] | [4px] | [PROGRAM *]
+             Row 1 · Main content area
+             Col 0 (175px): Left panels (Scenes / Sources stacked)
+             Col 1 (4px):   Vertical drag splitter
+             Col 2 (*):     Right area (Preview + Properties + Timeline + Effects)
         ═══════════════════════════════════════════════════════════════════ -->
-        <Grid x:Name="PreviewAreaGrid" Grid.Row="1" Background="#080808">
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition x:Name="LeftPanelsColumn" Width="175" MinWidth="100" />
+                <ColumnDefinition Width="4" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- ── Col 0: Left panels (Scenes + Sources stacked) ──────── -->
+            <Grid Grid.Column="0"
+                  Background="{StaticResource BgPanelBrush}"
+                  BorderBrush="{StaticResource BorderPanelBrush}"
+                  BorderThickness="0,0,1,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="4" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- ── Scenes Panel ──────────────────────────────────── -->
+                <Grid x:Name="ScenesPanel" Grid.Row="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+<Border x:Name="ScenesHeader" Grid.Row="0" Style="{StaticResource ObsPanelHeaderStyle}"
+                        PointerPressed="PanelHeader_PointerPressed"
+                        PointerMoved="PanelHeader_PointerMoved"
+                        PointerReleased="PanelHeader_PointerReleased"
+                        Tag="scenes">
+                    <TextBlock Text="Scenes" Style="{StaticResource ObsPanelHeaderTextStyle}" />
+                    </Border>
+
+                    <ListView Grid.Row="1"
+                              x:Name="ScenesList"
+                              Background="Transparent"
+                              ItemContainerStyle="{StaticResource ObsListItemStyle}"
+                              SelectionChanged="ScenesList_SelectionChanged"
+                              Padding="2">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Name}"
+                                           FontSize="12"
+                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                           VerticalAlignment="Center" />
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+
+                    <Border Grid.Row="2" Style="{StaticResource ObsPanelToolbarStyle}">
+                        <StackPanel Orientation="Horizontal" Spacing="2">
+                            <Button Style="{StaticResource ObsToolbarBtnStyle}"
+                                    Click="AddSceneBtn_Click"
+                                    ToolTipService.ToolTip="Add Scene">
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE710;" FontSize="11" />
+                            </Button>
+                            <Button Style="{StaticResource ObsToolbarBtnStyle}"
+                                    Click="RemoveSceneBtn_Click"
+                                    ToolTipService.ToolTip="Remove Scene">
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE738;" FontSize="11" />
+                            </Button>
+                            <Button Style="{StaticResource ObsToolbarBtnStyle}"
+                                    Click="SceneUpBtn_Click"
+                                    ToolTipService.ToolTip="Move Up">
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE70E;" FontSize="10" />
+                            </Button>
+                            <Button Style="{StaticResource ObsToolbarBtnStyle}"
+                                    Click="SceneDownBtn_Click"
+                                    ToolTipService.ToolTip="Move Down">
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE70D;" FontSize="10" />
+                            </Button>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- Horizontal drag splitter between Scenes and Sources -->
+                <Border Grid.Row="1" x:Name="ScenesSourcesHorzSplitter"
+                        Height="5" VerticalAlignment="Stretch"
+                        Background="#19FFFFFF"
+                        BorderBrush="{StaticResource BorderPanelBrush}"
+                        BorderThickness="0,1,0,1"
+                        PointerPressed="LeftPanelSplitter_PointerPressed"
+                        PointerMoved="LeftPanelSplitter_PointerMoved"
+                        PointerReleased="LeftPanelSplitter_PointerReleased"
+                        PointerEntered="LeftPanelSplitter_PointerEntered"
+                        PointerExited="LeftPanelSplitter_PointerExited"
+                        ToolTipService.ToolTip="Drag to resize">
+                    <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="2">
+                            <Ellipse Width="2" Height="2" Fill="{StaticResource TextTertiaryBrush}" />
+                            <Ellipse Width="2" Height="2" Fill="{StaticResource TextTertiaryBrush}" />
+                            <Ellipse Width="2" Height="2" Fill="{StaticResource TextTertiaryBrush}" />
+                            <Ellipse Width="2" Height="2" Fill="{StaticResource TextTertiaryBrush}" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- ── Sources Panel ─────────────────────────────────── -->
+                <Grid x:Name="SourcesPanel" Grid.Row="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Border x:Name="SourcesHeader" Grid.Row="0" Style="{StaticResource ObsPanelHeaderStyle}"
+                            PointerPressed="PanelHeader_PointerPressed"
+                            PointerMoved="PanelHeader_PointerMoved"
+                            PointerReleased="PanelHeader_PointerReleased"
+                            Tag="sources">
+                        <TextBlock Text="Sources" Style="{StaticResource ObsPanelHeaderTextStyle}" />
+                    </Border>
+
+                    <!-- Sources list + empty-state overlay share the same cell -->
+                    <Grid Grid.Row="1">
+                        <ListView x:Name="SourcesList"
+                                  Background="Transparent"
+                                  ItemContainerStyle="{StaticResource ObsListItemStyle}"
+                                  SelectionChanged="SourcesList_SelectionChanged"
+                                  Padding="2">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnSpacing="6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <FontIcon Grid.Column="0"
+                                                  FontFamily="Segoe MDL2 Assets"
+                                                  Glyph="{Binding Icon}"
+                                                  FontSize="11"
+                                                  Foreground="{StaticResource TextTertiaryBrush}" />
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding Name}"
+                                                   FontSize="12"
+                                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                                   VerticalAlignment="Center"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <FontIcon Grid.Column="2"
+                                                  FontFamily="Segoe MDL2 Assets"
+                                                  Glyph="&#xE7B3;"
+                                                  FontSize="10"
+                                                  Foreground="{StaticResource TextTertiaryBrush}" />
+                                        <FontIcon Grid.Column="3"
+                                                  FontFamily="Segoe MDL2 Assets"
+                                                  Glyph="&#xE72E;"
+                                                  FontSize="10"
+                                                  Foreground="{StaticResource TextTertiaryBrush}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+
+                        <!-- Empty-state overlay -->
+                        <Border x:Name="SourcesEmptyState"
+                                Visibility="Visible"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch"
+                                Background="Transparent"
+                                IsHitTestVisible="False">
+                            <StackPanel HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Spacing="8"
+                                        Margin="12">
+                                <Border Width="40" Height="40"
+                                        CornerRadius="2"
+                                        BorderBrush="#44FFFFFF"
+                                        BorderThickness="1"
+                                        HorizontalAlignment="Center">
+                                    <FontIcon FontFamily="Segoe MDL2 Assets"
+                                              Glyph="&#xE897;"
+                                              FontSize="18"
+                                              Foreground="#44FFFFFF"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center" />
+                                </Border>
+                                <TextBlock Text="You don't have any sources."
+                                           FontSize="11"
+                                           Foreground="#99FFFFFF"
+                                           TextAlignment="Center"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Text="Click the + button below,"
+                                           FontSize="10"
+                                           Foreground="#AA808088"
+                                           TextAlignment="Center" />
+                                <TextBlock Text="or right click here to add one."
+                                           FontSize="10"
+                                           Foreground="#AA808088"
+                                           TextAlignment="Center" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <Border Grid.Row="2" Style="{StaticResource ObsPanelToolbarStyle}">
+                        <StackPanel Orientation="Horizontal" Spacing="2">
+                            <Button Style="{StaticResource ObsToolbarBtnStyle}"
+                                    Click="AddSourceBtn_Click"
+                                    ToolTipService.ToolTip="Add Source">
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE710;" FontSize="11" />
+                            </Button>
+                            <Button Style="{StaticResource ObsToolbarBtnStyle}"
+                                    Click="RemoveSourceBtn_Click"
+                                    ToolTipService.ToolTip="Remove Source">
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE738;" FontSize="11" />
+                            </Button>
+                            <Button Style="{StaticResource ObsToolbarBtnStyle}"
+                                    Click="SourceUpBtn_Click"
+                                    ToolTipService.ToolTip="Move Up">
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE70E;" FontSize="10" />
+                            </Button>
+                            <Button Style="{StaticResource ObsToolbarBtnStyle}"
+                                    Click="SourceDownBtn_Click"
+                                    ToolTipService.ToolTip="Move Down">
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE70D;" FontSize="10" />
+                            </Button>
+                            <Button Style="{StaticResource ObsToolbarBtnStyle}"
+                                    Click="SourceSettingsBtn_Click"
+                                    ToolTipService.ToolTip="Source Settings">
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE713;" FontSize="11" />
+                            </Button>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Grid>
+
+            <!-- ── Col 1: Vertical drag splitter (left panels | right area) ── -->
+            <Border Grid.Column="1" x:Name="LeftRightSplitter"
+                    Width="5" HorizontalAlignment="Stretch"
+                    Background="#19FFFFFF"
+                    BorderBrush="{StaticResource BorderPanelBrush}"
+                    BorderThickness="1,0,1,0"
+                    PointerPressed="PanelSplitter_PointerPressed"
+                    PointerMoved="PanelSplitter_PointerMoved"
+                    PointerReleased="PanelSplitter_PointerReleased"
+                    PointerEntered="PanelSplitter_PointerEntered"
+                    PointerExited="PanelSplitter_PointerExited"
+                    Tag="left-right"
+                    ToolTipService.ToolTip="Drag to resize">
+                <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <StackPanel Orientation="Vertical" Spacing="2">
+                        <Ellipse Width="2" Height="2" Fill="{StaticResource TextTertiaryBrush}" />
+                        <Ellipse Width="2" Height="2" Fill="{StaticResource TextTertiaryBrush}" />
+                        <Ellipse Width="2" Height="2" Fill="{StaticResource TextTertiaryBrush}" />
+                        <Ellipse Width="2" Height="2" Fill="{StaticResource TextTertiaryBrush}" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- ── Col 2: Right area (Preview + Properties + Timeline + Effects) ── -->
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+        <!-- ── Row 0: Preview Area ─────────────────────────────────────── -->
+        <Grid x:Name="PreviewAreaGrid" Grid.Row="0" Background="#000000">
             <Grid.ColumnDefinitions>
                 <!-- col 0: PREVIEW / main canvas -->
                 <ColumnDefinition x:Name="PreviewMainCol" Width="*" />
@@ -145,8 +422,8 @@
                 <ColumnDefinition x:Name="StudioDivCol" Width="0" />
                 <!-- col 2: PROGRAM panel (0 in normal mode) -->
                 <ColumnDefinition x:Name="ProgramCol" Width="0" />
-                <!-- col 3: small live-preview side panel (360 in normal mode) -->
-                <ColumnDefinition x:Name="LiveSideCol" Width="360" />
+                <!-- col 3: small live-preview side panel (HIDDEN by default to match OBS) -->
+                <ColumnDefinition x:Name="LiveSideCol" Width="0" />
             </Grid.ColumnDefinitions>
 
             <!-- ── col 0: Main PREVIEW canvas ─────────────────────────── -->
@@ -224,12 +501,11 @@
                     <Border HorizontalAlignment="Left" VerticalAlignment="Top"
                             Margin="12,10" Padding="10,4"
                             Background="#CC1A0000"
-                            CornerRadius="6"
+                            CornerRadius="2"
                             BorderBrush="#55EF4444" BorderThickness="1">
                         <TextBlock Text="PROGRAM"
-                                   FontSize="10" FontWeight="Bold"
-                                   Foreground="#CCEF4444"
-                                   CharacterSpacing="80" />
+                                   FontSize="10" FontWeight="Normal"
+                                   Foreground="#CCEF4444" />
                     </Border>
 
                     <!-- Transition button (centre-top of program pane) -->
@@ -259,45 +535,54 @@
                         ToolTipService.ToolTip="Drag to resize preview" />
 
                 <Border Grid.Column="3" x:Name="LivePreviewHost"
-                    Background="#0A0000" BorderBrush="#151515" BorderThickness="1,0,0,0"
+                    Background="{StaticResource BgSurfaceBrush}" BorderBrush="{StaticResource BorderPanelBrush}" BorderThickness="1,0,0,0"
                     Padding="6">
-                <controls:TabView>
-                    <controls:TabView.Resources>
-                        <Style TargetType="controls:TabViewItem">
-                            <Setter Property="MinWidth" Value="68" />
-                            <Setter Property="MinHeight" Value="28" />
-                            <Setter Property="Padding" Value="8,4" />
-                            <Setter Property="FontSize" Value="11" />
-                        </Style>
-                    </controls:TabView.Resources>
-                    <controls:TabViewItem Header="Live">
-                        <Grid Padding="6">
-                            <StackPanel Spacing="6">
-                                <TextBlock Text="LIVE PREVIEW" FontSize="11" FontWeight="Bold" Foreground="#AAFFFFFF" />
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <!-- Live preview tab (only Live content) -->
+                        <controls:TabView Grid.Row="0">
+                        <controls:TabView.Resources>
+                            <Style TargetType="controls:TabViewItem">
+                                <Setter Property="MinWidth" Value="68" />
+                                <Setter Property="MinHeight" Value="28" />
+                                <Setter Property="Padding" Value="8,4" />
+                                <Setter Property="FontSize" Value="11" />
+                            </Style>
+                        </controls:TabView.Resources>
+                        <controls:TabViewItem Header="Live">
+                            <Grid Padding="6">
+                                <StackPanel Spacing="6">
+                                    <TextBlock Text="Live Preview" FontSize="11" FontWeight="Normal" Foreground="{StaticResource TextSecondaryBrush}" />
 
-                                <!-- Screen-capture live feed -->
-                                <Image x:Name="LivePreviewScreenImage"
-                                       Stretch="UniformToFill"
-                                       Height="200"
-                                       Visibility="Collapsed" />
+                                    <!-- Screen-capture live feed -->
+                                    <Image x:Name="LivePreviewScreenImage"
+                                           Stretch="UniformToFill"
+                                           Height="200"
+                                           Visibility="Collapsed" />
 
-                                <!-- Webcam live feed via MediaPlayer -->
-                                <media:MediaPlayerElement x:Name="LivePreviewElement"
-                                                          AreTransportControlsEnabled="False"
-                                                          AutoPlay="False"
-                                                          Stretch="UniformToFill"
-                                                          Height="200"
-                                                          Visibility="Collapsed" />
+                                    <!-- Webcam live feed via MediaPlayer -->
+                                    <media:MediaPlayerElement x:Name="LivePreviewElement"
+                                                              AreTransportControlsEnabled="False"
+                                                              AutoPlay="False"
+                                                              Stretch="UniformToFill"
+                                                              Height="200"
+                                                              Visibility="Collapsed" />
 
-                                <TextBlock x:Name="LivePreviewHint"
-                                           Text="No live source"
-                                           FontSize="12"
-                                           Foreground="#66FFFFFF" />
-                            </StackPanel>
-                        </Grid>
-                    </controls:TabViewItem>
-                    <controls:TabViewItem Header="Vertical" x:Name="VerticalTabItem">
-                        <Grid Padding="6">
+                                    <TextBlock x:Name="LivePreviewHint"
+                                               Text="No live source"
+                                               FontSize="12"
+                                               Foreground="#66FFFFFF" />
+                                </StackPanel>
+                            </Grid>
+                        </controls:TabViewItem>
+                    </controls:TabView>
+
+                        <!-- Vertical preview panel (separate, OBS-style) -->
+                        <Border Grid.Row="1" x:Name="VerticalPanelHost" Margin="0,8,0,0" Background="{StaticResource BgSurfaceBrush}" BorderBrush="{StaticResource BorderPanelBrush}" BorderThickness="1,0,0,0" Padding="6">
+                        <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="*" />
@@ -307,7 +592,7 @@
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Text="VERTICAL PREVIEW" FontSize="11" FontWeight="Bold" Foreground="#AAFFFFFF" />
+                                <TextBlock Text="Vertical" FontSize="11" FontWeight="Normal" Foreground="{StaticResource TextSecondaryBrush}" />
                                 <Button x:Name="VerticalUndockBtn" Content="Undock" Grid.Column="1" Margin="6,0,0,0" Click="VerticalUndockBtn_Click" />
                             </Grid>
                             <Grid Grid.Row="1">
@@ -335,9 +620,9 @@
                                 </StackPanel>
                             </Grid>
                         </Grid>
-                    </controls:TabViewItem>
-                </controls:TabView>
-            </Border>
+                        </Border>
+                    </Grid>
+                </Border>
 
             <!-- ── Overlays on column 0 ───────────────────────────────── -->
 
@@ -346,13 +631,12 @@
                     HorizontalAlignment="Left" VerticalAlignment="Top"
                     Margin="12,10" Padding="10,4"
                     Background="#CC000000"
-                    CornerRadius="6"
+                    CornerRadius="2"
                     BorderBrush="#22FFFFFF" BorderThickness="1">
                 <TextBlock x:Name="PreviewLabelText"
                            Text="PREVIEW"
-                           FontSize="10" FontWeight="Bold"
-                           Foreground="#AAFFFFFF"
-                           CharacterSpacing="80" />
+                           FontSize="10" FontWeight="Normal"
+                           Foreground="#AAFFFFFF" />
             </Border>
 
             <!-- Small record button in preview overlay -->
@@ -374,7 +658,7 @@
                     HorizontalAlignment="Right" VerticalAlignment="Top"
                     Margin="0,10,12,0" Padding="10,4"
                     Background="#CC1A0000"
-                    CornerRadius="6"
+                    CornerRadius="2"
                     BorderBrush="#55EF4444" BorderThickness="1"
                     Visibility="Collapsed">
                 <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
@@ -394,7 +678,7 @@
                     Margin="40,0,40,48"
                     Padding="18,8"
                     Background="#8C000000"
-                    CornerRadius="8"
+                    CornerRadius="2"
                     BorderBrush="#33FFFFFF" BorderThickness="1"
                     Visibility="Collapsed"
                     MaxWidth="900">
@@ -446,6 +730,47 @@
                 </StackPanel>
             </Border>
 
+            <!-- ── Performance Stats Overlay ──────────────────────  -->
+            <Border x:Name="PerformanceStatsOverlay"
+                    Grid.Column="0"
+                    HorizontalAlignment="Left" VerticalAlignment="Top"
+                    Margin="12,12,0,0"
+                    Padding="10,8"
+                    Background="#CC000000"
+                    BorderBrush="#44FFFFFF" BorderThickness="1"
+                    CornerRadius="2"
+                    Visibility="Collapsed">
+                <StackPanel Spacing="3">
+                    <TextBlock Text="PERFORMANCE" FontSize="9" FontWeight="Bold"
+                               Foreground="#66FFFFFF" LetterSpacing="12" />
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="FPS:" FontSize="11" Foreground="#99FFFFFF" Width="60" />
+                        <TextBlock x:Name="StatsFpsText" Text="0/60" FontSize="11" FontWeight="Bold"
+                                   Foreground="#00FF7F" FontFamily="Consolas" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="Dropped:" FontSize="11" Foreground="#99FFFFFF" Width="60" />
+                        <TextBlock x:Name="StatsDroppedText" Text="0" FontSize="11" FontWeight="Bold"
+                                   Foreground="#FFD700" FontFamily="Consolas" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="CPU:" FontSize="11" Foreground="#99FFFFFF" Width="60" />
+                        <TextBlock x:Name="StatsCpuText" Text="0.0%" FontSize="11" FontWeight="Bold"
+                                   Foreground="#00BFFF" FontFamily="Consolas" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="Memory:" FontSize="11" Foreground="#99FFFFFF" Width="60" />
+                        <TextBlock x:Name="StatsMemoryText" Text="0 MB" FontSize="11" FontWeight="Bold"
+                                   Foreground="#FF69B4" FontFamily="Consolas" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="Encode:" FontSize="11" Foreground="#99FFFFFF" Width="60" />
+                        <TextBlock x:Name="StatsEncodeText" Text="0.0 ms" FontSize="11" FontWeight="Bold"
+                                   Foreground="#FFA500" FontFamily="Consolas" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
             <!-- Scene selector quick strip (bottom of preview) -->
             <Border Grid.Column="0"
                     HorizontalAlignment="Stretch" VerticalAlignment="Bottom"
@@ -460,14 +785,46 @@
             </Border>
         </Grid>
 
-        <!-- ═══════════════════════════════════════════════════════════════
-             Row 2 · Timeline View (between preview and docks)
-        ═══════════════════════════════════════════════════════════════════ -->
+        <!-- ── Row 1: Properties / Filters bar (below preview) - HIDDEN by default to match OBS ─────── -->
+        <Border x:Name="PropertiesBar" Grid.Row="1"
+                Height="28"
+                Background="{StaticResource BgPanelHeaderBrush}"
+                BorderBrush="{StaticResource BorderPanelBrush}"
+                BorderThickness="0,1,0,0"
+                Padding="8,0"
+                Visibility="Collapsed">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock x:Name="SelectedSourceText"
+                           Grid.Column="0"
+                           Text="No source selected"
+                           FontSize="11"
+                           Foreground="{StaticResource TextTertiaryBrush}"
+                           VerticalAlignment="Center" />
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="2">
+                    <Button Content="Properties"
+                            Style="{StaticResource AlvoniaGhostButtonStyle}"
+                            Click="PropertiesBtn_Click"
+                            FontSize="11" Height="24" Padding="8,2" />
+                    <Button Content="Filters"
+                            Style="{StaticResource AlvoniaGhostButtonStyle}"
+                            Click="FiltersBtn_Click"
+                            FontSize="11" Height="24" Padding="8,2" />
+                    <Button x:Name="MagnifyBtn" Content="Magnify" Style="{StaticResource AlvoniaGhostButtonStyle}" Click="MagnifyBtn_Click" FontSize="11" Height="24" Padding="8,2" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ── Row 2: Timeline View - HIDDEN by default to match OBS ──────────────────────────────────── -->
         <Border x:Name="TimelinePanel" Grid.Row="2"
                 Background="{StaticResource BgSurfaceBrush}"
                 BorderBrush="{StaticResource BorderPanelBrush}"
                 BorderThickness="0,1,0,0"
-                Height="130">
+                Height="130"
+                Visibility="Collapsed">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -597,8 +954,8 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                             <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE771;" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" />
-                            <TextBlock Text="EFFECTS" FontSize="10" FontWeight="Bold" CharacterSpacing="80"
-                                       Foreground="{StaticResource TextTertiaryBrush}" VerticalAlignment="Center" />
+                            <TextBlock Text="Effects" FontSize="12" FontWeight="Normal"
+                                       Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="2">
                             <Button Style="{StaticResource ObsToolbarBtnStyle}" ToolTipService.ToolTip="Add effect"
@@ -617,56 +974,56 @@
                               HorizontalScrollBarVisibility="Auto" Padding="6,4">
                     <StackPanel x:Name="EffectsStack" Orientation="Horizontal" Spacing="8">
                         <!-- Effect cards: Blur, Chroma Key, Color Correction, Vignette, Sharpen, etc. -->
-                        <Border Background="#1A6366F1" BorderBrush="#336366F1" BorderThickness="1" CornerRadius="8" Padding="12,8" Width="140">
+                        <Border Background="{StaticResource BgElevatedBrush}" BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="2" Padding="12,8" Width="140">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Background Blur" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
                                 <TextBlock Text="Gaussian blur" FontSize="10" Foreground="{StaticResource TextTertiaryBrush}" />
                                 <Slider Minimum="0" Maximum="100" Value="50" Height="24" />
                             </StackPanel>
                         </Border>
-                        <Border Background="#1A22C55E" BorderBrush="#3322C55E" BorderThickness="1" CornerRadius="8" Padding="12,8" Width="140">
+                        <Border Background="{StaticResource BgElevatedBrush}" BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="2" Padding="12,8" Width="140">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Green Screen" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
                                 <TextBlock Text="Chroma key removal" FontSize="10" Foreground="{StaticResource TextTertiaryBrush}" />
                                 <Slider Minimum="0" Maximum="100" Value="75" Height="24" />
                             </StackPanel>
                         </Border>
-                        <Border Background="#1AF59E0B" BorderBrush="#33F59E0B" BorderThickness="1" CornerRadius="8" Padding="12,8" Width="140">
+                        <Border Background="{StaticResource BgElevatedBrush}" BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="2" Padding="12,8" Width="140">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Color Correct" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
                                 <TextBlock Text="White balance / tones" FontSize="10" Foreground="{StaticResource TextTertiaryBrush}" />
                                 <Slider Minimum="0" Maximum="100" Value="50" Height="24" />
                             </StackPanel>
                         </Border>
-                        <Border Background="#1AEF4444" BorderBrush="#33EF4444" BorderThickness="1" CornerRadius="8" Padding="12,8" Width="140">
+                        <Border Background="{StaticResource BgElevatedBrush}" BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="2" Padding="12,8" Width="140">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Vignette" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
                                 <TextBlock Text="Dark edges cinematic" FontSize="10" Foreground="{StaticResource TextTertiaryBrush}" />
                                 <Slider Minimum="0" Maximum="100" Value="40" Height="24" />
                             </StackPanel>
                         </Border>
-                        <Border Background="#1A8B5CF6" BorderBrush="#338B5CF6" BorderThickness="1" CornerRadius="8" Padding="12,8" Width="140">
+                        <Border Background="{StaticResource BgElevatedBrush}" BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="2" Padding="12,8" Width="140">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Sharpen" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
                                 <TextBlock Text="Enhance edge detail" FontSize="10" Foreground="{StaticResource TextTertiaryBrush}" />
                                 <Slider Minimum="0" Maximum="100" Value="30" Height="24" />
                             </StackPanel>
                         </Border>
-                        <Border Background="#1A06B6D4" BorderBrush="#3306B6D4" BorderThickness="1" CornerRadius="8" Padding="12,8" Width="140">
+                        <Border Background="{StaticResource BgElevatedBrush}" BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="2" Padding="12,8" Width="140">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Noise Reduction" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
                                 <TextBlock Text="Reduce video grain" FontSize="10" Foreground="{StaticResource TextTertiaryBrush}" />
                                 <Slider Minimum="0" Maximum="100" Value="60" Height="24" />
                             </StackPanel>
                         </Border>
-                        <Border Background="#1AFBBF24" BorderBrush="#33FBBF24" BorderThickness="1" CornerRadius="8" Padding="12,8" Width="140">
+                        <Border Background="{StaticResource BgElevatedBrush}" BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="2" Padding="12,8" Width="140">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Brightness" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
                                 <TextBlock Text="Brightness / contrast" FontSize="10" Foreground="{StaticResource TextTertiaryBrush}" />
                                 <Slider Minimum="0" Maximum="100" Value="50" Height="24" />
                             </StackPanel>
                         </Border>
-                        <Border Background="#1AEC4899" BorderBrush="#33EC4899" BorderThickness="1" CornerRadius="8" Padding="12,8" Width="140">
+                        <Border Background="{StaticResource BgElevatedBrush}" BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="2" Padding="12,8" Width="140">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="Saturation" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
                                 <TextBlock Text="Color vibrance" FontSize="10" Foreground="{StaticResource TextTertiaryBrush}" />
@@ -678,294 +1035,54 @@
             </Grid>
         </Border>
 
+            </Grid><!-- end right-area Grid -->
+        </Grid><!-- end main content Grid (Col 0/1/2) -->
+
         <!-- ═══════════════════════════════════════════════════════════════
-             Row 4 · Docked Panels
+             Row 2 · Bottom Docked Panels  (Audio Mixer | Transitions | Controls)
         ═══════════════════════════════════════════════════════════════════ -->
-        <Grid Grid.Row="4"
+        <Grid Grid.Row="2"
               Background="{StaticResource BgPanelBrush}"
               BorderBrush="{StaticResource BorderPanelBrush}"
               BorderThickness="0,1,0,0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition x:Name="ScenesColumn"    Width="175" MinWidth="100" />
-                <ColumnDefinition Width="1" />
-                <ColumnDefinition x:Name="SourcesColumn"   Width="200" MinWidth="120" />
-                <ColumnDefinition Width="1" />
                 <ColumnDefinition x:Name="MixerColumn"     Width="*"   MinWidth="200" />
-                <ColumnDefinition Width="1" />
+                <ColumnDefinition Width="4" />
                 <ColumnDefinition x:Name="TransColumn"     Width="155" MinWidth="100" />
-                <ColumnDefinition Width="1" />
+                <ColumnDefinition Width="4" />
                 <ColumnDefinition x:Name="ControlsColumn"  Width="155" MinWidth="130" />
             </Grid.ColumnDefinitions>
 
             <!-- ── Panel: Scenes ──────────────────────────────────────── -->
-            <Grid x:Name="ScenesPanel" Grid.Column="0">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-
-                <Border Grid.Row="0" Style="{StaticResource ObsPanelHeaderStyle}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="SCENES" Style="{StaticResource ObsPanelHeaderTextStyle}" />
-                        <Button Grid.Column="1"
-                                Style="{StaticResource ObsToolbarBtnStyle}"
-                                Click="FloatPanel_Click" Tag="scenes"
-                                ToolTipService.ToolTip="Float panel"
-                                Height="18" Width="18">
-                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8A7;" FontSize="9" />
-                        </Button>
-                    </Grid>
-                </Border>
-
-                <ListView Grid.Row="1"
-                          x:Name="ScenesList"
-                          Background="Transparent"
-                          ItemContainerStyle="{StaticResource ObsListItemStyle}"
-                          SelectionChanged="ScenesList_SelectionChanged"
-                          Padding="2">
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding Name}"
-                                       FontSize="12"
-                                       Foreground="{StaticResource TextPrimaryBrush}"
-                                       VerticalAlignment="Center" />
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-
-                <Border Grid.Row="2" Style="{StaticResource ObsPanelToolbarStyle}">
-                    <StackPanel Orientation="Horizontal" Spacing="2">
-                        <Button Style="{StaticResource ObsToolbarBtnStyle}"
-                                Click="AddSceneBtn_Click"
-                                ToolTipService.ToolTip="Add Scene">
-                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE710;" FontSize="11" />
-                        </Button>
-                        <Button Style="{StaticResource ObsToolbarBtnStyle}"
-                                Click="RemoveSceneBtn_Click"
-                                ToolTipService.ToolTip="Remove Scene">
-                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE738;" FontSize="11" />
-                        </Button>
-                        <Button Style="{StaticResource ObsToolbarBtnStyle}"
-                                Click="SceneUpBtn_Click"
-                                ToolTipService.ToolTip="Move Up">
-                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE70E;" FontSize="10" />
-                        </Button>
-                        <Button Style="{StaticResource ObsToolbarBtnStyle}"
-                                Click="SceneDownBtn_Click"
-                                ToolTipService.ToolTip="Move Down">
-                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE70D;" FontSize="10" />
-                        </Button>
-                    </StackPanel>
-                </Border>
-            </Grid>
-
-            <!-- Draggable splitter: Scenes | Sources -->
-            <Border Grid.Column="1" x:Name="ScenesSourcesSplitter"
-                    Width="5" HorizontalAlignment="Stretch" Background="Transparent"
-                    PointerPressed="PanelSplitter_PointerPressed"
-                    PointerMoved="PanelSplitter_PointerMoved"
-                    PointerReleased="PanelSplitter_PointerReleased"
-                    PointerEntered="PanelSplitter_PointerEntered"
-                    PointerExited="PanelSplitter_PointerExited"
-                    Tag="scenes-sources"
-                    ToolTipService.ToolTip="Drag to resize">
-                <Rectangle Width="1" HorizontalAlignment="Center"
-                           Fill="{StaticResource BorderPanelBrush}" />
-            </Border>
-
-            <!-- ── Panel: Sources ─────────────────────────────────────── -->
-            <Grid x:Name="SourcesPanel" Grid.Column="2">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-
-                <Border Grid.Row="0" Style="{StaticResource ObsPanelHeaderStyle}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="SOURCES" Style="{StaticResource ObsPanelHeaderTextStyle}" />
-                        <Button Grid.Column="1"
-                                Style="{StaticResource ObsToolbarBtnStyle}"
-                                Click="FloatPanel_Click" Tag="sources"
-                                ToolTipService.ToolTip="Float panel"
-                                Height="18" Width="18">
-                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8A7;" FontSize="9" />
-                        </Button>
-                    </Grid>
-                </Border>
-
-                <!-- Sources list + empty-state overlay share the same cell -->
-                <Grid Grid.Row="1">
-
-                    <ListView x:Name="SourcesList"
-                              Background="Transparent"
-                              ItemContainerStyle="{StaticResource ObsListItemStyle}"
-                              SelectionChanged="SourcesList_SelectionChanged"
-                              Padding="2">
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <Grid ColumnSpacing="6">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-                                    <FontIcon Grid.Column="0"
-                                              FontFamily="Segoe MDL2 Assets"
-                                              Glyph="{Binding Icon}"
-                                              FontSize="11"
-                                              Foreground="{StaticResource TextTertiaryBrush}" />
-                                    <TextBlock Grid.Column="1"
-                                               Text="{Binding Name}"
-                                               FontSize="12"
-                                               Foreground="{StaticResource TextPrimaryBrush}"
-                                               VerticalAlignment="Center"
-                                               TextTrimming="CharacterEllipsis" />
-                                    <!-- Visibility eye icon -->
-                                    <FontIcon Grid.Column="2"
-                                              FontFamily="Segoe MDL2 Assets"
-                                              Glyph="&#xE7B3;"
-                                              FontSize="10"
-                                              Foreground="{StaticResource TextTertiaryBrush}" />
-                                    <!-- Lock icon -->
-                                    <FontIcon Grid.Column="3"
-                                              FontFamily="Segoe MDL2 Assets"
-                                              Glyph="&#xE72E;"
-                                              FontSize="10"
-                                              Foreground="{StaticResource TextTertiaryBrush}" />
-                                </Grid>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
-
-                    <!-- Empty-state overlay — visible when scene has no sources -->
-                    <Border x:Name="SourcesEmptyState"
-                            Visibility="Visible"
-                            HorizontalAlignment="Stretch"
-                            VerticalAlignment="Stretch"
-                            Background="Transparent"
-                            IsHitTestVisible="False">
-                        <StackPanel HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    Spacing="8"
-                                    Margin="12">
-                            <!-- Dashed question-mark icon -->
-                            <Border Width="40" Height="40"
-                                    CornerRadius="6"
-                                    BorderBrush="#44FFFFFF"
-                                    BorderThickness="1.5"
-                                    HorizontalAlignment="Center">
-                                <FontIcon FontFamily="Segoe MDL2 Assets"
-                                          Glyph="&#xE897;"
-                                          FontSize="18"
-                                          Foreground="#44FFFFFF"
-                                          HorizontalAlignment="Center"
-                                          VerticalAlignment="Center" />
-                            </Border>
-                            <TextBlock Text="You don't have any sources."
-                                       FontSize="11"
-                                       Foreground="#99FFFFFF"
-                                       TextAlignment="Center"
-                                       TextWrapping="Wrap" />
-                            <TextBlock Text="Click the + button below,"
-                                       FontSize="10"
-                                       Foreground="#AA6EA0FF"
-                                       TextAlignment="Center" />
-                            <TextBlock Text="or right click here to add one."
-                                       FontSize="10"
-                                       Foreground="#AA6EA0FF"
-                                       TextAlignment="Center" />
-                        </StackPanel>
-                    </Border>
-
-                </Grid>
-
-                <Border Grid.Row="2" Style="{StaticResource ObsPanelToolbarStyle}">
-                    <StackPanel Orientation="Horizontal" Spacing="2">
-                        <Button Style="{StaticResource ObsToolbarBtnStyle}"
-                                Click="AddSourceBtn_Click"
-                                ToolTipService.ToolTip="Add Source">
-                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE710;" FontSize="11" />
-                        </Button>
-                        <Button Style="{StaticResource ObsToolbarBtnStyle}"
-                                Click="RemoveSourceBtn_Click"
-                                ToolTipService.ToolTip="Remove Source">
-                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE738;" FontSize="11" />
-                        </Button>
-                        <Button Style="{StaticResource ObsToolbarBtnStyle}"
-                                Click="SourceUpBtn_Click"
-                                ToolTipService.ToolTip="Move Up">
-                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE70E;" FontSize="10" />
-                        </Button>
-                        <Button Style="{StaticResource ObsToolbarBtnStyle}"
-                                Click="SourceDownBtn_Click"
-                                ToolTipService.ToolTip="Move Down">
-                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE70D;" FontSize="10" />
-                        </Button>
-                        <Button Style="{StaticResource ObsToolbarBtnStyle}"
-                                Click="SourceSettingsBtn_Click"
-                                ToolTipService.ToolTip="Source Settings">
-                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE713;" FontSize="11" />
-                        </Button>
-                    </StackPanel>
-                </Border>
-            </Grid>
-
-            <!-- Draggable splitter: Sources | Mixer -->
-            <Border Grid.Column="3" x:Name="SourcesMixerSplitter"
-                    Width="5" HorizontalAlignment="Stretch" Background="Transparent"
-                    PointerPressed="PanelSplitter_PointerPressed"
-                    PointerMoved="PanelSplitter_PointerMoved"
-                    PointerReleased="PanelSplitter_PointerReleased"
-                    PointerEntered="PanelSplitter_PointerEntered"
-                    PointerExited="PanelSplitter_PointerExited"
-                    Tag="sources-mixer"
-                    ToolTipService.ToolTip="Drag to resize">
-                <Rectangle Width="1" HorizontalAlignment="Center"
-                           Fill="{StaticResource BorderPanelBrush}" />
-            </Border>
+            <!-- (Scenes and Sources panels moved to left column in Row 1) -->
 
             <!-- ── Panel: Audio Mixer ─────────────────────────────────── -->
-            <Grid x:Name="MixerPanel" Grid.Column="4">
+            <Grid x:Name="MixerPanel" Grid.Column="0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <Border Grid.Row="0" Style="{StaticResource ObsPanelHeaderStyle}">
+                <Border x:Name="MixerHeader" Grid.Row="0" Style="{StaticResource ObsPanelHeaderStyle}"
+                        PointerPressed="PanelHeader_PointerPressed"
+                        PointerMoved="PanelHeader_PointerMoved"
+                        PointerReleased="PanelHeader_PointerReleased"
+                        Tag="mixer">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0"
-                                   Text="AUDIO MIXER"
+                                   Text="Audio Mixer"
                                    Style="{StaticResource ObsPanelHeaderTextStyle}" />
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="2">
-                            <Button Style="{StaticResource ObsToolbarBtnStyle}"
-                                    Click="ProbeDevicesBtn_Click"
-                                    ToolTipService.ToolTip="Refresh audio devices"
-                                    Height="18" Width="18">
-                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE72C;" FontSize="9" />
-                            </Button>
-                            <Button Style="{StaticResource ObsToolbarBtnStyle}"
-                                    Click="FloatPanel_Click" Tag="mixer"
-                                    ToolTipService.ToolTip="Float panel"
-                                    Height="18" Width="18">
-                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8A7;" FontSize="9" />
-                            </Button>
-                        </StackPanel>
+                        <Button Grid.Column="1" Style="{StaticResource ObsToolbarBtnStyle}"
+                                Click="ProbeDevicesBtn_Click"
+                                ToolTipService.ToolTip="Refresh audio devices"
+                                Height="18" Width="18">
+                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE72C;" FontSize="9" />
+                        </Button>
                     </Grid>
                 </Border>
 
@@ -997,8 +1114,11 @@
             </Grid>
 
             <!-- Draggable splitter: Mixer | Transitions -->
-            <Border Grid.Column="5" x:Name="MixerTransSplitter"
-                    Width="5" HorizontalAlignment="Stretch" Background="Transparent"
+            <Border Grid.Column="1" x:Name="MixerTransSplitter"
+                    Width="5" HorizontalAlignment="Stretch"
+                    Background="#19FFFFFF"
+                    BorderBrush="{StaticResource BorderPanelBrush}"
+                    BorderThickness="1,0,1,0"
                     PointerPressed="PanelSplitter_PointerPressed"
                     PointerMoved="PanelSplitter_PointerMoved"
                     PointerReleased="PanelSplitter_PointerReleased"
@@ -1006,12 +1126,18 @@
                     PointerExited="PanelSplitter_PointerExited"
                     Tag="mixer-trans"
                     ToolTipService.ToolTip="Drag to resize">
-                <Rectangle Width="1" HorizontalAlignment="Center"
-                           Fill="{StaticResource BorderPanelBrush}" />
+                <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <StackPanel Orientation="Vertical" Spacing="2">
+                        <Ellipse Width="2" Height="2" Fill="{StaticResource TextTertiaryBrush}" />
+                        <Ellipse Width="2" Height="2" Fill="{StaticResource TextTertiaryBrush}" />
+                        <Ellipse Width="2" Height="2" Fill="{StaticResource TextTertiaryBrush}" />
+                        <Ellipse Width="2" Height="2" Fill="{StaticResource TextTertiaryBrush}" />
+                    </StackPanel>
+                </Grid>
             </Border>
 
             <!-- ── Panel: Scene Transitions ───────────────────────────── -->
-            <Grid x:Name="TransitionsPanel" Grid.Column="6">
+            <Grid x:Name="TransitionsPanel" Grid.Column="2">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
@@ -1019,21 +1145,12 @@
                 </Grid.RowDefinitions>
 
                 <!-- Header with undock button -->
-                <Border Grid.Row="0" Style="{StaticResource ObsPanelHeaderStyle}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="SCENE TRANSITIONS" Style="{StaticResource ObsPanelHeaderTextStyle}" />
-                        <Button Grid.Column="1"
-                                Style="{StaticResource ObsToolbarBtnStyle}"
-                                Click="FloatPanel_Click" Tag="transitions"
-                                ToolTipService.ToolTip="Float panel"
-                                Height="18" Width="18">
-                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8A7;" FontSize="9" />
-                        </Button>
-                    </Grid>
+                <Border x:Name="TransitionsHeader" Grid.Row="0" Style="{StaticResource ObsPanelHeaderStyle}"
+                        PointerPressed="PanelHeader_PointerPressed"
+                        PointerMoved="PanelHeader_PointerMoved"
+                        PointerReleased="PanelHeader_PointerReleased"
+                        Tag="transitions">
+                    <TextBlock Text="Scene Transitions" Style="{StaticResource ObsPanelHeaderTextStyle}" />
                 </Border>
 
                 <!-- Transition list / quick transitions area -->
@@ -1042,10 +1159,9 @@
 
                         <!-- Active transition selector -->
                         <StackPanel Spacing="3">
-                            <TextBlock Text="TRANSITION"
-                                       FontSize="9" FontWeight="SemiBold"
-                                       Foreground="{StaticResource TextTertiaryBrush}"
-                                       CharacterSpacing="80" />
+                            <TextBlock Text="Transition"
+                                       FontSize="10" FontWeight="Normal"
+                                       Foreground="{StaticResource TextSecondaryBrush}" />
                             <Grid ColumnSpacing="4">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
@@ -1078,10 +1194,9 @@
 
                         <!-- Duration -->
                         <StackPanel Spacing="3">
-                            <TextBlock Text="DURATION (ms)"
-                                       FontSize="9" FontWeight="SemiBold"
-                                       Foreground="{StaticResource TextTertiaryBrush}"
-                                       CharacterSpacing="80" />
+                            <TextBlock Text="Duration (ms)"
+                                       FontSize="10" FontWeight="Normal"
+                                       Foreground="{StaticResource TextSecondaryBrush}" />
                             <Grid ColumnSpacing="4">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
@@ -1115,16 +1230,15 @@
                         <!-- Quick Transitions divider -->
                         <Border Height="1" Background="{StaticResource BorderDefaultBrush}" Margin="0,4" />
 
-                        <TextBlock Text="QUICK TRANSITIONS"
-                                   FontSize="9" FontWeight="SemiBold"
-                                   Foreground="{StaticResource TextTertiaryBrush}"
-                                   CharacterSpacing="80" />
+                        <TextBlock Text="Quick Transitions"
+                                   FontSize="10" FontWeight="Normal"
+                                   Foreground="{StaticResource TextSecondaryBrush}" />
 
                         <!-- Quick transition buttons -->
                         <StackPanel x:Name="QuickTransitionsStack" Spacing="3">
                             <!-- Populated in code or default entries below -->
                             <Border Background="{StaticResource BgElevatedBrush}"
-                                    CornerRadius="6" Padding="8,5"
+                                    CornerRadius="2" Padding="8,5"
                                     BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="1">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
@@ -1144,7 +1258,7 @@
                                 </Grid>
                             </Border>
                             <Border Background="{StaticResource BgElevatedBrush}"
-                                    CornerRadius="6" Padding="8,5"
+                                    CornerRadius="2" Padding="8,5"
                                     BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="1">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
@@ -1186,8 +1300,11 @@
             </Grid>
 
             <!-- Draggable splitter: Transitions | Controls -->
-            <Border Grid.Column="7" x:Name="TransControlsSplitter"
-                    Width="5" HorizontalAlignment="Stretch" Background="Transparent"
+            <Border Grid.Column="3" x:Name="TransControlsSplitter"
+                    Width="5" HorizontalAlignment="Stretch"
+                    Background="#19FFFFFF"
+                    BorderBrush="{StaticResource BorderPanelBrush}"
+                    BorderThickness="1,0,1,0"
                     PointerPressed="PanelSplitter_PointerPressed"
                     PointerMoved="PanelSplitter_PointerMoved"
                     PointerReleased="PanelSplitter_PointerReleased"
@@ -1195,12 +1312,18 @@
                     PointerExited="PanelSplitter_PointerExited"
                     Tag="trans-controls"
                     ToolTipService.ToolTip="Drag to resize">
-                <Rectangle Width="1" HorizontalAlignment="Center"
-                           Fill="{StaticResource BorderPanelBrush}" />
+                <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <StackPanel Orientation="Vertical" Spacing="2">
+                        <Ellipse Width="2" Height="2" Fill="{StaticResource TextTertiaryBrush}" />
+                        <Ellipse Width="2" Height="2" Fill="{StaticResource TextTertiaryBrush}" />
+                        <Ellipse Width="2" Height="2" Fill="{StaticResource TextTertiaryBrush}" />
+                        <Ellipse Width="2" Height="2" Fill="{StaticResource TextTertiaryBrush}" />
+                    </StackPanel>
+                </Grid>
             </Border>
 
             <!-- ── Panel: Controls ────────────────────────────────────── -->
-            <Grid x:Name="ControlsPanel" Grid.Column="8">
+            <Grid x:Name="ControlsPanel" Grid.Column="4">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
@@ -1208,34 +1331,27 @@
                 </Grid.RowDefinitions>
 
                 <!-- Header with undock button -->
-                <Border Grid.Row="0" Style="{StaticResource ObsPanelHeaderStyle}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="CONTROLS" Style="{StaticResource ObsPanelHeaderTextStyle}" />
-                        <Button Grid.Column="1"
-                                Style="{StaticResource ObsToolbarBtnStyle}"
-                                Click="FloatPanel_Click" Tag="controls"
-                                ToolTipService.ToolTip="Float panel"
-                                Height="18" Width="18">
-                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8A7;" FontSize="9" />
-                        </Button>
-                    </Grid>
+                <Border x:Name="ControlsHeader" Grid.Row="0" Style="{StaticResource ObsPanelHeaderStyle}"
+                        PointerPressed="PanelHeader_PointerPressed"
+                        PointerMoved="PanelHeader_PointerMoved"
+                        PointerReleased="PanelHeader_PointerReleased"
+                        Tag="controls">
+                    <TextBlock Text="Controls" Style="{StaticResource ObsPanelHeaderTextStyle}" />
                 </Border>
 
-                <!-- Scrollable controls content (OBS order) -->
+                <!-- Scrollable controls content (OBS exact order) -->
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                    <StackPanel Padding="8,8" Spacing="5">
+                    <StackPanel Padding="8,6" Spacing="4">
 
                         <!-- ── 1. Start Streaming ─────────────────── -->
                         <Button x:Name="StartStreamBtn"
                                 Style="{StaticResource ControlsPanelBtnStyle}"
-                                Click="StartStreamBtn_Click">
+                                Click="StartStreamBtn_Click"
+                                Background="#FF1A72B8"
+                                BorderThickness="0">
                             <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
-                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE774;" FontSize="11" />
-                                <TextBlock x:Name="StreamBtnText" Text="Start Streaming" VerticalAlignment="Center" />
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE774;" FontSize="11" Foreground="White" />
+                                <TextBlock x:Name="StreamBtnText" Text="Start Streaming" VerticalAlignment="Center" Foreground="White" />
                             </StackPanel>
                         </Button>
 
@@ -1248,11 +1364,13 @@
 
                             <Button x:Name="StartRecordBtn"
                                     Grid.Column="0"
-                                    Style="{StaticResource AlvoniaRecordButtonStyle}"
-                                    Click="StartRecordBtn_Click">
+                                    Style="{StaticResource ControlsPanelBtnStyle}"
+                                    Click="StartRecordBtn_Click"
+                                    Background="#FFD71C1C"
+                                    BorderThickness="0">
                                 <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
                                     <Ellipse Width="8" Height="8" Fill="White" VerticalAlignment="Center" />
-                                    <TextBlock x:Name="RecordBtnText" Text="Start Recording" VerticalAlignment="Center" />
+                                    <TextBlock x:Name="RecordBtnText" Text="Start Recording" VerticalAlignment="Center" Foreground="White" />
                                 </StackPanel>
                             </Button>
 
@@ -1270,7 +1388,7 @@
                             </Button>
                         </Grid>
 
-                        <!-- Stop Recording button -->
+                        <!-- Stop Recording button (shown when recording) -->
                         <Button x:Name="StopRecordBtn"
                                 Style="{StaticResource ControlsPanelBtnStyle}"
                                 Click="StopRecordBtn_Click"
@@ -1282,33 +1400,24 @@
                             </StackPanel>
                         </Button>
 
-                        <!-- ── 3. Start Virtual Camera ─────────────── -->
+                        <!-- ── 3. Start Replay Buffer ──────────────── -->
+                        <Button x:Name="ReplayBufferBtn"
+                                Style="{StaticResource ControlsPanelBtnStyle}"
+                                Click="SaveClipBtn_Click"
+                                ToolTipService.ToolTip="Start Replay Buffer to enable clip saving">
+                            <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7C3;" FontSize="11" />
+                                <TextBlock Text="Start Replay Buffer" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- ── 4. Start Virtual Camera ─────────────── -->
                         <Button x:Name="VirtualCamBtn"
                                 Style="{StaticResource ControlsPanelBtnStyle}"
                                 Click="VirtualCamBtn_Click">
                             <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
                                 <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE714;" FontSize="11" />
                                 <TextBlock x:Name="VirtualCamBtnText" Text="Start Virtual Camera" VerticalAlignment="Center" />
-                            </StackPanel>
-                        </Button>
-
-                        <!-- ── 4. Start Preview ───────────────────── -->
-                        <Button x:Name="StartPreviewBtn"
-                                Style="{StaticResource ControlsPanelBtnStyle}"
-                                Click="StartPreviewBtn_Click">
-                            <StackPanel Orientation="Horizontal" Spacing="7">
-                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE768;" FontSize="11" />
-                                <TextBlock Text="Start Preview" />
-                            </StackPanel>
-                        </Button>
-
-                        <Button x:Name="StopPreviewBtn"
-                                Style="{StaticResource ControlsPanelBtnStyle}"
-                                Click="StopPreviewBtn_Click"
-                                Visibility="Collapsed">
-                            <StackPanel Orientation="Horizontal" Spacing="7">
-                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE769;" FontSize="11" />
-                                <TextBlock Text="Stop Preview" />
                             </StackPanel>
                         </Button>
 
@@ -1324,181 +1433,6 @@
                             </StackPanel>
                         </Button>
 
-                        <!-- ── Divider ─────────────────────────────── -->
-                        <Border Height="1" Background="{StaticResource BorderDefaultBrush}" Margin="0,2" />
-
-                        <!-- ── CC / Auto Captions ──────────────────── -->
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <Button x:Name="CcBtn"
-                                    Grid.Column="0"
-                                    HorizontalAlignment="Stretch"
-                                    Style="{StaticResource ControlsPanelBtnStyle}"
-                                    Click="CcBtn_Click"
-                                    ToolTipService.ToolTip="Toggle live auto-captions (CC)">
-                                <StackPanel Orientation="Horizontal" Spacing="7">
-                                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7F0;" FontSize="11" />
-                                    <TextBlock x:Name="CcBtnText" Text="Auto Captions" VerticalAlignment="Center" />
-                                </StackPanel>
-                            </Button>
-                            <Button Grid.Column="1"
-                                    Style="{StaticResource ObsToolbarBtnStyle}"
-                                    Click="CcSettingsBtn_Click"
-                                    ToolTipService.ToolTip="Caption Settings"
-                                    Width="28" Height="28" Margin="4,0,0,0">
-                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE713;" FontSize="11" />
-                            </Button>
-                        </Grid>
-
-                        <!-- ── Save Clip (Replay Buffer) ──────────── -->
-                        <Button x:Name="SaveClipBtn"
-                                Style="{StaticResource ControlsPanelBtnStyle}"
-                                Click="SaveClipBtn_Click"
-                                IsEnabled="False"
-                                ToolTipService.ToolTip="Save the last 30 seconds as a clip">
-                            <StackPanel Orientation="Horizontal" Spacing="7">
-                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7C3;" FontSize="11" />
-                                <TextBlock Text="Save Clip (30s)" />
-                            </StackPanel>
-                        </Button>
-
-                        <!-- ── Lower Third ────────────────────────── -->
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <Button x:Name="LowerThirdBtn"
-                                    Grid.Column="0"
-                                    HorizontalAlignment="Stretch"
-                                    Style="{StaticResource ControlsPanelBtnStyle}"
-                                    Click="LowerThirdBtn_Click"
-                                    ToolTipService.ToolTip="Show/hide lower-third title card overlay">
-                                <StackPanel Orientation="Horizontal" Spacing="7">
-                                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8D2;" FontSize="11" />
-                                    <TextBlock x:Name="LowerThirdBtnText" Text="Lower Third" VerticalAlignment="Center" />
-                                </StackPanel>
-                            </Button>
-                            <Button Grid.Column="1"
-                                    Style="{StaticResource ControlsPanelBtnStyle}"
-                                    Width="32" Padding="0"
-                                    Click="LowerThirdSettingsBtn_Click"
-                                    ToolTipService.ToolTip="Configure lower-third text">
-                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE713;" FontSize="11" />
-                            </Button>
-                        </Grid>
-
-                        <!-- ── Recording options ──────────────────── -->
-                        <Border Background="#0AFFFFFF" CornerRadius="6" Padding="8,7"
-                                BorderBrush="#1AFFFFFF" BorderThickness="1">
-                            <StackPanel Spacing="5">
-                                <CheckBox x:Name="CountdownCheckBox"
-                                          Content="3-2-1 countdown"
-                                          FontSize="12" IsChecked="True" />
-                                <CheckBox x:Name="NoiseSuppCheckBox"
-                                          Content="Noise suppression"
-                                          FontSize="12" IsChecked="False" />
-                            </StackPanel>
-                        </Border>
-
-                        <!-- ── Quick Settings (Resolution / FPS / Camera / Mic) ── -->
-                        <Border Background="#0AFFFFFF" CornerRadius="6" Padding="8,7"
-                                BorderBrush="#1AFFFFFF" BorderThickness="1">
-                            <StackPanel Spacing="6">
-                                <TextBlock Text="QUICK SETTINGS"
-                                           FontSize="9" FontWeight="SemiBold"
-                                           Foreground="{StaticResource TextTertiaryBrush}"
-                                           CharacterSpacing="80" />
-                                <!-- Resolution -->
-                                <StackPanel Spacing="2">
-                                    <TextBlock Text="Resolution" FontSize="10"
-                                               Foreground="{StaticResource TextSecondaryBrush}" />
-                                    <ComboBox x:Name="QualityCombo"
-                                              Style="{StaticResource AlvoniaComboBoxStyle}"
-                                              HorizontalAlignment="Stretch"
-                                              FontSize="11" SelectedIndex="0">
-                                        <ComboBoxItem Content="1080p (1920×1080)" />
-                                        <ComboBoxItem Content="1440p (2560×1440)" />
-                                        <ComboBoxItem Content="4K (3840×2160)" />
-                                        <ComboBoxItem Content="720p (1280×720)" />
-                                        <ComboBoxItem Content="480p (854×480)" />
-                                    </ComboBox>
-                                </StackPanel>
-                                <!-- Frame Rate -->
-                                <StackPanel Spacing="2">
-                                    <TextBlock Text="Frame Rate" FontSize="10"
-                                               Foreground="{StaticResource TextSecondaryBrush}" />
-                                    <ComboBox x:Name="FpsCombo"
-                                              Style="{StaticResource AlvoniaComboBoxStyle}"
-                                              HorizontalAlignment="Stretch"
-                                              FontSize="11" SelectedIndex="1">
-                                        <ComboBoxItem Content="60 fps" />
-                                        <ComboBoxItem Content="30 fps" />
-                                        <ComboBoxItem Content="24 fps" />
-                                        <ComboBoxItem Content="15 fps" />
-                                    </ComboBox>
-                                </StackPanel>
-                                <!-- Camera -->
-                                <StackPanel Spacing="2">
-                                    <TextBlock Text="Camera Overlay" FontSize="10"
-                                               Foreground="{StaticResource TextSecondaryBrush}" />
-                                    <ComboBox x:Name="WebcamDeviceCombo"
-                                              Style="{StaticResource AlvoniaComboBoxStyle}"
-                                              HorizontalAlignment="Stretch"
-                                              FontSize="11">
-                                        <ComboBoxItem Content="(disabled)" IsSelected="True" />
-                                    </ComboBox>
-                                </StackPanel>
-                                <!-- Mic -->
-                                <StackPanel Spacing="2">
-                                    <TextBlock Text="Mic / Audio Input" FontSize="10"
-                                               Foreground="{StaticResource TextSecondaryBrush}" />
-                                    <ComboBox x:Name="MicDeviceCombo"
-                                              Style="{StaticResource AlvoniaComboBoxStyle}"
-                                              HorizontalAlignment="Stretch"
-                                              FontSize="11">
-                                        <ComboBoxItem Content="Default Microphone" IsSelected="True" />
-                                    </ComboBox>
-                                </StackPanel>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- Separate MP3 audio track -->
-                        <Border Background="#0AFFFFFF"
-                                CornerRadius="6" Padding="8,7"
-                                BorderBrush="#1AFFFFFF" BorderThickness="1">
-                            <StackPanel Spacing="6">
-                                <CheckBox x:Name="SepAudioCheckBox"
-                                          Content="Save separate audio (MP3)"
-                                          FontSize="12"
-                                          IsChecked="False" />
-                                <StackPanel x:Name="SepAudioOptions"
-                                            Orientation="Horizontal" Spacing="8"
-                                            Visibility="{x:Bind SepAudioCheckBox.IsChecked,
-                                                Converter={StaticResource BoolToVisibilityConverter},
-                                                Mode=OneWay}">
-                                    <TextBlock Text="Bitrate" FontSize="11"
-                                               Foreground="{StaticResource TextSecondaryBrush}"
-                                               VerticalAlignment="Center" />
-                                    <ComboBox x:Name="Mp3BitrateCombo"
-                                              FontSize="11" Height="28"
-                                              SelectedIndex="1">
-                                        <ComboBoxItem Content="128 kbps" Tag="128" />
-                                        <ComboBoxItem Content="192 kbps" Tag="192" />
-                                        <ComboBoxItem Content="256 kbps" Tag="256" />
-                                        <ComboBoxItem Content="320 kbps — max quality" Tag="320" />
-                                        <ComboBoxItem Content="All bitrates (128/192/256/320)" Tag="all" />
-                                    </ComboBox>
-                                </StackPanel>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- ── Divider ─────────────────────────────── -->
-                        <Border Height="1" Background="{StaticResource BorderDefaultBrush}" Margin="0,2" />
-
                         <!-- ── 6. Settings ────────────────────────── -->
                         <Button Style="{StaticResource ControlsPanelBtnStyle}"
                                 Click="MenuSettings_Click">
@@ -1508,62 +1442,324 @@
                             </StackPanel>
                         </Button>
 
-                        <!-- ── 7. Open Library ────────────────────── -->
-                        <Button x:Name="ExportBtn"
+                        <!-- ── NEW: Screenshot ────────────────────── -->
+                        <Button x:Name="ScreenshotBtn"
                                 Style="{StaticResource ControlsPanelBtnStyle}"
-                                Click="ExportBtn_Click">
+                                Click="ScreenshotBtn_Click"
+                                ToolTipService.ToolTip="Take Screenshot (Ctrl+PrtScn)">
                             <StackPanel Orientation="Horizontal" Spacing="7">
-                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7C3;" FontSize="11" />
-                                <TextBlock Text="Open Library" />
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7B9;" FontSize="11" />
+                                <TextBlock Text="Screenshot" />
                             </StackPanel>
                         </Button>
+
+                        <!-- ── 7. Exit ────────────────────────────── -->
+                        <Button x:Name="ExitBtn"
+                                Style="{StaticResource ControlsPanelBtnStyle}"
+                                Click="MenuExit_Click">
+                            <StackPanel Orientation="Horizontal" Spacing="7">
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7E8;" FontSize="11" />
+                                <TextBlock Text="Exit" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- ── Advanced Settings (Collapsed by default, preserves functionality) ── -->
+                        <Expander x:Name="AdvancedExpander" Header="Advanced" IsExpanded="False"
+                                  HorizontalAlignment="Stretch" Margin="0,8,0,0">
+                            <StackPanel Spacing="6" Padding="4,6">
+
+                                <!-- Start/Stop Preview (non-OBS feature) -->
+                                <Button x:Name="StartPreviewBtn"
+                                        Style="{StaticResource ControlsPanelBtnStyle}"
+                                        Click="StartPreviewBtn_Click">
+                                    <StackPanel Orientation="Horizontal" Spacing="7">
+                                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE768;" FontSize="11" />
+                                        <TextBlock Text="Start Preview" />
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="StopPreviewBtn"
+                                        Style="{StaticResource ControlsPanelBtnStyle}"
+                                        Click="StopPreviewBtn_Click"
+                                        Visibility="Collapsed">
+                                    <StackPanel Orientation="Horizontal" Spacing="7">
+                                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE769;" FontSize="11" />
+                                        <TextBlock Text="Stop Preview" />
+                                    </StackPanel>
+                                </Button>
+
+                                <!-- CC / Auto Captions -->
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Button x:Name="CcBtn"
+                                            Grid.Column="0"
+                                            HorizontalAlignment="Stretch"
+                                            Style="{StaticResource ControlsPanelBtnStyle}"
+                                            Click="CcBtn_Click"
+                                            ToolTipService.ToolTip="Toggle live auto-captions (CC)">
+                                        <StackPanel Orientation="Horizontal" Spacing="7">
+                                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7F0;" FontSize="11" />
+                                            <TextBlock x:Name="CcBtnText" Text="Auto Captions" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Grid.Column="1"
+                                            Style="{StaticResource ObsToolbarBtnStyle}"
+                                            Click="CcSettingsBtn_Click"
+                                            ToolTipService.ToolTip="Caption Settings"
+                                            Width="28" Height="28" Margin="4,0,0,0">
+                                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE713;" FontSize="11" />
+                                    </Button>
+                                </Grid>
+
+                                <!-- Save Clip (points to ReplayBufferBtn now) -->
+                                <Button x:Name="SaveClipBtn"
+                                        Style="{StaticResource ControlsPanelBtnStyle}"
+                                        Click="SaveClipBtn_Click"
+                                        IsEnabled="False"
+                                        ToolTipService.ToolTip="Save the last 30 seconds as a clip">
+                                    <StackPanel Orientation="Horizontal" Spacing="7">
+                                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7C3;" FontSize="11" />
+                                        <TextBlock Text="Save Clip (30s)" />
+                                    </StackPanel>
+                                </Button>
+
+                                <!-- Lower Third -->
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Button x:Name="LowerThirdBtn"
+                                            Grid.Column="0"
+                                            HorizontalAlignment="Stretch"
+                                            Style="{StaticResource ControlsPanelBtnStyle}"
+                                            Click="LowerThirdBtn_Click"
+                                            ToolTipService.ToolTip="Show/hide lower-third title card overlay">
+                                        <StackPanel Orientation="Horizontal" Spacing="7">
+                                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8D2;" FontSize="11" />
+                                            <TextBlock x:Name="LowerThirdBtnText" Text="Lower Third" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Grid.Column="1"
+                                            Style="{StaticResource ControlsPanelBtnStyle}"
+                                            Width="32" Padding="0"
+                                            Click="LowerThirdSettingsBtn_Click"
+                                            ToolTipService.ToolTip="Configure lower-third text">
+                                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE713;" FontSize="11" />
+                                    </Button>
+                                </Grid>
+
+                                <!-- Recording options -->
+                                <Border Background="{StaticResource BgSurfaceBrush}" CornerRadius="2" Padding="8,7"
+                                        BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="1">
+                                    <StackPanel Spacing="5">
+                                        <CheckBox x:Name="CountdownCheckBox"
+                                                  Content="3-2-1 countdown"
+                                                  FontSize="12" IsChecked="True" />
+                                        <CheckBox x:Name="NoiseSuppCheckBox"
+                                                  Content="Noise suppression"
+                                                  FontSize="12" IsChecked="False" />
+                                        <CheckBox x:Name="MouseCursorEffectsCheckBox"
+                                                  Content="Mouse cursor effects"
+                                                  FontSize="12" IsChecked="False"
+                                                  ToolTipService.ToolTip="Highlight mouse cursor and show click ripples" />
+                                        <CheckBox x:Name="ShowPerformanceStatsCheckBox"
+                                                  Content="Show performance stats"
+                                                  FontSize="12" IsChecked="False"
+                                                  Checked="ShowPerformanceStats_Changed"
+                                                  Unchecked="ShowPerformanceStats_Changed"
+                                                  ToolTipService.ToolTip="Display FPS, CPU, encoding lag overlay" />
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Quick Settings -->
+                                <Border Background="{StaticResource BgSurfaceBrush}" CornerRadius="2" Padding="8,7"
+                                        BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="1">
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Text="Quick Settings"
+                                                   FontSize="10" FontWeight="Normal"
+                                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Resolution" FontSize="10"
+                                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                                            <ComboBox x:Name="QualityCombo"
+                                                      Style="{StaticResource AlvoniaComboBoxStyle}"
+                                                      HorizontalAlignment="Stretch"
+                                                      FontSize="11" SelectedIndex="0">
+                                                <ComboBoxItem Content="1080p (1920×1080)" />
+                                                <ComboBoxItem Content="1440p (2560×1440)" />
+                                                <ComboBoxItem Content="4K (3840×2160)" />
+                                                <ComboBoxItem Content="720p (1280×720)" />
+                                                <ComboBoxItem Content="480p (854×480)" />
+                                            </ComboBox>
+                                        </StackPanel>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Frame Rate" FontSize="10"
+                                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                                            <ComboBox x:Name="FpsCombo"
+                                                      Style="{StaticResource AlvoniaComboBoxStyle}"
+                                                      HorizontalAlignment="Stretch"
+                                                      FontSize="11" SelectedIndex="1">
+                                                <ComboBoxItem Content="60 fps" />
+                                                <ComboBoxItem Content="30 fps" />
+                                                <ComboBoxItem Content="24 fps" />
+                                                <ComboBoxItem Content="15 fps" />
+                                            </ComboBox>
+                                        </StackPanel>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Camera Overlay" FontSize="10"
+                                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                                            <ComboBox x:Name="WebcamDeviceCombo"
+                                                      Style="{StaticResource AlvoniaComboBoxStyle}"
+                                                      HorizontalAlignment="Stretch"
+                                                      FontSize="11">
+                                                <ComboBoxItem Content="(disabled)" IsSelected="True" />
+                                            </ComboBox>
+                                        </StackPanel>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Mic / Audio Input" FontSize="10"
+                                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                                            <ComboBox x:Name="MicDeviceCombo"
+                                                      Style="{StaticResource AlvoniaComboBoxStyle}"
+                                                      HorizontalAlignment="Stretch"
+                                                      FontSize="11">
+                                                <ComboBoxItem Content="Default Microphone" IsSelected="True" />
+                                            </ComboBox>
+                                        </StackPanel>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="Output Format" FontSize="10"
+                                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                                            <ComboBox x:Name="OutputFormatCombo"
+                                                      Style="{StaticResource AlvoniaComboBoxStyle}"
+                                                      HorizontalAlignment="Stretch"
+                                                      FontSize="11" SelectedIndex="0">
+                                                <ComboBoxItem Content="MP4 (H.264)" Tag="mp4" />
+                                                <ComboBoxItem Content="MKV (Matroska)" Tag="mkv" />
+                                                <ComboBoxItem Content="WebM (VP9)" Tag="webm" />
+                                                <ComboBoxItem Content="FLV (Flash)" Tag="flv" />
+                                                <ComboBoxItem Content="MOV (QuickTime)" Tag="mov" />
+                                            </ComboBox>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Separate MP3 audio track -->
+                                <Border Background="{StaticResource BgSurfaceBrush}"
+                                        CornerRadius="2" Padding="8,7"
+                                        BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="1">
+                                    <StackPanel Spacing="6">
+                                        <CheckBox x:Name="SepAudioCheckBox"
+                                                  Content="Save separate audio (MP3)"
+                                                  FontSize="12"
+                                                  IsChecked="False" />
+                                        <StackPanel x:Name="SepAudioOptions"
+                                                    Orientation="Horizontal" Spacing="8"
+                                                    Visibility="{x:Bind SepAudioCheckBox.IsChecked,
+                                                        Converter={StaticResource BoolToVisibilityConverter},
+                                                        Mode=OneWay}">
+                                            <TextBlock Text="Bitrate" FontSize="11"
+                                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                                       VerticalAlignment="Center" />
+                                            <ComboBox x:Name="Mp3BitrateCombo"
+                                                      FontSize="11" Height="28"
+                                                      SelectedIndex="1">
+                                                <ComboBoxItem Content="128 kbps" Tag="128" />
+                                                <ComboBoxItem Content="192 kbps" Tag="192" />
+                                                <ComboBoxItem Content="256 kbps" Tag="256" />
+                                                <ComboBoxItem Content="320 kbps — max quality" Tag="320" />
+                                                <ComboBoxItem Content="All bitrates (128/192/256/320)" Tag="all" />
+                                            </ComboBox>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Open Library -->
+                                <Button x:Name="ExportBtn"
+                                        Style="{StaticResource ControlsPanelBtnStyle}"
+                                        Click="ExportBtn_Click">
+                                    <StackPanel Orientation="Horizontal" Spacing="7">
+                                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7C3;" FontSize="11" />
+                                        <TextBlock Text="Open Library" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Expander>
 
                     </StackPanel>
                 </ScrollViewer>
 
-                <!-- ── Status bar at bottom of Controls ──────────────── -->
-                <Border Grid.Row="2"
-                        Background="{StaticResource BgBaseBrush}"
-                        BorderBrush="{StaticResource BorderPanelBrush}" BorderThickness="0,1,0,0"
-                        Padding="8,5">
-                    <StackPanel Spacing="2">
-                        <!-- Recording status row -->
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="REC " FontSize="10" FontWeight="SemiBold"
-                                       Foreground="{StaticResource RecordingBrush}" />
-                            <TextBlock x:Name="RecStatusText" Grid.Column="1"
-                                       Text="00:00:00" FontSize="10"
-                                       FontFamily="Cascadia Code, Consolas"
-                                       Foreground="{StaticResource TextTertiaryBrush}" />
-                        </Grid>
-                        <!-- Stream status row -->
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="STR " FontSize="10" FontWeight="SemiBold"
-                                       Foreground="#FF22C55E" />
-                            <TextBlock x:Name="StreamStatusText" Grid.Column="1"
-                                       Text="00:00:00" FontSize="10"
-                                       FontFamily="Cascadia Code, Consolas"
-                                       Foreground="{StaticResource TextTertiaryBrush}" />
-                        </Grid>
-                        <!-- General status text -->
-                        <TextBlock x:Name="StatusText"
-                                   Text="Ready"
-                                   FontSize="10"
-                                   Foreground="{StaticResource TextTertiaryBrush}"
-                                   TextWrapping="Wrap" />
-                    </StackPanel>
-                </Border>
+                <!-- (REC/STR status and StatusText moved to Row 3 status bar) -->
             </Grid>
 
         </Grid>
+
+        <!-- ═══════════════════════════════════════════════════════════════
+             Row 3 · Status Bar (OBS-style bottom bar, 22px)
+        ═══════════════════════════════════════════════════════════════════ -->
+        <Border Grid.Row="3"
+                Background="{StaticResource BgPanelBrush}"
+                BorderBrush="{StaticResource BorderPanelBrush}"
+                BorderThickness="0,1,0,0"
+                Padding="8,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Stream indicator -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" Margin="0,0,10,0">
+                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE774;"
+                              FontSize="10" Foreground="{StaticResource TextTertiaryBrush}" />
+                    <TextBlock x:Name="StatusStreamTime" Text="00:00:00"
+                               FontSize="11" FontFamily="Cascadia Code, Consolas"
+                               Foreground="{StaticResource TextTertiaryBrush}"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+
+                <!-- Recording indicator -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" Margin="0,0,10,0">
+                    <Ellipse Width="6" Height="6" Fill="{StaticResource RecordingBrush}" VerticalAlignment="Center" />
+                    <TextBlock x:Name="StatusRecTime" Text="00:00:00"
+                               FontSize="11" FontFamily="Cascadia Code, Consolas"
+                               Foreground="{StaticResource TextTertiaryBrush}"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+
+                <!-- Status message (center) -->
+                <TextBlock x:Name="StatusText"
+                           Grid.Column="3"
+                           Text="Ready"
+                           FontSize="11"
+                           Foreground="{StaticResource TextTertiaryBrush}"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Center"
+                           TextTrimming="CharacterEllipsis" />
+
+                <!-- CPU% -->
+                <TextBlock x:Name="StatusCpuText"
+                           Grid.Column="4"
+                           Text="CPU: 0.0%"
+                           FontSize="11"
+                           Foreground="{StaticResource TextTertiaryBrush}"
+                           VerticalAlignment="Center"
+                           Margin="0,0,10,0" />
+
+                <!-- FPS -->
+                <TextBlock x:Name="StatusFpsText"
+                           Grid.Column="5"
+                           Text="60/60 FPS"
+                           FontSize="11"
+                           Foreground="{StaticResource TextTertiaryBrush}"
+                           VerticalAlignment="Center" />
+            </Grid>
+        </Border>
 
         <!-- ═══════════════════════════════════════════════════════════════
              Floating Recording Toolbar (overlay, visible during recording)
@@ -1571,9 +1767,9 @@
         <Border x:Name="FloatingToolbar"
                 HorizontalAlignment="Left" VerticalAlignment="Top"
                 Margin="20,60,0,0"
-                Background="#F00D0D0D"
-                CornerRadius="12"
-                BorderBrush="#336366F1" BorderThickness="1"
+                Background="#F023232A"
+                CornerRadius="2"
+                BorderBrush="#553D3D46" BorderThickness="1"
                 Padding="6,4"
                 Visibility="Collapsed"
                 ManipulationMode="TranslateX,TranslateY"
@@ -1640,5 +1836,68 @@
                 </Button>
             </StackPanel>
         </Border>
+        <!-- Dock overlay visuals (shown during panel drag) -->
+        <Grid x:Name="DockOverlayRoot" Grid.RowSpan="4" Visibility="Collapsed" IsHitTestVisible="False">
+            <Border x:Name="DockAcceptLeft" Background="#336363F1" Visibility="Collapsed" IsHitTestVisible="False" HorizontalAlignment="Left" Width="220" Opacity="0">
+                <Grid>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6">
+                        <FontIcon Glyph="&#xE76C;" FontFamily="Segoe MDL2 Assets" Foreground="White" Opacity="0.9">
+                            <FontIcon.RenderTransform>
+                                <TranslateTransform x:Name="LeftChevronTranslate" X="0" />
+                            </FontIcon.RenderTransform>
+                        </FontIcon>
+                        <FontIcon Glyph="&#xE76C;" FontFamily="Segoe MDL2 Assets" Foreground="White" Opacity="0.6">
+                            <FontIcon.RenderTransform>
+                                <TranslateTransform X="-6" />
+                            </FontIcon.RenderTransform>
+                        </FontIcon>
+                    </StackPanel>
+                </Grid>
+            </Border>
+            <Border x:Name="DockAcceptRight" Background="#3363F163" Visibility="Collapsed" IsHitTestVisible="False" HorizontalAlignment="Right" Width="280" Opacity="0">
+                <Grid>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6">
+                        <FontIcon Glyph="&#xE76B;" FontFamily="Segoe MDL2 Assets" Foreground="White" Opacity="0.9">
+                            <FontIcon.RenderTransform>
+                                <TranslateTransform x:Name="RightChevronTranslate" X="0" />
+                            </FontIcon.RenderTransform>
+                        </FontIcon>
+                        <FontIcon Glyph="&#xE76B;" FontFamily="Segoe MDL2 Assets" Foreground="White" Opacity="0.6">
+                            <FontIcon.RenderTransform>
+                                <TranslateTransform X="6" />
+                            </FontIcon.RenderTransform>
+                        </FontIcon>
+                    </StackPanel>
+                </Grid>
+            </Border>
+            <Border x:Name="DockAcceptBottom" Background="#33F1A363" Visibility="Collapsed" IsHitTestVisible="False" VerticalAlignment="Bottom" Height="260" Opacity="0">
+                <Grid>
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6">
+                        <FontIcon Glyph="&#xE70E;" FontFamily="Segoe MDL2 Assets" Foreground="White" Opacity="0.9">
+                            <FontIcon.RenderTransform>
+                                <TranslateTransform x:Name="BottomChevronTranslate" Y="0" />
+                            </FontIcon.RenderTransform>
+                        </FontIcon>
+                        <FontIcon Glyph="&#xE70E;" FontFamily="Segoe MDL2 Assets" Foreground="White" Opacity="0.6" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+            <Border x:Name="DockAcceptTop" Background="#33D363F1" Visibility="Collapsed" IsHitTestVisible="False" HorizontalAlignment="Center" VerticalAlignment="Top" Height="120" Width="400" Opacity="0" CornerRadius="4">
+                <Grid>
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6">
+                        <FontIcon Glyph="&#xE70F;" FontFamily="Segoe MDL2 Assets" Foreground="White" Opacity="0.9">
+                            <FontIcon.RenderTransform>
+                                <TranslateTransform x:Name="TopChevronTranslate" Y="0" />
+                            </FontIcon.RenderTransform>
+                        </FontIcon>
+                        <FontIcon Glyph="&#xE70F;" FontFamily="Segoe MDL2 Assets" Foreground="White" Opacity="0.6" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+            <Border x:Name="DockAcceptTab" Width="160" Height="120" CornerRadius="6" Background="#AA0066FF" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False" Opacity="0">
+                <TextBlock x:Name="DockAcceptTabText" Text="Tab here" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White" Opacity="0.9" />
+            </Border>
+            <TextBlock x:Name="DockHintText" Text="" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,40" Foreground="White" Opacity="0" FontSize="13" />
+        </Grid>
     </Grid>
 </Page>

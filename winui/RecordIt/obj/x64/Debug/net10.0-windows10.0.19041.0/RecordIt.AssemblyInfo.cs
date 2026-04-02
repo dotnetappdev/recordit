@@ -16,7 +16,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCopyrightAttribute("Copyright © Alvonia 2024")]
 [assembly: System.Reflection.AssemblyDescriptionAttribute("Screen Recording and Whiteboard App")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7a9792e5aa59f1eece51912d7ec715167e16daf1")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0304405a4a4971bcce0b2a0ba0be89c970b9d970")]
 [assembly: System.Reflection.AssemblyProductAttribute("RecordIt")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RecordIt")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

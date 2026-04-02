@@ -17,8 +17,8 @@ using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.UI.Windowing;
-using Windows.Devices.Enumeration;
 using Windows.Foundation;
+using Windows.Devices.Enumeration;
 using Windows.Graphics.Capture;
 using System.Runtime.InteropServices;
 using Windows.Graphics.DirectX;
@@ -30,6 +30,8 @@ using Windows.Media.Playback;
 using Windows.Storage.Pickers;
 using Windows.UI;
 using WinRT.Interop;
+using Windows.UI.Core;
+using Windows.System;
 
 namespace RecordIt.Pages;
 
@@ -320,6 +322,19 @@ public sealed partial class RecordPage : Page, IDisposable
     // Dock lock
     private bool _docksLocked;
 
+    // Panel drag/drop state
+    private UIElement? _draggedPanel;
+    private bool _isDraggingPanel;
+    private Windows.Foundation.Point _dragStartPoint;
+    private Border? _dragGhost;
+    // private Window? _floatingHostWindow; // Unused field
+    private System.Timers.Timer? _holdTimer;
+    private bool _holdTriggered;
+    private readonly System.Collections.Generic.Dictionary<DependencyObject, Brush?> _originalHeaderBrush = new();
+    // Tab drag source tracking
+    private Microsoft.UI.Xaml.Controls.TabView? _draggedFromTabView;
+    private Microsoft.UI.Xaml.Controls.TabViewItem? _draggedTabItem;
+
     // Streaming state
     private bool _isStreaming;
     private System.Timers.Timer? _streamTimer;
@@ -341,6 +356,13 @@ public sealed partial class RecordPage : Page, IDisposable
     private bool _captionsActive;
     private CancellationTokenSource? _captionClearCts;
     private CaptionConfig _captionConfig = new();
+
+    // Performance monitoring
+    private PerformanceMonitor? _performanceMonitor;
+    private bool _showPerformanceStats;
+
+    // Hotkey manager
+    private HotkeyManager? _hotkeyManager;
 
     // Metering
     private DispatcherTimer? _meterTimer;
@@ -383,12 +405,61 @@ public sealed partial class RecordPage : Page, IDisposable
         VerticalScenesList.ItemsSource  = VerticalScenes;
         VerticalSourcesList.ItemsSource = VerticalSources;
 
+        // Initialize performance monitor
+        _performanceMonitor = new PerformanceMonitor();
+        _performanceMonitor.StatsUpdated += PerformanceMonitor_StatsUpdated;
+        
+        // Initialize hotkey manager
+        _hotkeyManager = new HotkeyManager();
+        _hotkeyManager.HotkeyPressed += HotkeyManager_HotkeyPressed;
+        
+        // Register default hotkeys
+        _hotkeyManager.RegisterBinding("screenshot", new System.Windows.Input.KeyGesture(
+            System.Windows.Input.Key.PrintScreen, System.Windows.Input.ModifierKeys.Control));
+        _hotkeyManager.RegisterBinding("start_stop_recording", new System.Windows.Input.KeyGesture(
+            System.Windows.Input.Key.R, System.Windows.Input.ModifierKeys.Control | System.Windows.Input.ModifierKeys.Shift));
+        _hotkeyManager.RegisterBinding("pause_resume", new System.Windows.Input.KeyGesture(
+            System.Windows.Input.Key.P, System.Windows.Input.ModifierKeys.Control | System.Windows.Input.ModifierKeys.Shift));
+
         // Seed with a default scene
         AddScene("Scene 1");
         SetStatus("Ready · select a capture source");
 
         // Auto-probe devices on load (async, non-blocking)
         _ = InitAsync();
+
+        // Attach pointer handlers for header drag
+        ScenesHeader.PointerPressed += PanelHeader_PointerPressed;
+        ScenesHeader.PointerMoved += PanelHeader_PointerMoved;
+        ScenesHeader.PointerReleased += PanelHeader_PointerReleased;
+
+        SourcesHeader.PointerPressed += PanelHeader_PointerPressed;
+        SourcesHeader.PointerMoved += PanelHeader_PointerMoved;
+        SourcesHeader.PointerReleased += PanelHeader_PointerReleased;
+
+        MixerHeader.PointerPressed += PanelHeader_PointerPressed;
+        MixerHeader.PointerMoved += PanelHeader_PointerMoved;
+        MixerHeader.PointerReleased += PanelHeader_PointerReleased;
+
+        TransitionsHeader.PointerPressed += PanelHeader_PointerPressed;
+        TransitionsHeader.PointerMoved += PanelHeader_PointerMoved;
+        TransitionsHeader.PointerReleased += PanelHeader_PointerReleased;
+
+        ControlsHeader.PointerPressed += PanelHeader_PointerPressed;
+        ControlsHeader.PointerMoved += PanelHeader_PointerMoved;
+        ControlsHeader.PointerReleased += PanelHeader_PointerReleased;
+
+        // Subscribe to core window key state to detect modifiers during drag
+        try
+        {
+            var cw = CoreWindow.GetForCurrentThread();
+            if (cw != null)
+            {
+                cw.KeyDown += CoreWindow_KeyDown;
+                cw.KeyUp += CoreWindow_KeyUp;
+            }
+        }
+        catch { }
     }
 
     // Win32 interop for window positioning
@@ -425,6 +496,83 @@ public sealed partial class RecordPage : Page, IDisposable
         catch { }
     }
 
+    private nint? FindWindowByTitle(string title)
+    {
+        nint? found = null;
+        try
+        {
+            EnumWindows((hWnd, lParam) =>
+            {
+                if (!IsWindowVisible(hWnd)) return true;
+                int len = GetWindowTextLength(hWnd);
+                if (len == 0) return true;
+                var sb = new System.Text.StringBuilder(len + 1);
+                GetWindowText(hWnd, sb, sb.Capacity);
+                var wtitle = sb.ToString();
+                if (!string.IsNullOrEmpty(wtitle) && wtitle.IndexOf(title, StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    found = hWnd;
+                    return false; // stop enumeration
+                }
+                return true;
+            }, IntPtr.Zero);
+        }
+        catch { }
+        return found;
+    }
+
+    private void MagnifyBtn_Click(object sender, RoutedEventArgs e)
+    {
+        OpenMagnifierForSelectedSource();
+    }
+
+    public void OpenMagnifierForSelectedSource()
+    {
+        try
+        {
+            if (SourcesList.SelectedItem is SourceItem si)
+            {
+                // Try to find a matching window by name
+                var hwnd = FindWindowByTitle(si.Name);
+                if (hwnd == null)
+                {
+                    SetStatus("Cannot find window to magnify");
+                    return;
+                }
+
+                var zw = new ZoomWindow(hwnd.Value);
+                // Use the current preview bitmap as the magnified image when available
+                zw.ImageSource = _mainBitmapSrc;
+                zw.Activate();
+
+                // Persist magnifier open state and initial bounds
+                try
+                {
+                    var h = WindowNativeInterop.GetWindowHandle(zw);
+                    if (GetWindowRect(h, out var r))
+                    {
+                        _settings.Set("magnifier.open", "1");
+                        _settings.Set("magnifier.x", r.Left.ToString(CultureInfo.InvariantCulture));
+                        _settings.Set("magnifier.y", r.Top.ToString(CultureInfo.InvariantCulture));
+                        _settings.Set("magnifier.w", (r.Right - r.Left).ToString(CultureInfo.InvariantCulture));
+                        _settings.Set("magnifier.h", (r.Bottom - r.Top).ToString(CultureInfo.InvariantCulture));
+                        _settings.Set("magnifier.target", si.Name);
+                    }
+                }
+                catch { }
+
+                zw.Closed += (_, _) =>
+                {
+                    try { _settings.Set("magnifier.open", "0"); } catch { }
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            SetStatus($"Magnifier failed: {ex.Message}");
+        }
+    }
+
     private async Task InitAsync()
     {
         // Load caption defaults from app settings so the CC toggle uses them.
@@ -432,6 +580,28 @@ public sealed partial class RecordPage : Page, IDisposable
 
         // Attach the persistent SoftwareBitmapSource to the screen-preview Image
         PreviewScreenImage.Source = _mainBitmapSrc;
+
+        // Restore saved layout if available
+        try
+        {
+            var leftW = _settings.Get("layout.leftpanels.width");
+            if (double.TryParse(leftW, out var lw)) LeftPanelsColumn.Width = new GridLength(Math.Max(100, lw));
+            var mixerW = _settings.Get("layout.mixer.width");
+            if (double.TryParse(mixerW, out var mw)) MixerColumn.Width = new GridLength(Math.Max(150, mw));
+            var transW = _settings.Get("layout.trans.width");
+            if (double.TryParse(transW, out var tw)) TransColumn.Width = new GridLength(Math.Max(100, tw));
+            var controlsW = _settings.Get("layout.controls.width");
+            if (double.TryParse(controlsW, out var cw)) ControlsColumn.Width = new GridLength(Math.Max(120, cw));
+
+            var previewMain = _settings.Get("layout.preview.main.width");
+            if (double.TryParse(previewMain, out var pm)) PreviewMainCol.Width = new GridLength(Math.Max(200, pm));
+            var liveSide = _settings.Get("layout.live.side.width");
+            if (double.TryParse(liveSide, out var ls)) LiveSideCol.Width = new GridLength(Math.Max(120, ls));
+        }
+        catch { }
+
+        // Restore any previously floated panels and magnifier
+        try { RestoreFloatingElements(); } catch { }
 
         // Check ffmpeg first — prompt the user if it's not installed
         await ShowFfmpegSetupIfNeededAsync();
@@ -742,7 +912,7 @@ public sealed partial class RecordPage : Page, IDisposable
             var ts = elapsed.ToString(@"hh\:mm\:ss");
             if (RecordingTimerText is not null) RecordingTimerText.Text = elapsed.ToString(@"mm\:ss");
             if (FloatingTimerText  is not null) FloatingTimerText.Text  = elapsed.ToString(@"mm\:ss");
-            if (RecStatusText      is not null) RecStatusText.Text      = ts;
+            if (StatusRecTime       is not null) StatusRecTime.Text       = ts;
         }
     }
 
@@ -861,9 +1031,11 @@ public sealed partial class RecordPage : Page, IDisposable
         if (SourcesList.SelectedItem is not SourceItem src)
         {
             ShowPreviewHint();
+            if (SelectedSourceText is not null) SelectedSourceText.Text = "No source selected";
             return;
         }
 
+        if (SelectedSourceText is not null) SelectedSourceText.Text = src.Name;
         _selectedSourceId = src.SourceType;
 
         if (src.SourceType is "screen" or "window")
@@ -1238,7 +1410,8 @@ public sealed partial class RecordPage : Page, IDisposable
 
         _verticalWindow = win;
         _verticalUndocked = true;
-        VerticalTabItem.Visibility = Visibility.Collapsed;
+        var vti = this.FindName("VerticalTabItem") as Microsoft.UI.Xaml.Controls.TabViewItem;
+        if (vti != null) vti.Visibility = Visibility.Collapsed;
         win.Closed += (_, _) => CloseFloatingVerticalWindow();
         win.Activate();
         // Position the floating window near the right edge of the main window
@@ -1256,7 +1429,8 @@ public sealed partial class RecordPage : Page, IDisposable
         _floatingVerticalScenesList = null;
         _floatingVerticalPreviewImage = null;
         _verticalUndocked = false;
-        VerticalTabItem.Visibility = Visibility.Visible;
+        var vti2 = this.FindName("VerticalTabItem") as Microsoft.UI.Xaml.Controls.TabViewItem;
+        if (vti2 != null) vti2.Visibility = Visibility.Visible;
     }
 
     private void FloatingVerticalSources_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1383,26 +1557,33 @@ public sealed partial class RecordPage : Page, IDisposable
             try
             {
                 dlgDevice ??= new CanvasDevice();
+                // Use triple buffering to reduce flickering
                 dlgPool    = Direct3D11CaptureFramePool.Create(
-                    dlgDevice, DirectXPixelFormat.B8G8R8A8UIntNormalized, 2, item.Size);
+                    dlgDevice, DirectXPixelFormat.B8G8R8A8UIntNormalized, 3, item.Size);
                 dlgSession = dlgPool.CreateCaptureSession(item);
+#pragma warning disable CA1416
                 dlgSession.IsCursorCaptureEnabled = cursorChk.IsChecked == true;
+#pragma warning restore CA1416
                 dlgPool.FrameArrived += (pool, _) =>
                 {
                     if (dlgBusy) { pool.TryGetNextFrame()?.Dispose(); return; }
                     dlgBusy = true;
                     var frame = pool.TryGetNextFrame();
                     if (frame == null) { dlgBusy = false; return; }
-                    DispatcherQueue.TryEnqueue(async () =>
+                    DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Normal, async () =>
                     {
                         try
                         {
                             var sb = await SoftwareBitmap.CreateCopyFromSurfaceAsync(frame.Surface);
                             if (sb.BitmapPixelFormat != BitmapPixelFormat.Bgra8 ||
                                 sb.BitmapAlphaMode   != BitmapAlphaMode.Premultiplied)
-                                sb = SoftwareBitmap.Convert(sb, BitmapPixelFormat.Bgra8,
-                                                            BitmapAlphaMode.Premultiplied);
+                            {
+                                var converted = SoftwareBitmap.Convert(sb, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+                                sb.Dispose();
+                                sb = converted;
+                            }
                             await bitmapSrc.SetBitmapAsync(sb);
+                            sb.Dispose();
                         }
                         catch { }
                         finally { frame.Dispose(); dlgBusy = false; }
@@ -1423,8 +1604,16 @@ public sealed partial class RecordPage : Page, IDisposable
         }
 
         displayCombo.SelectionChanged += (_, _) => TryStartPreviewForIndex(displayCombo.SelectedIndex);
-        cursorChk.Checked   += (_, _) => { if (dlgSession != null) dlgSession.IsCursorCaptureEnabled = true;  };
-        cursorChk.Unchecked += (_, _) => { if (dlgSession != null) dlgSession.IsCursorCaptureEnabled = false; };
+#pragma warning disable CA1416
+        cursorChk.Checked   += (_, _) => { 
+            if (dlgSession != null && Windows.Foundation.Metadata.ApiInformation.IsPropertyPresent("Windows.Graphics.Capture.GraphicsCaptureSession", "IsCursorCaptureEnabled")) 
+                dlgSession.IsCursorCaptureEnabled = true;  
+        };
+        cursorChk.Unchecked += (_, _) => { 
+            if (dlgSession != null && Windows.Foundation.Metadata.ApiInformation.IsPropertyPresent("Windows.Graphics.Capture.GraphicsCaptureSession", "IsCursorCaptureEnabled")) 
+                dlgSession.IsCursorCaptureEnabled = false; 
+        };
+#pragma warning restore CA1416
 
         var content = new StackPanel { Spacing = 8, Width = 620 };
         content.Children.Add(previewBorder);
@@ -1657,26 +1846,33 @@ public sealed partial class RecordPage : Page, IDisposable
             try
             {
                 dlgDevice ??= new CanvasDevice();
+                // Use triple buffering to reduce flickering
                 dlgPool    = Direct3D11CaptureFramePool.Create(
-                    dlgDevice, DirectXPixelFormat.B8G8R8A8UIntNormalized, 2, item.Size);
+                    dlgDevice, DirectXPixelFormat.B8G8R8A8UIntNormalized, 3, item.Size);
                 dlgSession = dlgPool.CreateCaptureSession(item);
+#pragma warning disable CA1416
                 dlgSession.IsCursorCaptureEnabled = cursorChk.IsChecked == true;
+#pragma warning restore CA1416
                 dlgPool.FrameArrived += (pool, _) =>
                 {
                     if (dlgBusy) { pool.TryGetNextFrame()?.Dispose(); return; }
                     dlgBusy = true;
                     var frame = pool.TryGetNextFrame();
                     if (frame == null) { dlgBusy = false; return; }
-                    DispatcherQueue.TryEnqueue(async () =>
+                    DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Normal, async () =>
                     {
                         try
                         {
                             var sb = await SoftwareBitmap.CreateCopyFromSurfaceAsync(frame.Surface);
                             if (sb.BitmapPixelFormat != BitmapPixelFormat.Bgra8 ||
                                 sb.BitmapAlphaMode   != BitmapAlphaMode.Premultiplied)
-                                sb = SoftwareBitmap.Convert(sb, BitmapPixelFormat.Bgra8,
-                                                            BitmapAlphaMode.Premultiplied);
+                            {
+                                var converted = SoftwareBitmap.Convert(sb, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+                                sb.Dispose();
+                                sb = converted;
+                            }
                             await bitmapSrc.SetBitmapAsync(sb);
+                            sb.Dispose();
                         }
                         catch { }
                         finally { frame.Dispose(); dlgBusy = false; }
@@ -1712,8 +1908,16 @@ public sealed partial class RecordPage : Page, IDisposable
             catch { }
         };
 
-        cursorChk.Checked   += (_, _) => { if (dlgSession != null) dlgSession.IsCursorCaptureEnabled = true;  };
-        cursorChk.Unchecked += (_, _) => { if (dlgSession != null) dlgSession.IsCursorCaptureEnabled = false; };
+#pragma warning disable CA1416
+        cursorChk.Checked   += (_, _) => { 
+            if (dlgSession != null && Windows.Foundation.Metadata.ApiInformation.IsPropertyPresent("Windows.Graphics.Capture.GraphicsCaptureSession", "IsCursorCaptureEnabled")) 
+                dlgSession.IsCursorCaptureEnabled = true;  
+        };
+        cursorChk.Unchecked += (_, _) => { 
+            if (dlgSession != null && Windows.Foundation.Metadata.ApiInformation.IsPropertyPresent("Windows.Graphics.Capture.GraphicsCaptureSession", "IsCursorCaptureEnabled")) 
+                dlgSession.IsCursorCaptureEnabled = false; 
+        };
+#pragma warning restore CA1416
 
         var content = new StackPanel { Spacing = 8, Width = 620 };
         content.Children.Add(previewBorder);
@@ -2095,48 +2299,69 @@ public sealed partial class RecordPage : Page, IDisposable
         try
         {
             _mainCaptureDevice ??= new CanvasDevice();
+            // Use triple buffering (3 frames) to reduce flickering
             _mainCapturePool = Direct3D11CaptureFramePool.Create(
-                _mainCaptureDevice, DirectXPixelFormat.B8G8R8A8UIntNormalized, 2, item.Size);
+                _mainCaptureDevice, DirectXPixelFormat.B8G8R8A8UIntNormalized, 3, item.Size);
             _mainCaptureSession = _mainCapturePool.CreateCaptureSession(item);
-            _mainCaptureSession.IsCursorCaptureEnabled = true;
+#pragma warning disable CA1416
+            if (Windows.Foundation.Metadata.ApiInformation.IsPropertyPresent("Windows.Graphics.Capture.GraphicsCaptureSession", "IsCursorCaptureEnabled"))
+                _mainCaptureSession.IsCursorCaptureEnabled = true;
+#pragma warning restore CA1416
+            
+            // Set up UI visibility BEFORE starting capture to prevent flashing
+            PreviewScreenImage.Visibility = Visibility.Visible;
+            PreviewHintPanel.Visibility   = Visibility.Collapsed;
+            LivePreviewScreenImage.Source     = _mainBitmapSrc;
+            LivePreviewScreenImage.Visibility = Visibility.Visible;
+            LivePreviewElement.SetMediaPlayer(null);
+            LivePreviewElement.Visibility     = Visibility.Collapsed;
+            LivePreviewHint.Visibility       = Visibility.Collapsed;
+            
             _mainCapturePool.FrameArrived += (pool, _) =>
             {
-                if (_mainCaptureBusy) { pool.TryGetNextFrame()?.Dispose(); return; }
+                // Drop frames if we're still processing the previous one
+                if (_mainCaptureBusy) 
+                { 
+                    pool.TryGetNextFrame()?.Dispose(); 
+                    return; 
+                }
                 _mainCaptureBusy = true;
                 var frame = pool.TryGetNextFrame();
                 if (frame == null) { _mainCaptureBusy = false; return; }
-                DispatcherQueue.TryEnqueue(async () =>
+                
+                // Process frame on UI thread
+                DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Normal, async () =>
                 {
                     try
                     {
                         var sb = await SoftwareBitmap.CreateCopyFromSurfaceAsync(frame.Surface);
                         if (sb.BitmapPixelFormat != BitmapPixelFormat.Bgra8 ||
                             sb.BitmapAlphaMode   != BitmapAlphaMode.Premultiplied)
-                            sb = SoftwareBitmap.Convert(sb, BitmapPixelFormat.Bgra8,
-                                                        BitmapAlphaMode.Premultiplied);
+                        {
+                            var converted = SoftwareBitmap.Convert(sb, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+                            sb.Dispose();
+                            sb = converted;
+                        }
                         await _mainBitmapSrc.SetBitmapAsync(sb);
+                        sb.Dispose();
                     }
                     catch { }
-                    finally { frame.Dispose(); _mainCaptureBusy = false; }
+                    finally 
+                    { 
+                        frame.Dispose();
+                        _mainCaptureBusy = false; 
+                    }
                 });
             };
+            
+            // Start capture AFTER everything is set up
             _mainCaptureSession.StartCapture();
 
-            // Show the same screen feed in the side "LIVE PREVIEW" panel.
-            // (The panel originally only supported webcams via MediaPlayerElement.)
-            LivePreviewScreenImage.Source     = _mainBitmapSrc;
-            LivePreviewScreenImage.Visibility = Visibility.Visible;
-                    // Apply any transform for the currently selected source
-                    if (SourcesList.SelectedItem is SourceItem sel)
-                    {
-                        try { ApplySourceTransform(sel); } catch { }
-                    }
-            LivePreviewElement.SetMediaPlayer(null);
-            LivePreviewElement.Visibility     = Visibility.Collapsed;
-            LivePreviewHint.Visibility       = Visibility.Collapsed;
-
-            PreviewScreenImage.Visibility = Visibility.Visible;
-            PreviewHintPanel.Visibility   = Visibility.Collapsed;
+            // Apply any transform for the currently selected source
+            if (SourcesList.SelectedItem is SourceItem sel)
+            {
+                try { ApplySourceTransform(sel); } catch { }
+            }
         }
         catch { /* leave hint visible if capture fails */ }
     }
@@ -2331,6 +2556,13 @@ public sealed partial class RecordPage : Page, IDisposable
         if (!_isResizingPreviewSplitter) return;
         _isResizingPreviewSplitter = false;
         (sender as UIElement)?.ReleasePointerCapture(e.Pointer);
+        // Persist preview / live column widths
+        try
+        {
+            _settings.Set("layout.preview.main.width", PreviewMainCol.Width.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            _settings.Set("layout.live.side.width", LiveSideCol.Width.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        }
+        catch { }
     }
 
     private void PreviewLiveSplitter_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
@@ -2460,7 +2692,7 @@ public sealed partial class RecordPage : Page, IDisposable
         MenuStartRecord.IsEnabled  = true;
         MenuStopRecord.IsEnabled   = false;
         RecordingBadge.Visibility  = Visibility.Collapsed;
-        RecStatusText.Text         = "00:00:00";
+        if (StatusRecTime is not null) StatusRecTime.Text = "00:00:00";
         App.MainWindow?.StopRecordingIndicator();
         SetStatus("Recording stopped");
 
@@ -2701,11 +2933,10 @@ public sealed partial class RecordPage : Page, IDisposable
 
     private void ResetPanelWidths()
     {
-        ScenesColumn.Width   = new GridLength(175);
-        SourcesColumn.Width  = new GridLength(200);
-        MixerColumn.Width    = new GridLength(1, GridUnitType.Star);
-        TransColumn.Width    = new GridLength(155);
-        ControlsColumn.Width = new GridLength(155);
+        LeftPanelsColumn.Width = new GridLength(175);
+        MixerColumn.Width      = new GridLength(1, GridUnitType.Star);
+        TransColumn.Width      = new GridLength(155);
+        ControlsColumn.Width   = new GridLength(155);
     }
 
     // ── Probe / Refresh ───────────────────────────────────────────────────────
@@ -3150,7 +3381,7 @@ public sealed partial class RecordPage : Page, IDisposable
     {
         // Show effects panel if hidden
         EffectsPanel.Visibility = Visibility.Visible;
-        StatusText.Text = "Effects panel opened — drag sliders to adjust";
+        SetStatus("Effects panel opened — drag sliders to adjust");
     }
 
     // ── Floating Toolbar handlers ───────────────────────────────────────────
@@ -3173,24 +3404,24 @@ public sealed partial class RecordPage : Page, IDisposable
         _floatingMicMuted = !_floatingMicMuted;
         if (FloatingMicBtn.Content is FontIcon icon)
             icon.Glyph = _floatingMicMuted ? "\uE720" : "\uE720"; // mic / mic off
-        StatusText.Text = _floatingMicMuted ? "Microphone muted" : "Microphone enabled";
+        SetStatus(_floatingMicMuted ? "Microphone muted" : "Microphone enabled");
     }
 
     private void FloatingCamBtn_Click(object sender, RoutedEventArgs e)
     {
         _floatingCamOn = !_floatingCamOn;
-        StatusText.Text = _floatingCamOn ? "Camera enabled" : "Camera disabled";
+        SetStatus(_floatingCamOn ? "Camera enabled" : "Camera disabled");
     }
 
     private void FloatingDrawBtn_Click(object sender, RoutedEventArgs e)
     {
         _floatingDrawMode = !_floatingDrawMode;
-        StatusText.Text = _floatingDrawMode ? "Screen annotation mode ON — draw on screen" : "Screen annotation mode OFF";
+        SetStatus(_floatingDrawMode ? "Screen annotation mode ON — draw on screen" : "Screen annotation mode OFF");
     }
 
     private void FloatingZoomBtn_Click(object sender, RoutedEventArgs e)
     {
-        StatusText.Text = "Zoom: use Ctrl+Scroll to zoom in/out";
+        SetStatus("Zoom: use Ctrl+Scroll to zoom in/out");
     }
 
     private void FloatingMinBtn_Click(object sender, RoutedEventArgs e)
@@ -3236,10 +3467,9 @@ public sealed partial class RecordPage : Page, IDisposable
 
         (_panelLeftStartW, _panelRightStartW) = _activePanelSplitter switch
         {
-            "scenes-sources"  => (ScenesColumn.ActualWidth,  SourcesColumn.ActualWidth),
-            "sources-mixer"   => (SourcesColumn.ActualWidth, MixerColumn.ActualWidth),
-            "mixer-trans"     => (MixerColumn.ActualWidth,   TransColumn.ActualWidth),
-            "trans-controls"  => (TransColumn.ActualWidth,   ControlsColumn.ActualWidth),
+            "left-right"      => (LeftPanelsColumn.ActualWidth, 0),
+            "mixer-trans"     => (MixerColumn.ActualWidth,      TransColumn.ActualWidth),
+            "trans-controls"  => (TransColumn.ActualWidth,      ControlsColumn.ActualWidth),
             _                 => (0, 0),
         };
     }
@@ -3250,13 +3480,8 @@ public sealed partial class RecordPage : Page, IDisposable
         var dx = e.GetCurrentPoint(this).Position.X - _panelSplitterStartX;
         switch (_activePanelSplitter)
         {
-            case "scenes-sources":
-                ScenesColumn.Width  = new GridLength(Math.Max(80,  _panelLeftStartW  + dx));
-                SourcesColumn.Width = new GridLength(Math.Max(100, _panelRightStartW - dx));
-                break;
-            case "sources-mixer":
-                SourcesColumn.Width = new GridLength(Math.Max(100, _panelLeftStartW  + dx));
-                MixerColumn.Width   = new GridLength(Math.Max(150, _panelRightStartW - dx));
+            case "left-right":
+                LeftPanelsColumn.Width = new GridLength(Math.Max(100, _panelLeftStartW + dx));
                 break;
             case "mixer-trans":
                 MixerColumn.Width = new GridLength(Math.Max(150, _panelLeftStartW  + dx));
@@ -3274,18 +3499,115 @@ public sealed partial class RecordPage : Page, IDisposable
         if (!_isResizingPanelSplitter) return;
         _isResizingPanelSplitter = false;
         (sender as UIElement)?.ReleasePointerCapture(e.Pointer);
+        // Persist layout
+        try
+        {
+            _settings.Set("layout.leftpanels.width", LeftPanelsColumn.Width.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            _settings.Set("layout.mixer.width", MixerColumn.Width.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            _settings.Set("layout.trans.width", TransColumn.Width.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            _settings.Set("layout.controls.width", ControlsColumn.Width.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        }
+        catch { }
     }
 
     private void PanelSplitter_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
         if (_docksLocked || sender is not Border b) return;
         b.Background = (Brush)Application.Current.Resources["BgHoverBrush"];
+        // Set resize cursor (horizontal splitter)
+        try
+        {
+            Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.SizeWestEast, 1);
+        }
+        catch { /* WinUI 3 may not support CoreWindow */ }
     }
 
     private void PanelSplitter_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
         if (sender is Border b)
-            b.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0, 0, 0, 0));
+            b.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(25, 255, 255, 255));
+        // Restore arrow cursor
+        try
+        {
+            Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Arrow, 1);
+        }
+        catch { /* WinUI 3 may not support CoreWindow */ }
+    }
+
+    // ── Left panel (Scenes/Sources horizontal) splitter handlers ─────────────
+
+    private bool   _isResizingLeftSplitter;
+    private double _leftSplitterStartY;
+    private double _scenesRowStartH;
+    private double _sourcesRowStartH;
+
+    private void LeftPanelSplitter_PointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (_docksLocked) return;
+        _isResizingLeftSplitter = true;
+        (sender as UIElement)?.CapturePointer(e.Pointer);
+        _leftSplitterStartY = e.GetCurrentPoint(this).Position.Y;
+        // The left panels grid is the parent; its Row 0 and Row 2 are * height
+        // We read the current ActualHeight of ScenesPanel and SourcesPanel
+        _scenesRowStartH  = ScenesPanel.ActualHeight;
+        _sourcesRowStartH = SourcesPanel.ActualHeight;
+    }
+
+    private void LeftPanelSplitter_PointerMoved(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (!_isResizingLeftSplitter) return;
+        var dy = e.GetCurrentPoint(this).Position.Y - _leftSplitterStartY;
+        var newScenes  = Math.Max(60, _scenesRowStartH  + dy);
+        var newSources = Math.Max(60, _sourcesRowStartH - dy);
+        // Update the grid row heights on the left panels container
+        if (ScenesPanel.Parent is Grid leftGrid)
+        {
+            leftGrid.RowDefinitions[0].Height = new GridLength(newScenes,  GridUnitType.Pixel);
+            leftGrid.RowDefinitions[2].Height = new GridLength(newSources, GridUnitType.Pixel);
+        }
+    }
+
+    private void LeftPanelSplitter_PointerReleased(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (!_isResizingLeftSplitter) return;
+        _isResizingLeftSplitter = false;
+        (sender as UIElement)?.ReleasePointerCapture(e.Pointer);
+        // Persist left panels heights
+        try
+        {
+            if (ScenesPanel.Parent is Grid lg)
+            {
+                var scenesH = lg.RowDefinitions[0].ActualHeight;
+                var sourcesH = lg.RowDefinitions[2].ActualHeight;
+                _settings.Set("layout.leftpanels.scenes.height", scenesH.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                _settings.Set("layout.leftpanels.sources.height", sourcesH.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            }
+        }
+        catch { }
+    }
+
+    private void LeftPanelSplitter_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (_docksLocked || sender is not Border b) return;
+        b.Background = (Brush)Application.Current.Resources["BgHoverBrush"];
+        // Set resize cursor (vertical splitter)
+        try
+        {
+            Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.SizeNorthSouth, 1);
+        }
+        catch { /* WinUI 3 may not support CoreWindow */ }
+    }
+
+    private void LeftPanelSplitter_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (sender is Border b)
+            b.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(25, 255, 255, 255));
+        // Restore arrow cursor
+        try
+        {
+            Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Arrow, 1);
+        }
+        catch { /* WinUI 3 may not support CoreWindow */ }
     }
 
     // ── Lock Docks ────────────────────────────────────────────────────────────
@@ -3297,10 +3619,10 @@ public sealed partial class RecordPage : Page, IDisposable
             item.IsChecked = _docksLocked;
         // Visually indicate locked state on splitters
         var opacity = _docksLocked ? 0.3 : 1.0;
-        ScenesSourcesSplitter.Opacity  = opacity;
-        SourcesMixerSplitter.Opacity   = opacity;
-        MixerTransSplitter.Opacity     = opacity;
-        TransControlsSplitter.Opacity  = opacity;
+        if (LeftRightSplitter           is not null) LeftRightSplitter.Opacity           = opacity;
+        if (ScenesSourcesHorzSplitter   is not null) ScenesSourcesHorzSplitter.Opacity   = opacity;
+        if (MixerTransSplitter          is not null) MixerTransSplitter.Opacity          = opacity;
+        if (TransControlsSplitter       is not null) TransControlsSplitter.Opacity       = opacity;
         SetStatus(_docksLocked ? "Docks locked" : "Docks unlocked");
     }
 
@@ -3315,7 +3637,7 @@ public sealed partial class RecordPage : Page, IDisposable
             _streamTimer?.Stop();
             _streamTimer = null;
             StreamBtnText.Text     = "Start Streaming";
-            StreamStatusText.Text  = "00:00:00";
+            if (StatusStreamTime is not null) StatusStreamTime.Text = "00:00:00";
             StartStreamBtn.Style   = (Style)Application.Current.Resources["ControlsPanelBtnStyle"];
             SetStatus("Streaming stopped");
         }
@@ -3331,8 +3653,9 @@ public sealed partial class RecordPage : Page, IDisposable
             _streamTimer.Elapsed += (_, _) =>
             {
                 var elapsed = DateTime.Now - _streamStartTime;
-                DispatcherQueue.TryEnqueue(() =>
-                    StreamStatusText.Text = elapsed.ToString(@"hh\:mm\:ss"));
+                DispatcherQueue.TryEnqueue(() => {
+                    if (StatusStreamTime is not null) StatusStreamTime.Text = elapsed.ToString(@"hh\:mm\:ss");
+                });
             };
             _streamTimer.Start();
             SetStatus("Streaming started (stub — configure stream key in Settings)");
@@ -3390,45 +3713,712 @@ public sealed partial class RecordPage : Page, IDisposable
 
         if (panelContent == null) return;
 
-        var win = new Window();
-        var title = tag switch
-        {
-            "scenes"      => "Scenes",
-            "sources"     => "Sources",
-            "mixer"       => "Audio Mixer",
-            "transitions" => "Scene Transitions",
-            "controls"    => "Controls",
-            _             => tag,
-        };
-        win.Title = $"RecordIt — {title}";
+        // If already hosted in a floating window, bring it front
+        // Note: Parent is never Window in this WinUI 3 context, but check is kept for future compatibility
+#pragma warning disable CS0184
+        if (panelContent is FrameworkElement feCheck && feCheck.Parent is Window) return;
+#pragma warning restore CS0184
 
-        // Show a stub floating panel (panels can't be reparented in WinUI without a richer framework;
-        // this stub window communicates the feature is present)
-        var stub = new StackPanel { Padding = new Thickness(16), Spacing = 12 };
-        stub.Children.Add(new TextBlock
+        // Create a floating window and move the panel into it
+        var win = new Window();
+        win.Title = tag switch
         {
-            Text       = $"{title} — Floating Window",
-            FontSize   = 14,
-            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-            Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 240, 240, 240)),
-        });
-        stub.Children.Add(new TextBlock
+            "scenes"      => "Scenes — RecordIt",
+            "sources"     => "Sources — RecordIt",
+            "mixer"       => "Audio Mixer — RecordIt",
+            "transitions" => "Scene Transitions — RecordIt",
+            "controls"    => "Controls — RecordIt",
+            _             => $"{tag} — RecordIt",
+        };
+        // Detach from current parent and host in new window
+        try
         {
-            Text       = "The panel can be docked back via Docks > Reset Dock Layout.",
-            FontSize   = 12,
-            Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 150, 150, 150)),
-            TextWrapping = TextWrapping.Wrap,
-        });
-        win.Content = stub;
-        win.Activate();
-        SetStatus($"{title} floated to separate window");
+            if (panelContent is FrameworkElement fe && fe.Parent is Microsoft.UI.Xaml.Controls.Panel parentPanel)
+            {
+                parentPanel.Children.Remove(panelContent);
+                win.Content = panelContent;
+                win.Activate();
+                PositionFloatingWindow(win, 360, 480);
+                SetStatus($"{win.Title} floated to separate window");
+            }
+        }
+        catch { /* ignore */ }
+    }
+
+    // ── Panel header drag handlers (basic snap-to-dock) ───────────────────
+    private void PanelHeader_PointerPressed(object? sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (_docksLocked) return;
+        if (sender is Border header)
+        {
+            _dragStartPoint = e.GetCurrentPoint(this).Position;
+            // Map header to its parent panel grid
+            var panel = header.Parent as FrameworkElement;
+            while (panel != null && !(panel is Grid && (panel.Name.EndsWith("Panel") || panel.Name == "ScenesPanel")))
+            {
+                panel = panel.Parent as FrameworkElement;
+            }
+            _draggedPanel = panel as UIElement ?? header.Parent as UIElement;
+
+            // If header is inside a TabViewItem, capture the TabViewItem so we can remove/reorder it
+            _draggedFromTabView = null;
+            _draggedTabItem = null;
+            try
+            {
+                var p = header as FrameworkElement;
+                while (p != null)
+                {
+                    if (p is Microsoft.UI.Xaml.Controls.TabViewItem tvi)
+                    {
+                        // find parent TabView
+                        var parent = tvi.Parent;
+                        while (parent != null && !(parent is Microsoft.UI.Xaml.Controls.TabView))
+                        {
+                            parent = (parent as FrameworkElement)?.Parent;
+                        }
+                        _draggedFromTabView = parent as Microsoft.UI.Xaml.Controls.TabView;
+                        _draggedTabItem = tvi;
+                        break;
+                    }
+                    p = p.Parent as FrameworkElement;
+                }
+            }
+            catch { }
+            _isDraggingPanel = true;
+
+            // Drag visual handled by header highlight; no floating ghost added here.
+            _dragGhost = null;
+
+            // Start hold timer (for floating release behavior)
+            _holdTriggered = false;
+            _holdTimer = new System.Timers.Timer(500) { AutoReset = false };
+            _holdTimer.Elapsed += (_, _) =>
+            {
+                _holdTriggered = true;
+            };
+            _holdTimer.Start();
+        }
+    }
+
+    private void PanelHeader_PointerMoved(object? sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (!_isDraggingPanel || _draggedPanel == null) return;
+        var pt = e.GetCurrentPoint(this).Position;
+        // Move ghost
+        // (no ghost movement; visual feedback via header background)
+        // Determine hover dock target and show accept indicator
+        var hit = HitTestForDockTarget(pt);
+        // Restore previous highlights
+        foreach (var kv in _originalHeaderBrush)
+        {
+            try
+            {
+                if (kv.Key is Control ctrl) ctrl.Background = kv.Value;
+                else if (kv.Key is Border br) br.Background = kv.Value;
+            }
+            catch { }
+        }
+        _originalHeaderBrush.Clear();
+        if (hit is FrameworkElement fe)
+        {
+            // store old brush and set a highlight on supported types
+            var highlight = new SolidColorBrush(Windows.UI.Color.FromArgb(60, 99, 102, 241));
+            if (fe is Control c)
+            {
+                _originalHeaderBrush[c] = c.Background;
+                c.Background = highlight;
+            }
+            else if (fe is Border b)
+            {
+                _originalHeaderBrush[b] = b.Background;
+                b.Background = highlight;
+            }
+        }
+
+        // Show dock overlay visuals for current hit target
+        ShowDockOverlayForTarget(hit);
+    }
+
+    private void PanelHeader_PointerReleased(object? sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (!_isDraggingPanel) return;
+        _isDraggingPanel = false;
+        _holdTimer?.Stop();
+        _holdTimer = null;
+
+        // Remove ghost
+        if (_dragGhost != null)
+        {
+            Window.Current.Content.DispatcherQueue.TryEnqueue(() =>
+            {
+                var root = Window.Current.Content as FrameworkElement;
+                if (root is Grid g && g.Children.Contains(_dragGhost)) g.Children.Remove(_dragGhost);
+            });
+            _dragGhost = null;
+        }
+
+        // Determine drop target based on pointer position
+        var pt = e.GetCurrentPoint(this).Position;
+        var target = HitTestForDockTarget(pt);
+        // Hide overlays
+        HideDockOverlay();
+
+        // Modifier-aware behavior: Shift = float, Ctrl = tab, otherwise default
+        var forceFloat = IsShiftPressed() || _holdTriggered;
+        var forceTab = IsCtrlPressed();
+
+        if (forceFloat)
+        {
+            if (_draggedPanel != null)
+            {
+                var win = new Window();
+                string tag = GetPanelTagFromElement(_draggedPanel as FrameworkElement);
+                DetachFromParent(_draggedPanel);
+                win.Content = _draggedPanel;
+                win.Activate();
+                PositionFloatingWindow(win, 360, 480);
+                RegisterFloatingWindow(win, tag);
+                SetStatus("Panel floated to separate window");
+            }
+        }
+        else if (target != null)
+        {
+            // If dragged from a TabView, remove its original TabViewItem
+            if (_draggedFromTabView != null && _draggedTabItem != null)
+            {
+                try { _draggedFromTabView.TabItems.Remove(_draggedTabItem); } catch { }
+                _draggedFromTabView = null; _draggedTabItem = null;
+            }
+
+            // Ctrl forces adding as a tab
+            if (forceTab)
+            {
+                    // If the target's parent already contains a TabView, append as tab
+                if (target.Parent is Microsoft.UI.Xaml.Controls.Panel tp)
+                {
+                    Microsoft.UI.Xaml.Controls.TabView? existing = null;
+                    foreach (var c in tp.Children) if (c is Microsoft.UI.Xaml.Controls.TabView tv) { existing = tv; break; }
+                    if (existing != null)
+                    {
+                        var title = GetPanelTitle(_draggedPanel as FrameworkElement) ?? "Panel";
+                        HidePanelHeader(_draggedPanel as FrameworkElement);
+                        DetachFromParent(_draggedPanel);
+                        var item = new Microsoft.UI.Xaml.Controls.TabViewItem { Header = title, Content = _draggedPanel };
+                        existing.TabItems.Add(item);
+                        existing.SelectedItem = item;
+                        PersistTabOrder(GetPanelTagFromElement(target), existing);
+                    }
+                    else
+                    {
+                        DockPanelToTarget(_draggedPanel, target);
+                    }
+                }
+                else
+                {
+                    DockPanelToTarget(_draggedPanel, target);
+                }
+            }
+            else
+            {
+                DockPanelToTarget(_draggedPanel, target);
+            }
+
+            SetStatus("Panel docked");
+        }
+        else
+        {
+            // No target -> float
+            if (_draggedPanel != null)
+            {
+                var win = new Window();
+                string tag = GetPanelTagFromElement(_draggedPanel as FrameworkElement);
+                DetachFromParent(_draggedPanel);
+                win.Content = _draggedPanel;
+                win.Activate();
+                PositionFloatingWindow(win, 360, 480);
+                RegisterFloatingWindow(win, tag);
+                SetStatus("Panel floated to separate window");
+            }
+        }
+
+        _draggedPanel = null;
+    }
+
+    private FrameworkElement? HitTestForDockTarget(Windows.Foundation.Point p)
+    {
+        // Enhanced hit-testing with center/top/tab targets
+        try
+        {
+            var w = this.ActualWidth;
+            var h = this.ActualHeight;
+            // left dock: within left 220px
+            if (p.X < 220) return ScenesPanel;
+            // right dock: within right 280px
+            if (p.X > w - 280) return ControlsPanel;
+            // bottom dock: within bottom 260px
+            if (p.Y > h - 260) return MixerPanel;
+            // top dock above preview: within 120px from top of preview host
+            var previewHostTransform = PreviewHost.TransformToVisual(this);
+            var previewTop = previewHostTransform.TransformPoint(new Point(0, 0)).Y;
+            if (p.Y >= previewTop && p.Y < previewTop + 120) return DockAcceptTop;
+            // center tab target: near screen centre
+            var cx = w / 2.0;
+            var cy = h / 2.0;
+            var dx = Math.Abs(p.X - cx);
+            var dy = Math.Abs(p.Y - cy);
+            if (dx < 200 && dy < 120) return DockAcceptTab;
+        }
+        catch { }
+        return null;
+    }
+
+    private string GetPanelTagFromElement(FrameworkElement? fe)
+    {
+        if (fe == ScenesPanel) return "scenes";
+        if (fe == SourcesPanel) return "sources";
+        if (fe == MixerPanel) return "mixer";
+        if (fe == TransitionsPanel) return "transitions";
+        if (fe == ControlsPanel) return "controls";
+        return "panel";
+    }
+
+    private void RegisterFloatingWindow(Window win, string tag)
+    {
+        try
+        {
+            // Save a simple open flag and the window bounds
+            var hwnd = WindowNativeInterop.GetWindowHandle(win);
+            if (!GetWindowRect(hwnd, out var r)) return;
+            _settings.Set($"floating.{tag}.open", "1");
+            _settings.Set($"floating.{tag}.x", r.Left.ToString(CultureInfo.InvariantCulture));
+            _settings.Set($"floating.{tag}.y", r.Top.ToString(CultureInfo.InvariantCulture));
+            _settings.Set($"floating.{tag}.w", (r.Right - r.Left).ToString(CultureInfo.InvariantCulture));
+            _settings.Set($"floating.{tag}.h", (r.Bottom - r.Top).ToString(CultureInfo.InvariantCulture));
+
+            win.Closed += (_, _) =>
+            {
+                try { _settings.Set($"floating.{tag}.open", "0"); } catch { }
+            };
+        }
+        catch { }
+    }
+
+    private void RestoreFloatingElements()
+    {
+        // Restore known panels
+        var panels = new (string tag, FrameworkElement element)[] {
+            ("scenes", ScenesPanel), ("sources", SourcesPanel), ("mixer", MixerPanel), ("transitions", TransitionsPanel), ("controls", ControlsPanel)
+        };
+        foreach (var (tag, element) in panels)
+        {
+            try
+            {
+                var open = _settings.Get($"floating.{tag}.open");
+                if (open != "1") continue;
+                var xs = _settings.Get($"floating.{tag}.x");
+                var ys = _settings.Get($"floating.{tag}.y");
+                var ws = _settings.Get($"floating.{tag}.w");
+                var hs = _settings.Get($"floating.{tag}.h");
+                if (!int.TryParse(xs, out var x)) continue;
+                if (!int.TryParse(ys, out var y)) continue;
+                if (!int.TryParse(ws, out var w)) w = 360;
+                if (!int.TryParse(hs, out var h)) h = 480;
+
+                // detach element from current parent
+                DetachFromParent(element);
+                var win = new Window();
+                win.Content = element;
+                win.Activate();
+                var hwnd = WindowNativeInterop.GetWindowHandle(win);
+                SetWindowPos(hwnd, 0, x, y, w, h, SWP_NOZORDER | SWP_NOACTIVATE);
+            }
+            catch { }
+        }
+
+        // Magnifier
+        try
+        {
+            var magOpen = _settings.Get("magnifier.open");
+            if (magOpen == "1")
+            {
+                var xs = _settings.Get("magnifier.x");
+                var ys = _settings.Get("magnifier.y");
+                var ws = _settings.Get("magnifier.w");
+                var hs = _settings.Get("magnifier.h");
+                var zw = new ZoomWindow(IntPtr.Zero);
+                zw.ImageSource = _mainBitmapSrc;
+                zw.Activate();
+                try
+                {
+                    if (int.TryParse(xs, out var x) && int.TryParse(ys, out var y) && int.TryParse(ws, out var w) && int.TryParse(hs, out var h))
+                    {
+                        var hwnd = WindowNativeInterop.GetWindowHandle(zw);
+                        SetWindowPos(hwnd, 0, x, y, w, h, SWP_NOZORDER | SWP_NOACTIVATE);
+                    }
+                }
+                catch { }
+            }
+        }
+        catch { }
+
+        // Restore tab orders for main regions
+        try
+        {
+            RestoreTabOrderForRegion("scenes", ScenesPanel);
+            RestoreTabOrderForRegion("sources", SourcesPanel);
+            RestoreTabOrderForRegion("mixer", MixerPanel);
+            RestoreTabOrderForRegion("transitions", TransitionsPanel);
+            RestoreTabOrderForRegion("controls", ControlsPanel);
+        }
+        catch { }
+    }
+
+    private void ShowDockOverlayForTarget(FrameworkElement? target)
+    {
+        try
+        {
+            // make overlay visible and animate opacity
+            DockOverlayRoot.Visibility = Visibility.Visible;
+            DockAcceptLeft.Visibility = Visibility.Collapsed;
+            DockAcceptRight.Visibility = Visibility.Collapsed;
+            DockAcceptBottom.Visibility = Visibility.Collapsed;
+            DockAcceptTab.Visibility = Visibility.Collapsed;
+            DockAcceptTop.Visibility = Visibility.Collapsed;
+
+            if (target == ScenesPanel)
+            {
+                DockAcceptLeft.Visibility = Visibility.Visible;
+                AnimateOverlay(DockAcceptLeft, true);
+            }
+            else if (target == MixerPanel)
+            {
+                DockAcceptBottom.Visibility = Visibility.Visible;
+                AnimateOverlay(DockAcceptBottom, true);
+            }
+            else if (target == ControlsPanel)
+            {
+                DockAcceptRight.Visibility = Visibility.Visible;
+                AnimateOverlay(DockAcceptRight, true);
+            }
+            else if (target == DockAcceptTop)
+            {
+                DockAcceptTop.Visibility = Visibility.Visible;
+                AnimateOverlay(DockAcceptTop, true);
+            }
+            else if (target == DockAcceptTab)
+            {
+                DockAcceptTab.Visibility = Visibility.Visible;
+                AnimateOverlay(DockAcceptTab, true);
+            }
+        }
+        catch { }
+    }
+
+    private void AnimateOverlay(FrameworkElement element, bool show)
+    {
+        try
+        {
+            var sb = new Microsoft.UI.Xaml.Media.Animation.Storyboard();
+            var da = new Microsoft.UI.Xaml.Media.Animation.DoubleAnimation
+            {
+                Duration = new Microsoft.UI.Xaml.Duration(TimeSpan.FromMilliseconds(180))
+            };
+            var prop = Microsoft.UI.Xaml.Media.Animation.Storyboard.TargetPropertyProperty;
+            if (show) da.To = 1.0; else da.To = 0.0;
+            Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTarget(da, element);
+            Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTargetProperty(da, "Opacity");
+            sb.Children.Add(da);
+            if (!show)
+            {
+                sb.Completed += (s, e) => { element.Visibility = Visibility.Collapsed; };
+            }
+            sb.Begin();
+        }
+        catch { }
+    }
+
+    private void HideDockOverlay()
+    {
+        try
+        {
+            DockOverlayRoot.Visibility = Visibility.Collapsed;
+            DockAcceptLeft.Visibility = Visibility.Collapsed;
+            DockAcceptRight.Visibility = Visibility.Collapsed;
+            DockAcceptBottom.Visibility = Visibility.Collapsed;
+            DockAcceptTab.Visibility = Visibility.Collapsed;
+        }
+        catch { }
+    }
+
+    private void CoreWindow_KeyDown(CoreWindow sender, KeyEventArgs args)
+    {
+        // no-op placeholder; we read modifier state directly when needed
+    }
+
+    private void CoreWindow_KeyUp(CoreWindow sender, KeyEventArgs args)
+    {
+        // no-op placeholder
+    }
+
+    private bool IsShiftPressed()
+    {
+        try
+        {
+            var s = CoreWindow.GetForCurrentThread().GetKeyState(VirtualKey.Shift);
+            return (s & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down;
+        }
+        catch { return false; }
+    }
+
+    private bool IsCtrlPressed()
+    {
+        try
+        {
+            var s = CoreWindow.GetForCurrentThread().GetKeyState(VirtualKey.Control);
+            return (s & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down;
+        }
+        catch { return false; }
+    }
+
+    private void DockPanelToTarget(UIElement? panel, FrameworkElement target)
+    {
+        if (panel == null || target == null) return;
+        // If panel is currently in a parent, remove it
+        DetachFromParent(panel);
+        // Insert into target's parent grid cell. If the target already contains a TabView,
+        // add the panel as a new tab. Otherwise replace the target with a TabView and
+        // host both panels as tabs (hiding their internal headers to avoid duplication).
+                var tgtParent = target.Parent as Microsoft.UI.Xaml.Controls.Panel;
+        if (tgtParent == null) return;
+
+        // Helper: find existing TabView sibling occupying same position
+        Microsoft.UI.Xaml.Controls.TabView? existingTabView = null;
+        foreach (var child in tgtParent.Children)
+        {
+            if (child is Microsoft.UI.Xaml.Controls.TabView tv) { existingTabView = tv; break; }
+        }
+
+        void HidePanelHeader(FrameworkElement pnl)
+        {
+            try
+            {
+                // try known header names
+                if (pnl.FindName("ScenesHeader") is Border b) b.Visibility = Visibility.Collapsed;
+                if (pnl.FindName("SourcesHeader") is Border b2) b2.Visibility = Visibility.Collapsed;
+                if (pnl.FindName("MixerHeader") is Border b3) b3.Visibility = Visibility.Collapsed;
+                if (pnl.FindName("TransitionsHeader") is Border b4) b4.Visibility = Visibility.Collapsed;
+                if (pnl.FindName("ControlsHeader") is Border b5) b5.Visibility = Visibility.Collapsed;
+            }
+            catch { }
+        }
+
+        // Create a TabViewItem from a panel
+        Microsoft.UI.Xaml.Controls.TabViewItem MakeTabFromPanel(FrameworkElement pnl, string title)
+        {
+            // Ensure panel is detached from any existing parent before placing into a TabViewItem
+            DetachFromParent(pnl);
+            HidePanelHeader(pnl);
+            var item = new Microsoft.UI.Xaml.Controls.TabViewItem { Header = title, Content = pnl };
+            return item;
+        }
+
+        // If there's an existing TabView, append this panel as a new tab
+        if (existingTabView != null)
+        {
+            // Create item from the panel and add
+            var panelElement = panel as FrameworkElement;
+            if (panelElement == null) return;
+            var title = GetPanelTitle(panelElement) ?? "Panel";
+            var item = MakeTabFromPanel(panelElement, title);
+            existingTabView.TabItems.Add(item);
+            existingTabView.SelectedItem = item;
+            // persist tab order for this region
+            try { PersistTabOrder(GetPanelTagFromElement(target), existingTabView); } catch { }
+            return;
+        }
+
+        // No TabView yet - replace the target element with a new TabView
+        var tabView = new Microsoft.UI.Xaml.Controls.TabView();
+        // preserve grid row/column if parent is Grid
+        if (tgtParent is Grid g && tgtParent.Children.Contains(target))
+        {
+            int row = Grid.GetRow(target);
+            int col = Grid.GetColumn(target);
+            // Remove target from parent
+            tgtParent.Children.Remove(target);
+            // Create tab items for the original target and the new panel
+            var panelElement = panel as FrameworkElement;
+            if (panelElement == null) return;
+            var titleA = GetPanelTitle(target) ?? "Panel";
+            var titleB = GetPanelTitle(panelElement) ?? "Panel";
+            tabView.TabItems.Add(MakeTabFromPanel(target, titleA));
+            tabView.TabItems.Add(MakeTabFromPanel(panelElement, titleB));
+            // Place TabView into the same grid cell
+            Grid.SetRow(tabView, row);
+            Grid.SetColumn(tabView, col);
+            tgtParent.Children.Add(tabView);
+            tabView.SelectedIndex = 1; // focus the newly added tab
+            try { PersistTabOrder(GetPanelTagFromElement(target), tabView); } catch { }
+            return;
+        }
+
+        // Fallback: add tabView to parent and add both panels as tabs
+        try
+        {
+            var panelElement = panel as FrameworkElement;
+            if (panelElement == null) return;
+            var title1 = GetPanelTitle(target) ?? "Panel";
+            var title2 = GetPanelTitle(panelElement) ?? "Panel";
+            tabView.TabItems.Add(MakeTabFromPanel(target, title1));
+            tabView.TabItems.Add(MakeTabFromPanel(panelElement, title2));
+            tgtParent.Children.Add(tabView);
+            tabView.SelectedIndex = 1;
+        }
+        catch { }
+    }
+
+    private string? GetPanelTitle(object? pnl)
+    {
+        try
+        {
+            if (pnl is FrameworkElement fe)
+            {
+                // look for a TextBlock inside known header names
+                if (fe.FindName("ScenesHeader") is Border b && b.Child is Grid g1)
+                {
+                    foreach (var c in g1.Children)
+                        if (c is TextBlock tb) return tb.Text;
+                }
+                if (fe.FindName("SourcesHeader") is Border b2 && b2.Child is Grid g2)
+                {
+                    foreach (var c in g2.Children)
+                        if (c is TextBlock tb) return tb.Text;
+                }
+                if (fe.FindName("MixerHeader") is Border b3 && b3.Child is Grid g3)
+                {
+                    foreach (var c in g3.Children)
+                        if (c is TextBlock tb) return tb.Text;
+                }
+                if (fe.FindName("TransitionsHeader") is Border b4 && b4.Child is Grid g4)
+                {
+                    foreach (var c in g4.Children)
+                        if (c is TextBlock tb) return tb.Text;
+                }
+                if (fe.FindName("ControlsHeader") is Border b5 && b5.Child is Grid g5)
+                {
+                    foreach (var c in g5.Children)
+                        if (c is TextBlock tb) return tb.Text;
+                }
+            }
+        }
+        catch { }
+        return null;
+    }
+
+    private void HidePanelHeader(FrameworkElement? pnl)
+    {
+        try
+        {
+            if (pnl == null) return;
+            if (pnl.FindName("ScenesHeader") is Border b) b.Visibility = Visibility.Collapsed;
+            if (pnl.FindName("SourcesHeader") is Border b2) b2.Visibility = Visibility.Collapsed;
+            if (pnl.FindName("MixerHeader") is Border b3) b3.Visibility = Visibility.Collapsed;
+            if (pnl.FindName("TransitionsHeader") is Border b4) b4.Visibility = Visibility.Collapsed;
+            if (pnl.FindName("ControlsHeader") is Border b5) b5.Visibility = Visibility.Collapsed;
+        }
+        catch { }
+    }
+
+    private void DetachFromParent(UIElement? element)
+    {
+        if (element == null) return;
+        try
+        {
+            if (element is FrameworkElement fe)
+            {
+                var parent = fe.Parent;
+                if (parent is Microsoft.UI.Xaml.Controls.Panel p)
+                {
+                    if (p.Children.Contains(element)) p.Children.Remove(element);
+                    return;
+                }
+                if (parent is ContentControl cc)
+                {
+                    if (ReferenceEquals(cc.Content, element)) cc.Content = null;
+                    return;
+                }
+                if (parent is Border b)
+                {
+                    if (ReferenceEquals(b.Child, element)) b.Child = null;
+                    return;
+                }
+                if (parent is Microsoft.UI.Xaml.Controls.TabViewItem tvi)
+                {
+                    if (ReferenceEquals(tvi.Content, element)) tvi.Content = null;
+                    return;
+                }
+            }
+        }
+        catch { }
+    }
+
+    private void PersistTabOrder(string regionTag, Microsoft.UI.Xaml.Controls.TabView tabView)
+    {
+        try
+        {
+            if (tabView == null || string.IsNullOrEmpty(regionTag)) return;
+            var headers = new List<string>();
+            foreach (var it in tabView.TabItems)
+            {
+                if (it is Microsoft.UI.Xaml.Controls.TabViewItem tvi)
+                {
+                    headers.Add(tvi.Header?.ToString() ?? "");
+                }
+            }
+            var value = string.Join("|", headers);
+            _settings.Set($"tabs.{regionTag}.order", value);
+        }
+        catch { }
+    }
+
+    private void RestoreTabOrderForRegion(string regionTag, FrameworkElement regionHost)
+    {
+        try
+        {
+            var val = _settings.Get($"tabs.{regionTag}.order");
+            if (string.IsNullOrEmpty(val)) return;
+            if (!(regionHost?.Parent is Microsoft.UI.Xaml.Controls.Panel parent)) return;
+            Microsoft.UI.Xaml.Controls.TabView? tv = null;
+            foreach (var c in parent.Children) if (c is Microsoft.UI.Xaml.Controls.TabView t) { tv = t; break; }
+            if (tv == null) return;
+            var desired = val.Split('|');
+            // Reorder tabs to match desired order where possible
+            var items = tv.TabItems.Cast<object>().OfType<Microsoft.UI.Xaml.Controls.TabViewItem>().ToList();
+            var reordered = new List<Microsoft.UI.Xaml.Controls.TabViewItem>();
+            foreach (var h in desired)
+            {
+                var found = items.FirstOrDefault(x => (x.Header?.ToString() ?? "") == h);
+                if (found != null) { reordered.Add(found); items.Remove(found); }
+            }
+            // Append remaining
+            reordered.AddRange(items);
+            tv.TabItems.Clear();
+            foreach (var it in reordered) tv.TabItems.Add(it);
+        }
+        catch { }
     }
 
     // ── Status bar toggle ─────────────────────────────────────────────────────
 
     private void MenuToggleStatusBar_Click(object sender, RoutedEventArgs e)
     {
-        // StatusText is inside the Controls panel footer; nothing extra needed
+        // Toggle the status bar row (Row 3) visibility
+        if (StatusText?.Parent is Grid sbGrid && sbGrid.Parent is Border sbBorder)
+        {
+            bool nowVisible = sbBorder.Visibility == Visibility.Visible;
+            sbBorder.Visibility = nowVisible ? Visibility.Collapsed : Visibility.Visible;
+            if (sender is ToggleMenuFlyoutItem toggle) toggle.IsChecked = !nowVisible;
+        }
     }
 
     // ── Transition handlers ───────────────────────────────────────────────────
@@ -3441,6 +4431,24 @@ public sealed partial class RecordPage : Page, IDisposable
 
     private void TransitionPropertiesBtn_Click(object sender, RoutedEventArgs e)
         => SetStatus("Transition properties — configure via Settings");
+
+    // ── Properties / Filters bar handlers ────────────────────────────────────
+
+    private async void PropertiesBtn_Click(object sender, RoutedEventArgs e)
+    {
+        if (SourcesList.SelectedItem is SourceItem src)
+            await ShowSourcePropertiesAsync(src);
+        else
+            SetStatus("Select a source first to open its properties");
+    }
+
+    private void FiltersBtn_Click(object sender, RoutedEventArgs e)
+    {
+        if (SourcesList.SelectedItem is SourceItem src)
+            SetStatus($"Filters for '{src.Name}' — coming soon");
+        else
+            SetStatus("Select a source first to open its filters");
+    }
 
     private void TransitionDurationCustomBtn_Click(object sender, RoutedEventArgs e)
         => SetStatus("Set custom duration via the combo box");

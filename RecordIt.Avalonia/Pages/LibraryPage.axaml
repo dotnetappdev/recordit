@@ -62,7 +62,7 @@
       <StackPanel Spacing="20">
 
         <!-- Search + filter row -->
-        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+        <Grid ColumnDefinitions="*,Auto">
           <TextBox Grid.Column="0"
                    x:Name="SearchBox"
                    Watermark="Search recordings…"
@@ -126,7 +126,7 @@
                                Foreground="{StaticResource TextTertiaryBrush}" />
                   </StackPanel>
                   <!-- Actions -->
-                  <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
+                  <Grid ColumnDefinitions="*,Auto,Auto">
                     <Button Grid.Column="1" Classes="ghost"
                             Content="📂" FontSize="14"
                             Padding="6,3" ToolTip.Tip="Open file location" />

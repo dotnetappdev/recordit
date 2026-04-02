@@ -178,8 +178,8 @@ public partial class SettingsPage : UserControl
 
         FfmpegStatusText.Text       = statusText;
         FfmpegStatusBadge.Background = ok
-            ? new SolidColorBrush(Avalonia.Media.Color.FromRgb(0x16, 0xA3, 0x4A))
-            : new SolidColorBrush(Avalonia.Media.Color.FromRgb(0xDC, 0x26, 0x26));
+            ? new SolidColorBrush(Color.FromRgb(0x16, 0xA3, 0x4A))
+            : new SolidColorBrush(Color.FromRgb(0xDC, 0x26, 0x26));
         FfmpegStatusText.Foreground  = Brushes.White;
         FfmpegStatusBadge.IsVisible  = true;
 

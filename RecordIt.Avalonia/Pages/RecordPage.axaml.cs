@@ -53,6 +53,32 @@ public partial class RecordPage : UserControl
         _ = InitAsync();
     }
 
+    /// <summary>
+    /// Called by the host window when a capture source is selected
+    /// from a consolidated Sources panel. We update the preview hint
+    /// and internal selection so the rest of the page responds.
+    /// </summary>
+    public void SelectCaptureSource(CaptureSource src)
+    {
+        // Update preview hint
+        PreviewHintText.Text = src?.Name ?? "No source selected";
+
+        // Ensure the Sources list reflects selection if possible
+        // (we only have simple SourceItem model here; do a best-effort match)
+        for (int i = 0; i < _sources.Count; i++)
+        {
+            if (string.Equals(_sources[i].Name, src.Name, StringComparison.OrdinalIgnoreCase))
+            {
+                SourcesList.SelectedIndex = i;
+                return;
+            }
+        }
+
+        // If not present, add a transient source entry
+        _sources.Insert(0, new SourceItem { Name = src.Name, IconText = src.Type == CaptureSourceType.Window ? "🪟" : "🖥" });
+        SourcesList.SelectedIndex = 0;
+    }
+
     private async System.Threading.Tasks.Task InitAsync()
     {
         // Add default scene
@@ -185,7 +211,7 @@ public partial class RecordPage : UserControl
                         FontSize = 10,
                         Foreground = new SolidColorBrush(Color.Parse("#9E9E9E")),
                         HorizontalAlignment = HorizontalAlignment.Center,
-                        TextTrimming = Avalonia.Media.TextTrimming.CharacterEllipsis,
+                        TextTrimming = TextTrimming.CharacterEllipsis,
                         MaxWidth = 80,
                     },
                     typeDot,
@@ -329,7 +355,7 @@ public partial class RecordPage : UserControl
             StartRecordBtn.IsVisible = false;
             StopRecordBtn.IsVisible  = true;
             RecordingBadge.IsVisible = true;
-            StatusText.Text = "Recording…";
+            if (StatusText is not null) StatusText.Text = "Recording…";
             MenuStartRecord.IsEnabled = false;
             MenuStopRecord.IsEnabled  = true;
 
@@ -348,7 +374,7 @@ public partial class RecordPage : UserControl
         }
         catch (Exception ex)
         {
-            StatusText.Text = $"Error: {ex.Message}";
+            if (StatusText is not null) StatusText.Text = $"Error: {ex.Message}";
         }
     }
 
@@ -361,7 +387,7 @@ public partial class RecordPage : UserControl
         StartRecordBtn.IsVisible = true;
         StopRecordBtn.IsVisible  = false;
         RecordingBadge.IsVisible = false;
-        StatusText.Text = "Ready";
+        if (StatusText is not null) StatusText.Text = "Ready";
         MenuStartRecord.IsEnabled = true;
         MenuStopRecord.IsEnabled  = false;
 
@@ -491,12 +517,12 @@ public partial class RecordPage : UserControl
         _timelinePlaying = !_timelinePlaying;
         if (sender is Button btn)
             btn.Content = _timelinePlaying ? "⏸" : "▶";
-        StatusText.Text = _timelinePlaying ? "Timeline playing" : "Timeline paused";
+        if (StatusText is not null) StatusText.Text = _timelinePlaying ? "Timeline playing" : "Timeline paused";
     }
 
     private void AddTimelineMarkerBtn_Click(object? sender, RoutedEventArgs e)
     {
-        StatusText.Text = "Marker added at current position";
+        if (StatusText is not null) StatusText.Text = "Marker added at current position";
     }
 
     // ── Effects panel handlers ─────────────────────────────────────────────
@@ -508,6 +534,6 @@ public partial class RecordPage : UserControl
     private void AddEffectBtn_Click(object? sender, RoutedEventArgs e)
     {
         EffectsPanel.IsVisible = true;
-        StatusText.Text = "Effects panel opened";
+        if (StatusText is not null) StatusText.Text = "Effects panel opened";
     }
 }

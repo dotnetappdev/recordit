@@ -18,6 +18,7 @@ public sealed partial class MainWindow : Window
     private Timer? _recordingTimer;
     private int _recordingSeconds;
     private bool _isDarkTheme = true;
+    private double _zoomLevel = 1.0;
 
     public bool IsRecording { get; private set; }
 
@@ -25,6 +26,7 @@ public sealed partial class MainWindow : Window
     {
         this.InitializeComponent();
         SetupWindow();
+        SetupKeyboardShortcuts();
         ContentFrame.Navigate(typeof(RecordPage));
     }
 
@@ -193,5 +195,72 @@ public sealed partial class MainWindow : Window
     private void CloseBtn_Click(object sender, RoutedEventArgs e)
     {
         this.Close();
+    }
+
+    // ─── Zoom functionality (Ctrl+Plus/Minus) ────────────────────────────────
+
+    private void SetupKeyboardShortcuts()
+    {
+        this.PreviewKeyDown += MainWindow_PreviewKeyDown;
+    }
+
+    private void MainWindow_PreviewKeyDown(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
+    {
+        var ctrlPressed = Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(Windows.System.VirtualKey.Control).HasFlag(Windows.UI.Core.CoreVirtualKeyStates.Down);
+        
+        if (ctrlPressed)
+        {
+            if (e.Key == Windows.System.VirtualKey.Add || e.Key == (Windows.System.VirtualKey)187) // Plus key (187 is = key which is + with shift)
+            {
+                ZoomIn();
+                e.Handled = true;
+            }
+            else if (e.Key == Windows.System.VirtualKey.Subtract || e.Key == (Windows.System.VirtualKey)189) // Minus key
+            {
+                ZoomOut();
+                e.Handled = true;
+            }
+            else if (e.Key == (Windows.System.VirtualKey)48) // 0 key - reset zoom
+            {
+                ResetZoom();
+                e.Handled = true;
+            }
+        }
+    }
+
+    private void ZoomIn()
+    {
+        _zoomLevel = Math.Min(_zoomLevel + 0.1, 2.0); // Max 200%
+        ApplyZoom();
+    }
+
+    private void ZoomOut()
+    {
+        _zoomLevel = Math.Max(_zoomLevel - 0.1, 0.5); // Min 50%
+        ApplyZoom();
+    }
+
+    private void ResetZoom()
+    {
+        _zoomLevel = 1.0;
+        ApplyZoom();
+    }
+
+    private void ApplyZoom()
+    {
+        // Apply scale transform to the main content frame
+        if (ContentFrame != null)
+        {
+            ContentFrame.RenderTransform = new Microsoft.UI.Xaml.Media.ScaleTransform
+            {
+                ScaleX = _zoomLevel,
+                ScaleY = _zoomLevel,
+                CenterX = ContentFrame.ActualWidth / 2,
+                CenterY = ContentFrame.ActualHeight / 2
+            };
+        }
+
+        // Show brief zoom indicator (optional - could add a transient popup)
+        System.Diagnostics.Debug.WriteLine($"Zoom level: {_zoomLevel:P0}");
     }
 }
