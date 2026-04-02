@@ -383,6 +383,7 @@ D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.
 D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.0\Pages\WhiteboardPage.g.cs
 D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.0\WhiteboardWindow.g.i.cs
 D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.0\WhiteboardWindow.g.cs
+D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.0\XamlTypeInfo.g.cs
 D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.0\App.xaml
 D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.0\MainWindow.xaml
 D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.0\Pages\ExportDialog.xaml
@@ -401,10 +402,6 @@ D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.
 D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.0\Pages\WhiteboardPage.xbf
 D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.0\Styles\AlvoniaTheme.xbf
 D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.0\WhiteboardWindow.xbf
-D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.0\RecordIt.dll
-D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.0\refint\RecordIt.dll
-D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.0\RecordIt.pdb
-D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.0\XamlTypeInfo.g.cs
 D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.0\XamlSaveStateFile.xml
 D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.0\RecordIt.GeneratedMSBuildEditorConfig.editorconfig
 D:\sasproducts\recordit2\winui\RecordIt\bin\x64\Debug\net10.0-windows10.0.19041.0\App.xbf
@@ -663,6 +660,8 @@ D:\sasproducts\recordit2\winui\RecordIt\bin\x64\Debug\net10.0-windows10.0.19041.
 D:\sasproducts\recordit2\winui\RecordIt\bin\x64\Debug\net10.0-windows10.0.19041.0\CommunityToolkit.WinUI.UI.Controls.Markdown.dll
 D:\sasproducts\recordit2\winui\RecordIt\bin\x64\Debug\net10.0-windows10.0.19041.0\CommunityToolkit.WinUI.UI.Controls.Media.dll
 D:\sasproducts\recordit2\winui\RecordIt\bin\x64\Debug\net10.0-windows10.0.19041.0\CommunityToolkit.WinUI.UI.Controls.Primitives.dll
+D:\sasproducts\recordit2\winui\RecordIt\bin\x64\Debug\net10.0-windows10.0.19041.0\FFMpegCore.dll
+D:\sasproducts\recordit2\winui\RecordIt\bin\x64\Debug\net10.0-windows10.0.19041.0\Instances.dll
 D:\sasproducts\recordit2\winui\RecordIt\bin\x64\Debug\net10.0-windows10.0.19041.0\Microsoft.Data.Sqlite.dll
 D:\sasproducts\recordit2\winui\RecordIt\bin\x64\Debug\net10.0-windows10.0.19041.0\Microsoft.Graphics.Canvas.Interop.dll
 D:\sasproducts\recordit2\winui\RecordIt\bin\x64\Debug\net10.0-windows10.0.19041.0\Microsoft.InteractiveExperiences.Projection.dll
@@ -724,6 +723,9 @@ D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.
 D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.0\RecordIt.csproj.CoreCompileInputs.cache
 D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.0\RecordIt.sourcelink.json
 D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.0\RecordIt.csproj.Up2Date
+D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.0\RecordIt.dll
+D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.0\refint\RecordIt.dll
+D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.0\RecordIt.pdb
 D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.0\RecordIt.genruntimeconfig.cache
 D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.0\ref\RecordIt.dll
 D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.0\priconfig.xml
@@ -741,5 +743,3 @@ D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.
 D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.0\qualifiers.txt
 D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.0\qualifiers.txt.intermediate
 D:\sasproducts\recordit2\winui\RecordIt\obj\x64\Debug\net10.0-windows10.0.19041.0\MultipleQualifiersPerDimensionFound.txt
-D:\sasproducts\recordit2\winui\RecordIt\bin\x64\Debug\net10.0-windows10.0.19041.0\FFMpegCore.dll
-D:\sasproducts\recordit2\winui\RecordIt\bin\x64\Debug\net10.0-windows10.0.19041.0\Instances.dll

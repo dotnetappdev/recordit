@@ -36,52 +36,92 @@
 
                 <!-- File -->
                 <MenuBarItem Title="File">
-                    <MenuFlyoutItem x:Name="MenuNewScene"    Text="New Scene Collection"   Click="MenuNewScene_Click" />
-                    <MenuFlyoutItem x:Name="MenuOpenScene"   Text="Open Scene Collection…" Click="MenuOpenScene_Click" />
-                    <MenuFlyoutSeparator />
                     <MenuFlyoutItem x:Name="MenuStartRecord" Text="Start Recording"        Click="StartRecordBtn_Click" />
                     <MenuFlyoutItem x:Name="MenuStopRecord"  Text="Stop Recording"         Click="StopRecordBtn_Click"  IsEnabled="False" />
+                    <MenuFlyoutItem x:Name="MenuStartStream" Text="Start Streaming"        Click="StartStreamBtn_Click" />
                     <MenuFlyoutSeparator />
                     <MenuFlyoutItem x:Name="MenuExport"      Text="Show in Library"        Click="MenuExport_Click" />
+                    <MenuFlyoutSeparator />
+                    <MenuFlyoutItem x:Name="MenuSettings"    Text="Settings…"              Click="MenuSettings_Click" />
                     <MenuFlyoutSeparator />
                     <MenuFlyoutItem x:Name="MenuExit"        Text="Exit"                   Click="MenuExit_Click" />
                 </MenuBarItem>
 
                 <!-- Edit -->
                 <MenuBarItem Title="Edit">
-                    <MenuFlyoutItem x:Name="MenuSettings" Text="Settings…" Click="MenuSettings_Click" />
-                    <MenuFlyoutSeparator />
-                    <MenuFlyoutItem x:Name="MenuAddScene"  Text="Add Scene"  Click="AddSceneBtn_Click" />
+                    <MenuFlyoutItem x:Name="MenuAddScene"  Text="Add Scene"   Click="AddSceneBtn_Click" />
                     <MenuFlyoutItem x:Name="MenuAddSource" Text="Add Source…" Click="AddSourceBtn_Click" />
+                    <MenuFlyoutSeparator />
+                    <MenuFlyoutItem Text="Undo"  IsEnabled="False" />
+                    <MenuFlyoutItem Text="Redo"  IsEnabled="False" />
                 </MenuBarItem>
 
                 <!-- View -->
                 <MenuBarItem Title="View">
-                    <MenuFlyoutItem x:Name="MenuFullscreen" Text="Fullscreen Preview"   Click="MenuFullscreen_Click" />
+                    <MenuFlyoutItem x:Name="MenuFullscreen" Text="Fullscreen Preview" Click="MenuFullscreen_Click" />
                     <MenuFlyoutSeparator />
-                    <ToggleMenuFlyoutItem x:Name="MenuShowScenes"     Text="Scenes Panel"       IsChecked="True"  Click="MenuTogglePanel_Click" Tag="scenes" />
-                    <ToggleMenuFlyoutItem x:Name="MenuShowSources"    Text="Sources Panel"      IsChecked="True"  Click="MenuTogglePanel_Click" Tag="sources" />
-                    <ToggleMenuFlyoutItem x:Name="MenuShowMixer"      Text="Audio Mixer"        IsChecked="True"  Click="MenuTogglePanel_Click" Tag="mixer" />
-                    <ToggleMenuFlyoutItem x:Name="MenuShowTransitions" Text="Transitions Panel"  IsChecked="True"  Click="MenuTogglePanel_Click" Tag="transitions" />
-                    <ToggleMenuFlyoutItem x:Name="MenuShowControls"   Text="Controls Panel"     IsChecked="True"  Click="MenuTogglePanel_Click" Tag="controls" />
+                    <ToggleMenuFlyoutItem x:Name="MenuShowScenes"      Text="Scenes"             IsChecked="True"  Click="MenuTogglePanel_Click" Tag="scenes" />
+                    <ToggleMenuFlyoutItem x:Name="MenuShowSources"     Text="Sources"            IsChecked="True"  Click="MenuTogglePanel_Click" Tag="sources" />
+                    <ToggleMenuFlyoutItem x:Name="MenuShowMixer"       Text="Audio Mixer"        IsChecked="True"  Click="MenuTogglePanel_Click" Tag="mixer" />
+                    <ToggleMenuFlyoutItem x:Name="MenuShowTransitions"  Text="Scene Transitions"  IsChecked="True"  Click="MenuTogglePanel_Click" Tag="transitions" />
+                    <ToggleMenuFlyoutItem x:Name="MenuShowControls"    Text="Controls"           IsChecked="True"  Click="MenuTogglePanel_Click" Tag="controls" />
+                    <MenuFlyoutSeparator />
+                    <ToggleMenuFlyoutItem x:Name="MenuShowStatusBar"   Text="Status Bar"         IsChecked="True"  Click="MenuToggleStatusBar_Click" />
+                </MenuBarItem>
+
+                <!-- Scene Collection -->
+                <MenuBarItem Title="Scene Collection">
+                    <MenuFlyoutItem x:Name="MenuNewScene"       Text="New"                        Click="MenuNewScene_Click" />
+                    <MenuFlyoutItem x:Name="MenuOpenScene"      Text="Open…"                      Click="MenuOpenScene_Click" />
+                    <MenuFlyoutItem x:Name="MenuDuplicateScene" Text="Duplicate Current"           Click="MenuDuplicateScene_Click" />
+                    <MenuFlyoutItem x:Name="MenuRenameScene"    Text="Rename…"                    Click="MenuRenameScene_Click" />
+                    <MenuFlyoutSeparator />
+                    <MenuFlyoutItem x:Name="MenuExportScene"    Text="Export…"                    Click="MenuExportScene_Click" />
+                    <MenuFlyoutItem x:Name="MenuImportScene"    Text="Import…"                    Click="MenuImportScene_Click" />
+                    <MenuFlyoutSeparator />
+                    <!-- Templates sub-menu -->
+                    <MenuFlyoutSubItem Text="Apply Template">
+                        <MenuFlyoutItem Text="Gaming / Game Capture"        Click="MenuApplyTemplate_Click" Tag="gaming" />
+                        <MenuFlyoutItem Text="Just Chatting"                Click="MenuApplyTemplate_Click" Tag="chatting" />
+                        <MenuFlyoutItem Text="Screen Share / Presentation"  Click="MenuApplyTemplate_Click" Tag="screenshare" />
+                        <MenuFlyoutItem Text="Webcam Only"                  Click="MenuApplyTemplate_Click" Tag="webcam" />
+                        <MenuFlyoutItem Text="IRL / Mobile"                 Click="MenuApplyTemplate_Click" Tag="irl" />
+                        <MenuFlyoutItem Text="Podcast / Interview"          Click="MenuApplyTemplate_Click" Tag="podcast" />
+                    </MenuFlyoutSubItem>
+                </MenuBarItem>
+
+                <!-- Profile -->
+                <MenuBarItem Title="Profile">
+                    <MenuFlyoutItem x:Name="MenuNewProfile"       Text="New Profile"        Click="MenuNewProfile_Click" />
+                    <MenuFlyoutItem x:Name="MenuDuplicateProfile" Text="Duplicate Profile"  Click="MenuDuplicateProfile_Click" />
+                    <MenuFlyoutItem x:Name="MenuRenameProfile"    Text="Rename Profile…"    Click="MenuRenameProfile_Click" />
+                    <MenuFlyoutSeparator />
+                    <MenuFlyoutItem x:Name="MenuExportProfile"    Text="Export Profile…"    Click="MenuExportProfile_Click" />
+                    <MenuFlyoutItem x:Name="MenuImportProfile"    Text="Import Profile…"    Click="MenuImportProfile_Click" />
                 </MenuBarItem>
 
                 <!-- Docks -->
                 <MenuBarItem Title="Docks">
-                    <MenuFlyoutItem Text="Lock Docks"         Click="MenuLockDocks_Click" />
-                    <MenuFlyoutItem Text="Reset Dock Layout"  Click="MenuResetLayout_Click" />
+                    <ToggleMenuFlyoutItem x:Name="MenuLockDocksItem" Text="Lock Docks" Click="MenuLockDocks_Click" />
+                    <MenuFlyoutItem Text="Reset Dock Layout"   Click="MenuResetLayout_Click" />
                     <MenuFlyoutSeparator />
-                    <MenuFlyoutItem Text="Refresh Sources"    Click="RefreshSourcesBtn_Click" />
+                    <MenuFlyoutItem Text="Float Scenes Panel"       Click="MenuFloatPanel_Click" Tag="scenes" />
+                    <MenuFlyoutItem Text="Float Sources Panel"      Click="MenuFloatPanel_Click" Tag="sources" />
+                    <MenuFlyoutItem Text="Float Audio Mixer"        Click="MenuFloatPanel_Click" Tag="mixer" />
+                    <MenuFlyoutItem Text="Float Scene Transitions"  Click="MenuFloatPanel_Click" Tag="transitions" />
+                    <MenuFlyoutItem Text="Float Controls"           Click="MenuFloatPanel_Click" Tag="controls" />
+                    <MenuFlyoutSeparator />
+                    <MenuFlyoutItem Text="Refresh Sources"     Click="RefreshSourcesBtn_Click" />
                     <MenuFlyoutItem Text="Probe Audio Devices" Click="ProbeDevicesBtn_Click" />
                 </MenuBarItem>
 
                 <!-- Tools -->
                 <MenuBarItem Title="Tools">
-                    <MenuFlyoutItem x:Name="MenuWhiteboard" Text="Whiteboard"  Click="MenuWhiteboard_Click" />
-                    <MenuFlyoutItem x:Name="MenuLibrary"    Text="Library"     Click="MenuLibrary_Click" />
+                    <MenuFlyoutItem x:Name="MenuWhiteboard"   Text="Whiteboard"    Click="MenuWhiteboard_Click" />
+                    <MenuFlyoutItem x:Name="MenuLibrary"      Text="Library"       Click="MenuLibrary_Click" />
                     <MenuFlyoutSeparator />
-                    <MenuFlyoutItem x:Name="MenuStartPreview" Text="Start Preview"  Click="StartPreviewBtn_Click" />
-                    <MenuFlyoutItem x:Name="MenuStopPreview"  Text="Stop Preview"   Click="StopPreviewBtn_Click" />
+                    <MenuFlyoutItem x:Name="MenuStartPreview" Text="Start Preview" Click="StartPreviewBtn_Click" />
+                    <MenuFlyoutItem x:Name="MenuStopPreview"  Text="Stop Preview"  Click="StopPreviewBtn_Click" />
                 </MenuBarItem>
 
                 <!-- Help -->
@@ -666,7 +706,20 @@
                 </Grid.RowDefinitions>
 
                 <Border Grid.Row="0" Style="{StaticResource ObsPanelHeaderStyle}">
-                    <TextBlock Text="SCENES" Style="{StaticResource ObsPanelHeaderTextStyle}" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="SCENES" Style="{StaticResource ObsPanelHeaderTextStyle}" />
+                        <Button Grid.Column="1"
+                                Style="{StaticResource ObsToolbarBtnStyle}"
+                                Click="FloatPanel_Click" Tag="scenes"
+                                ToolTipService.ToolTip="Float panel"
+                                Height="18" Width="18">
+                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8A7;" FontSize="9" />
+                        </Button>
+                    </Grid>
                 </Border>
 
                 <ListView Grid.Row="1"
@@ -711,8 +764,19 @@
                 </Border>
             </Grid>
 
-            <!-- Separator -->
-            <Rectangle Grid.Column="1" Style="{StaticResource PanelSeparatorStyle}" />
+            <!-- Draggable splitter: Scenes | Sources -->
+            <Border Grid.Column="1" x:Name="ScenesSourcesSplitter"
+                    Width="5" HorizontalAlignment="Stretch" Background="Transparent"
+                    PointerPressed="PanelSplitter_PointerPressed"
+                    PointerMoved="PanelSplitter_PointerMoved"
+                    PointerReleased="PanelSplitter_PointerReleased"
+                    PointerEntered="PanelSplitter_PointerEntered"
+                    PointerExited="PanelSplitter_PointerExited"
+                    Tag="scenes-sources"
+                    ToolTipService.ToolTip="Drag to resize">
+                <Rectangle Width="1" HorizontalAlignment="Center"
+                           Fill="{StaticResource BorderPanelBrush}" />
+            </Border>
 
             <!-- ── Panel: Sources ─────────────────────────────────────── -->
             <Grid x:Name="SourcesPanel" Grid.Column="2">
@@ -723,7 +787,20 @@
                 </Grid.RowDefinitions>
 
                 <Border Grid.Row="0" Style="{StaticResource ObsPanelHeaderStyle}">
-                    <TextBlock Text="SOURCES" Style="{StaticResource ObsPanelHeaderTextStyle}" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="SOURCES" Style="{StaticResource ObsPanelHeaderTextStyle}" />
+                        <Button Grid.Column="1"
+                                Style="{StaticResource ObsToolbarBtnStyle}"
+                                Click="FloatPanel_Click" Tag="sources"
+                                ToolTipService.ToolTip="Float panel"
+                                Height="18" Width="18">
+                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8A7;" FontSize="9" />
+                        </Button>
+                    </Grid>
                 </Border>
 
                 <!-- Sources list + empty-state overlay share the same cell -->
@@ -844,8 +921,19 @@
                 </Border>
             </Grid>
 
-            <!-- Separator -->
-            <Rectangle Grid.Column="3" Style="{StaticResource PanelSeparatorStyle}" />
+            <!-- Draggable splitter: Sources | Mixer -->
+            <Border Grid.Column="3" x:Name="SourcesMixerSplitter"
+                    Width="5" HorizontalAlignment="Stretch" Background="Transparent"
+                    PointerPressed="PanelSplitter_PointerPressed"
+                    PointerMoved="PanelSplitter_PointerMoved"
+                    PointerReleased="PanelSplitter_PointerReleased"
+                    PointerEntered="PanelSplitter_PointerEntered"
+                    PointerExited="PanelSplitter_PointerExited"
+                    Tag="sources-mixer"
+                    ToolTipService.ToolTip="Drag to resize">
+                <Rectangle Width="1" HorizontalAlignment="Center"
+                           Fill="{StaticResource BorderPanelBrush}" />
+            </Border>
 
             <!-- ── Panel: Audio Mixer ─────────────────────────────────── -->
             <Grid x:Name="MixerPanel" Grid.Column="4">
@@ -864,14 +952,20 @@
                         <TextBlock Grid.Column="0"
                                    Text="AUDIO MIXER"
                                    Style="{StaticResource ObsPanelHeaderTextStyle}" />
-                        <Button Grid.Column="1"
-                                Style="{StaticResource ObsToolbarBtnStyle}"
-                                Click="ProbeDevicesBtn_Click"
-                                ToolTipService.ToolTip="Refresh audio devices"
-                                Height="18" Width="18">
-                            <FontIcon FontFamily="Segoe MDL2 Assets"
-                                      Glyph="&#xE72C;" FontSize="9" />
-                        </Button>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="2">
+                            <Button Style="{StaticResource ObsToolbarBtnStyle}"
+                                    Click="ProbeDevicesBtn_Click"
+                                    ToolTipService.ToolTip="Refresh audio devices"
+                                    Height="18" Width="18">
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE72C;" FontSize="9" />
+                            </Button>
+                            <Button Style="{StaticResource ObsToolbarBtnStyle}"
+                                    Click="FloatPanel_Click" Tag="mixer"
+                                    ToolTipService.ToolTip="Float panel"
+                                    Height="18" Width="18">
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8A7;" FontSize="9" />
+                            </Button>
+                        </StackPanel>
                     </Grid>
                 </Border>
 
@@ -902,299 +996,571 @@
                 </Border>
             </Grid>
 
-            <!-- Separator -->
-            <Rectangle Grid.Column="5" Style="{StaticResource PanelSeparatorStyle}" />
+            <!-- Draggable splitter: Mixer | Transitions -->
+            <Border Grid.Column="5" x:Name="MixerTransSplitter"
+                    Width="5" HorizontalAlignment="Stretch" Background="Transparent"
+                    PointerPressed="PanelSplitter_PointerPressed"
+                    PointerMoved="PanelSplitter_PointerMoved"
+                    PointerReleased="PanelSplitter_PointerReleased"
+                    PointerEntered="PanelSplitter_PointerEntered"
+                    PointerExited="PanelSplitter_PointerExited"
+                    Tag="mixer-trans"
+                    ToolTipService.ToolTip="Drag to resize">
+                <Rectangle Width="1" HorizontalAlignment="Center"
+                           Fill="{StaticResource BorderPanelBrush}" />
+            </Border>
 
-            <!-- ── Panel: Transitions / Options ───────────────────────── -->
+            <!-- ── Panel: Scene Transitions ───────────────────────────── -->
             <Grid x:Name="TransitionsPanel" Grid.Column="6">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
+                <!-- Header with undock button -->
                 <Border Grid.Row="0" Style="{StaticResource ObsPanelHeaderStyle}">
-                    <TextBlock Text="OPTIONS" Style="{StaticResource ObsPanelHeaderTextStyle}" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="SCENE TRANSITIONS" Style="{StaticResource ObsPanelHeaderTextStyle}" />
+                        <Button Grid.Column="1"
+                                Style="{StaticResource ObsToolbarBtnStyle}"
+                                Click="FloatPanel_Click" Tag="transitions"
+                                ToolTipService.ToolTip="Float panel"
+                                Height="18" Width="18">
+                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8A7;" FontSize="9" />
+                        </Button>
+                    </Grid>
                 </Border>
 
-                <ScrollViewer Grid.Row="1" Padding="8,6">
-                    <StackPanel Spacing="10">
+                <!-- Transition list / quick transitions area -->
+                <ScrollViewer Grid.Row="1" Padding="6,6">
+                    <StackPanel Spacing="6">
 
-                        <!-- Resolution -->
+                        <!-- Active transition selector -->
                         <StackPanel Spacing="3">
-                            <TextBlock Text="RESOLUTION"
+                            <TextBlock Text="TRANSITION"
                                        FontSize="9" FontWeight="SemiBold"
                                        Foreground="{StaticResource TextTertiaryBrush}"
                                        CharacterSpacing="80" />
-                            <ComboBox x:Name="QualityCombo"
-                                      Style="{StaticResource AlvoniaComboBoxStyle}"
-                                      HorizontalAlignment="Stretch"
-                                      FontSize="12"
-                                      SelectedIndex="0">
-                                <ComboBoxItem Content="1080p (1920×1080)" />
-                                <ComboBoxItem Content="1440p (2560×1440)" />
-                                <ComboBoxItem Content="4K (3840×2160)" />
-                                <ComboBoxItem Content="720p (1280×720)" />
-                                <ComboBoxItem Content="480p (854×480)" />
-                            </ComboBox>
+                            <Grid ColumnSpacing="4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <ComboBox x:Name="TransitionTypeCombo"
+                                          Grid.Column="0"
+                                          Style="{StaticResource AlvoniaComboBoxStyle}"
+                                          HorizontalAlignment="Stretch"
+                                          FontSize="12"
+                                          SelectedIndex="0"
+                                          SelectionChanged="TransitionTypeCombo_SelectionChanged">
+                                    <ComboBoxItem Content="Cut" />
+                                    <ComboBoxItem Content="Fade" />
+                                    <ComboBoxItem Content="Swipe" />
+                                    <ComboBoxItem Content="Slide" />
+                                    <ComboBoxItem Content="Fade to Color" />
+                                    <ComboBoxItem Content="Luma Wipe" />
+                                    <ComboBoxItem Content="Stinger" />
+                                </ComboBox>
+                                <Button Grid.Column="1"
+                                        Style="{StaticResource ObsToolbarBtnStyle}"
+                                        Click="TransitionPropertiesBtn_Click"
+                                        ToolTipService.ToolTip="Transition Properties"
+                                        Width="26" Height="26">
+                                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE713;" FontSize="11" />
+                                </Button>
+                            </Grid>
                         </StackPanel>
 
-                        <!-- Frame rate -->
+                        <!-- Duration -->
                         <StackPanel Spacing="3">
-                            <TextBlock Text="FRAME RATE"
+                            <TextBlock Text="DURATION (ms)"
                                        FontSize="9" FontWeight="SemiBold"
                                        Foreground="{StaticResource TextTertiaryBrush}"
                                        CharacterSpacing="80" />
-                            <ComboBox x:Name="FpsCombo"
-                                      Style="{StaticResource AlvoniaComboBoxStyle}"
-                                      HorizontalAlignment="Stretch"
-                                      FontSize="12"
-                                      SelectedIndex="1">
-                                <ComboBoxItem Content="60 fps" />
-                                <ComboBoxItem Content="30 fps" />
-                                <ComboBoxItem Content="24 fps" />
-                                <ComboBoxItem Content="15 fps" />
-                            </ComboBox>
+                            <Grid ColumnSpacing="4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <ComboBox x:Name="TransitionDurationCombo"
+                                          Grid.Column="0"
+                                          Style="{StaticResource AlvoniaComboBoxStyle}"
+                                          HorizontalAlignment="Stretch"
+                                          FontSize="12"
+                                          SelectedIndex="1">
+                                    <ComboBoxItem Content="100 ms" Tag="100" />
+                                    <ComboBoxItem Content="250 ms" Tag="250" />
+                                    <ComboBoxItem Content="500 ms" Tag="500" />
+                                    <ComboBoxItem Content="750 ms" Tag="750" />
+                                    <ComboBoxItem Content="1000 ms" Tag="1000" />
+                                    <ComboBoxItem Content="1500 ms" Tag="1500" />
+                                    <ComboBoxItem Content="2000 ms" Tag="2000" />
+                                </ComboBox>
+                                <!-- Custom duration input -->
+                                <Button Grid.Column="1"
+                                        Style="{StaticResource ObsToolbarBtnStyle}"
+                                        Click="TransitionDurationCustomBtn_Click"
+                                        ToolTipService.ToolTip="Set custom duration"
+                                        Width="26" Height="26">
+                                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE70F;" FontSize="11" />
+                                </Button>
+                            </Grid>
                         </StackPanel>
 
-                        <!-- Camera overlay -->
-                        <StackPanel Spacing="3">
-                            <TextBlock Text="CAMERA OVERLAY"
-                                       FontSize="9" FontWeight="SemiBold"
-                                       Foreground="{StaticResource TextTertiaryBrush}"
-                                       CharacterSpacing="80" />
-                            <ComboBox x:Name="WebcamDeviceCombo"
-                                      Style="{StaticResource AlvoniaComboBoxStyle}"
-                                      HorizontalAlignment="Stretch"
-                                      FontSize="12">
-                                <ComboBoxItem Content="(disabled)" IsSelected="True" />
-                            </ComboBox>
-                        </StackPanel>
+                        <!-- Quick Transitions divider -->
+                        <Border Height="1" Background="{StaticResource BorderDefaultBrush}" Margin="0,4" />
 
-                        <!-- Mic device -->
-                        <StackPanel Spacing="3">
-                            <TextBlock Text="MIC / AUDIO INPUT"
-                                       FontSize="9" FontWeight="SemiBold"
-                                       Foreground="{StaticResource TextTertiaryBrush}"
-                                       CharacterSpacing="80" />
-                            <ComboBox x:Name="MicDeviceCombo"
-                                      Style="{StaticResource AlvoniaComboBoxStyle}"
-                                      HorizontalAlignment="Stretch"
-                                      FontSize="12">
-                                <ComboBoxItem Content="Default Microphone" IsSelected="True" />
-                            </ComboBox>
+                        <TextBlock Text="QUICK TRANSITIONS"
+                                   FontSize="9" FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextTertiaryBrush}"
+                                   CharacterSpacing="80" />
+
+                        <!-- Quick transition buttons -->
+                        <StackPanel x:Name="QuickTransitionsStack" Spacing="3">
+                            <!-- Populated in code or default entries below -->
+                            <Border Background="{StaticResource BgElevatedBrush}"
+                                    CornerRadius="6" Padding="8,5"
+                                    BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="1">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Cut  —  0 ms"
+                                               FontSize="11"
+                                               Foreground="{StaticResource TextPrimaryBrush}"
+                                               VerticalAlignment="Center" />
+                                    <Button Grid.Column="1"
+                                            Style="{StaticResource ObsToolbarBtnStyle}"
+                                            Width="20" Height="20"
+                                            Click="RemoveQuickTransitionBtn_Click">
+                                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE738;" FontSize="9" />
+                                    </Button>
+                                </Grid>
+                            </Border>
+                            <Border Background="{StaticResource BgElevatedBrush}"
+                                    CornerRadius="6" Padding="8,5"
+                                    BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="1">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Fade  —  300 ms"
+                                               FontSize="11"
+                                               Foreground="{StaticResource TextPrimaryBrush}"
+                                               VerticalAlignment="Center" />
+                                    <Button Grid.Column="1"
+                                            Style="{StaticResource ObsToolbarBtnStyle}"
+                                            Width="20" Height="20"
+                                            Click="RemoveQuickTransitionBtn_Click">
+                                        <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE738;" FontSize="9" />
+                                    </Button>
+                                </Grid>
+                            </Border>
                         </StackPanel>
 
                     </StackPanel>
                 </ScrollViewer>
+
+                <!-- Toolbar: add transition -->
+                <Border Grid.Row="2" Style="{StaticResource ObsPanelToolbarStyle}">
+                    <StackPanel Orientation="Horizontal" Spacing="2">
+                        <Button Style="{StaticResource ObsToolbarBtnStyle}"
+                                Click="AddQuickTransitionBtn_Click"
+                                ToolTipService.ToolTip="Add quick transition">
+                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE710;" FontSize="11" />
+                        </Button>
+                        <Button Style="{StaticResource ObsToolbarBtnStyle}"
+                                Click="TransitionPropertiesBtn_Click"
+                                ToolTipService.ToolTip="Transition properties">
+                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE713;" FontSize="11" />
+                        </Button>
+                    </StackPanel>
+                </Border>
             </Grid>
 
-            <!-- Separator -->
-            <Rectangle Grid.Column="7" Style="{StaticResource PanelSeparatorStyle}" />
+            <!-- Draggable splitter: Transitions | Controls -->
+            <Border Grid.Column="7" x:Name="TransControlsSplitter"
+                    Width="5" HorizontalAlignment="Stretch" Background="Transparent"
+                    PointerPressed="PanelSplitter_PointerPressed"
+                    PointerMoved="PanelSplitter_PointerMoved"
+                    PointerReleased="PanelSplitter_PointerReleased"
+                    PointerEntered="PanelSplitter_PointerEntered"
+                    PointerExited="PanelSplitter_PointerExited"
+                    Tag="trans-controls"
+                    ToolTipService.ToolTip="Drag to resize">
+                <Rectangle Width="1" HorizontalAlignment="Center"
+                           Fill="{StaticResource BorderPanelBrush}" />
+            </Border>
 
             <!-- ── Panel: Controls ────────────────────────────────────── -->
             <Grid x:Name="ControlsPanel" Grid.Column="8">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
+                <!-- Header with undock button -->
                 <Border Grid.Row="0" Style="{StaticResource ObsPanelHeaderStyle}">
-                    <TextBlock Text="CONTROLS" Style="{StaticResource ObsPanelHeaderTextStyle}" />
-                </Border>
-
-                <StackPanel Grid.Row="1" Padding="8,8" Spacing="6">
-
-                    <!-- Studio Mode toggle (OBS-style) -->
-                    <Button x:Name="StudioModeBtn"
-                            HorizontalAlignment="Stretch"
-                            Style="{StaticResource ControlsPanelBtnStyle}"
-                            Click="StudioModeBtn_Click"
-                            ToolTipService.ToolTip="Studio Mode: left = Preview, right = Program">
-                        <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
-                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8B1;" FontSize="11" />
-                            <TextBlock x:Name="StudioModeBtnText" Text="Studio Mode" VerticalAlignment="Center" />
-                        </StackPanel>
-                    </Button>
-
-                    <!-- Start / Stop Recording -->
-                    <Button x:Name="StartRecordBtn"
-                            Style="{StaticResource AlvoniaRecordButtonStyle}"
-                            Click="StartRecordBtn_Click">
-                        <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
-                            <Ellipse Width="8" Height="8" Fill="White" VerticalAlignment="Center" />
-                            <TextBlock Text="Start Recording" VerticalAlignment="Center" />
-                        </StackPanel>
-                    </Button>
-
-                    <Button x:Name="StopRecordBtn"
-                            Style="{StaticResource ControlsPanelBtnStyle}"
-                            Click="StopRecordBtn_Click"
-                            Visibility="Collapsed">
-                        <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
-                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE71A;"
-                                      FontSize="11" Foreground="{StaticResource RecordingBrush}" />
-                            <TextBlock Text="Stop Recording" />
-                        </StackPanel>
-                    </Button>
-
-                    <!-- ── CC / Auto Captions ─────────────────────── -->
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Button x:Name="CcBtn"
-                                Grid.Column="0"
-                                HorizontalAlignment="Stretch"
-                                Style="{StaticResource ControlsPanelBtnStyle}"
-                                Click="CcBtn_Click"
-                                ToolTipService.ToolTip="Toggle live auto-captions (CC)">
-                            <StackPanel Orientation="Horizontal" Spacing="7">
-                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7F0;" FontSize="11" />
-                                <TextBlock x:Name="CcBtnText" Text="Auto Captions" VerticalAlignment="Center" />
-                            </StackPanel>
-                        </Button>
+                        <TextBlock Grid.Column="0" Text="CONTROLS" Style="{StaticResource ObsPanelHeaderTextStyle}" />
                         <Button Grid.Column="1"
                                 Style="{StaticResource ObsToolbarBtnStyle}"
-                                Click="CcSettingsBtn_Click"
-                                ToolTipService.ToolTip="Caption Settings"
-                                Width="28" Height="28" Margin="4,0,0,0">
-                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE713;" FontSize="11" />
+                                Click="FloatPanel_Click" Tag="controls"
+                                ToolTipService.ToolTip="Float panel"
+                                Height="18" Width="18">
+                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8A7;" FontSize="9" />
                         </Button>
                     </Grid>
+                </Border>
 
-                    <!-- ── Save Clip (Replay Buffer) ──────────────── -->
-                    <Button x:Name="SaveClipBtn"
-                            Style="{StaticResource ControlsPanelBtnStyle}"
-                            Click="SaveClipBtn_Click"
-                            IsEnabled="False"
-                            ToolTipService.ToolTip="Save the last 30 seconds as a clip">
-                        <StackPanel Orientation="Horizontal" Spacing="7">
-                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7C3;" FontSize="11" />
-                            <TextBlock Text="Save Clip (30s)" />
-                        </StackPanel>
-                    </Button>
+                <!-- Scrollable controls content (OBS order) -->
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Padding="8,8" Spacing="5">
 
-                    <!-- ── Lower Third / Title Card ──────────────── -->
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <Button x:Name="LowerThirdBtn"
-                                Grid.Column="0"
+                        <!-- ── 1. Start Streaming ─────────────────── -->
+                        <Button x:Name="StartStreamBtn"
+                                Style="{StaticResource ControlsPanelBtnStyle}"
+                                Click="StartStreamBtn_Click">
+                            <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE774;" FontSize="11" />
+                                <TextBlock x:Name="StreamBtnText" Text="Start Streaming" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- ── 2. Start / Stop Recording + Pause ───── -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <Button x:Name="StartRecordBtn"
+                                    Grid.Column="0"
+                                    Style="{StaticResource AlvoniaRecordButtonStyle}"
+                                    Click="StartRecordBtn_Click">
+                                <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                                    <Ellipse Width="8" Height="8" Fill="White" VerticalAlignment="Center" />
+                                    <TextBlock x:Name="RecordBtnText" Text="Start Recording" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+
+                            <!-- Pause button (only visible during recording) -->
+                            <Button x:Name="PauseRecordBtn"
+                                    Grid.Column="1"
+                                    Style="{StaticResource ControlsPanelBtnStyle}"
+                                    Click="PauseRecordBtn_Click"
+                                    Visibility="Collapsed"
+                                    Width="32" Padding="0" Margin="4,0,0,0"
+                                    ToolTipService.ToolTip="Pause / Resume Recording">
+                                <FontIcon x:Name="PauseRecordIcon"
+                                          FontFamily="Segoe MDL2 Assets"
+                                          Glyph="&#xE769;" FontSize="11" />
+                            </Button>
+                        </Grid>
+
+                        <!-- Stop Recording button -->
+                        <Button x:Name="StopRecordBtn"
+                                Style="{StaticResource ControlsPanelBtnStyle}"
+                                Click="StopRecordBtn_Click"
+                                Visibility="Collapsed">
+                            <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE71A;"
+                                          FontSize="11" Foreground="{StaticResource RecordingBrush}" />
+                                <TextBlock Text="Stop Recording" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- ── 3. Start Virtual Camera ─────────────── -->
+                        <Button x:Name="VirtualCamBtn"
+                                Style="{StaticResource ControlsPanelBtnStyle}"
+                                Click="VirtualCamBtn_Click">
+                            <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE714;" FontSize="11" />
+                                <TextBlock x:Name="VirtualCamBtnText" Text="Start Virtual Camera" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- ── 4. Start Preview ───────────────────── -->
+                        <Button x:Name="StartPreviewBtn"
+                                Style="{StaticResource ControlsPanelBtnStyle}"
+                                Click="StartPreviewBtn_Click">
+                            <StackPanel Orientation="Horizontal" Spacing="7">
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE768;" FontSize="11" />
+                                <TextBlock Text="Start Preview" />
+                            </StackPanel>
+                        </Button>
+
+                        <Button x:Name="StopPreviewBtn"
+                                Style="{StaticResource ControlsPanelBtnStyle}"
+                                Click="StopPreviewBtn_Click"
+                                Visibility="Collapsed">
+                            <StackPanel Orientation="Horizontal" Spacing="7">
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE769;" FontSize="11" />
+                                <TextBlock Text="Stop Preview" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- ── 5. Studio Mode ─────────────────────── -->
+                        <Button x:Name="StudioModeBtn"
                                 HorizontalAlignment="Stretch"
                                 Style="{StaticResource ControlsPanelBtnStyle}"
-                                Click="LowerThirdBtn_Click"
-                                ToolTipService.ToolTip="Show/hide lower-third title card overlay">
-                            <StackPanel Orientation="Horizontal" Spacing="7">
-                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8D2;" FontSize="11" />
-                                <TextBlock x:Name="LowerThirdBtnText" Text="Lower Third" VerticalAlignment="Center" />
+                                Click="StudioModeBtn_Click"
+                                ToolTipService.ToolTip="Studio Mode: Preview left, Program right">
+                            <StackPanel Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8B1;" FontSize="11" />
+                                <TextBlock x:Name="StudioModeBtnText" Text="Studio Mode" VerticalAlignment="Center" />
                             </StackPanel>
                         </Button>
-                        <Button Grid.Column="1"
+
+                        <!-- ── Divider ─────────────────────────────── -->
+                        <Border Height="1" Background="{StaticResource BorderDefaultBrush}" Margin="0,2" />
+
+                        <!-- ── CC / Auto Captions ──────────────────── -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Button x:Name="CcBtn"
+                                    Grid.Column="0"
+                                    HorizontalAlignment="Stretch"
+                                    Style="{StaticResource ControlsPanelBtnStyle}"
+                                    Click="CcBtn_Click"
+                                    ToolTipService.ToolTip="Toggle live auto-captions (CC)">
+                                <StackPanel Orientation="Horizontal" Spacing="7">
+                                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7F0;" FontSize="11" />
+                                    <TextBlock x:Name="CcBtnText" Text="Auto Captions" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                            <Button Grid.Column="1"
+                                    Style="{StaticResource ObsToolbarBtnStyle}"
+                                    Click="CcSettingsBtn_Click"
+                                    ToolTipService.ToolTip="Caption Settings"
+                                    Width="28" Height="28" Margin="4,0,0,0">
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE713;" FontSize="11" />
+                            </Button>
+                        </Grid>
+
+                        <!-- ── Save Clip (Replay Buffer) ──────────── -->
+                        <Button x:Name="SaveClipBtn"
                                 Style="{StaticResource ControlsPanelBtnStyle}"
-                                Width="32" Padding="0"
-                                Click="LowerThirdSettingsBtn_Click"
-                                ToolTipService.ToolTip="Configure lower-third text">
-                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE713;" FontSize="11" />
-                        </Button>
-                    </Grid>
-
-                    <!-- ── Recording options box ──────────────────── -->
-                    <Border Background="#0AFFFFFF" CornerRadius="6" Padding="8,7"
-                            BorderBrush="#1AFFFFFF" BorderThickness="1">
-                        <StackPanel Spacing="5">
-                            <!-- Countdown before recording -->
-                            <CheckBox x:Name="CountdownCheckBox"
-                                      Content="3-2-1 countdown"
-                                      FontSize="12" IsChecked="True" />
-                            <!-- Noise suppression -->
-                            <CheckBox x:Name="NoiseSuppCheckBox"
-                                      Content="Noise suppression"
-                                      FontSize="12" IsChecked="False" />
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Separate MP3 audio track option -->
-                    <Border Background="#0AFFFFFF"
-                            CornerRadius="6" Padding="8,7"
-                            BorderBrush="#1AFFFFFF" BorderThickness="1">
-                        <StackPanel Spacing="6">
-                            <CheckBox x:Name="SepAudioCheckBox"
-                                      Content="Save separate audio (MP3)"
-                                      FontSize="12"
-                                      IsChecked="False" />
-                            <StackPanel x:Name="SepAudioOptions"
-                                        Orientation="Horizontal" Spacing="8"
-                                        Visibility="{x:Bind SepAudioCheckBox.IsChecked,
-                                            Converter={StaticResource BoolToVisibilityConverter},
-                                            Mode=OneWay}">
-                                <TextBlock Text="Bitrate" FontSize="11"
-                                           Foreground="{StaticResource TextSecondaryBrush}"
-                                           VerticalAlignment="Center" />
-                                <ComboBox x:Name="Mp3BitrateCombo"
-                                          FontSize="11" Height="28"
-                                          SelectedIndex="1">
-                                    <ComboBoxItem Content="128 kbps" Tag="128" />
-                                    <ComboBoxItem Content="192 kbps" Tag="192" />
-                                    <ComboBoxItem Content="256 kbps" Tag="256" />
-                                    <ComboBoxItem Content="320 kbps — max quality" Tag="320" />
-                                    <ComboBoxItem Content="All bitrates (128 / 192 / 256 / 320)" Tag="all" />
-                                </ComboBox>
+                                Click="SaveClipBtn_Click"
+                                IsEnabled="False"
+                                ToolTipService.ToolTip="Save the last 30 seconds as a clip">
+                            <StackPanel Orientation="Horizontal" Spacing="7">
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7C3;" FontSize="11" />
+                                <TextBlock Text="Save Clip (30s)" />
                             </StackPanel>
-                        </StackPanel>
-                    </Border>
+                        </Button>
 
-                    <Button x:Name="StartPreviewBtn"
-                            Style="{StaticResource ControlsPanelBtnStyle}"
-                            Click="StartPreviewBtn_Click">
-                        <StackPanel Orientation="Horizontal" Spacing="7">
-                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE768;" FontSize="11" />
-                            <TextBlock Text="Start Preview" />
-                        </StackPanel>
-                    </Button>
+                        <!-- ── Lower Third ────────────────────────── -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Button x:Name="LowerThirdBtn"
+                                    Grid.Column="0"
+                                    HorizontalAlignment="Stretch"
+                                    Style="{StaticResource ControlsPanelBtnStyle}"
+                                    Click="LowerThirdBtn_Click"
+                                    ToolTipService.ToolTip="Show/hide lower-third title card overlay">
+                                <StackPanel Orientation="Horizontal" Spacing="7">
+                                    <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8D2;" FontSize="11" />
+                                    <TextBlock x:Name="LowerThirdBtnText" Text="Lower Third" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                            <Button Grid.Column="1"
+                                    Style="{StaticResource ControlsPanelBtnStyle}"
+                                    Width="32" Padding="0"
+                                    Click="LowerThirdSettingsBtn_Click"
+                                    ToolTipService.ToolTip="Configure lower-third text">
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE713;" FontSize="11" />
+                            </Button>
+                        </Grid>
 
-                    <Button x:Name="StopPreviewBtn"
-                            Style="{StaticResource ControlsPanelBtnStyle}"
-                            Click="StopPreviewBtn_Click"
-                            Visibility="Collapsed">
-                        <StackPanel Orientation="Horizontal" Spacing="7">
-                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE769;" FontSize="11" />
-                            <TextBlock Text="Stop Preview" />
-                        </StackPanel>
-                    </Button>
+                        <!-- ── Recording options ──────────────────── -->
+                        <Border Background="#0AFFFFFF" CornerRadius="6" Padding="8,7"
+                                BorderBrush="#1AFFFFFF" BorderThickness="1">
+                            <StackPanel Spacing="5">
+                                <CheckBox x:Name="CountdownCheckBox"
+                                          Content="3-2-1 countdown"
+                                          FontSize="12" IsChecked="True" />
+                                <CheckBox x:Name="NoiseSuppCheckBox"
+                                          Content="Noise suppression"
+                                          FontSize="12" IsChecked="False" />
+                            </StackPanel>
+                        </Border>
 
-                    <!-- Divider -->
-                    <Border Height="1"
-                            Background="{StaticResource BorderDefaultBrush}"
-                            Margin="0,2" />
+                        <!-- ── Quick Settings (Resolution / FPS / Camera / Mic) ── -->
+                        <Border Background="#0AFFFFFF" CornerRadius="6" Padding="8,7"
+                                BorderBrush="#1AFFFFFF" BorderThickness="1">
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="QUICK SETTINGS"
+                                           FontSize="9" FontWeight="SemiBold"
+                                           Foreground="{StaticResource TextTertiaryBrush}"
+                                           CharacterSpacing="80" />
+                                <!-- Resolution -->
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Resolution" FontSize="10"
+                                               Foreground="{StaticResource TextSecondaryBrush}" />
+                                    <ComboBox x:Name="QualityCombo"
+                                              Style="{StaticResource AlvoniaComboBoxStyle}"
+                                              HorizontalAlignment="Stretch"
+                                              FontSize="11" SelectedIndex="0">
+                                        <ComboBoxItem Content="1080p (1920×1080)" />
+                                        <ComboBoxItem Content="1440p (2560×1440)" />
+                                        <ComboBoxItem Content="4K (3840×2160)" />
+                                        <ComboBoxItem Content="720p (1280×720)" />
+                                        <ComboBoxItem Content="480p (854×480)" />
+                                    </ComboBox>
+                                </StackPanel>
+                                <!-- Frame Rate -->
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Frame Rate" FontSize="10"
+                                               Foreground="{StaticResource TextSecondaryBrush}" />
+                                    <ComboBox x:Name="FpsCombo"
+                                              Style="{StaticResource AlvoniaComboBoxStyle}"
+                                              HorizontalAlignment="Stretch"
+                                              FontSize="11" SelectedIndex="1">
+                                        <ComboBoxItem Content="60 fps" />
+                                        <ComboBoxItem Content="30 fps" />
+                                        <ComboBoxItem Content="24 fps" />
+                                        <ComboBoxItem Content="15 fps" />
+                                    </ComboBox>
+                                </StackPanel>
+                                <!-- Camera -->
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Camera Overlay" FontSize="10"
+                                               Foreground="{StaticResource TextSecondaryBrush}" />
+                                    <ComboBox x:Name="WebcamDeviceCombo"
+                                              Style="{StaticResource AlvoniaComboBoxStyle}"
+                                              HorizontalAlignment="Stretch"
+                                              FontSize="11">
+                                        <ComboBoxItem Content="(disabled)" IsSelected="True" />
+                                    </ComboBox>
+                                </StackPanel>
+                                <!-- Mic -->
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="Mic / Audio Input" FontSize="10"
+                                               Foreground="{StaticResource TextSecondaryBrush}" />
+                                    <ComboBox x:Name="MicDeviceCombo"
+                                              Style="{StaticResource AlvoniaComboBoxStyle}"
+                                              HorizontalAlignment="Stretch"
+                                              FontSize="11">
+                                        <ComboBoxItem Content="Default Microphone" IsSelected="True" />
+                                    </ComboBox>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
 
-                    <Button Style="{StaticResource ControlsPanelBtnStyle}"
-                            Click="MenuSettings_Click">
-                        <StackPanel Orientation="Horizontal" Spacing="7">
-                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE713;" FontSize="11" />
-                            <TextBlock Text="Settings" />
-                        </StackPanel>
-                    </Button>
+                        <!-- Separate MP3 audio track -->
+                        <Border Background="#0AFFFFFF"
+                                CornerRadius="6" Padding="8,7"
+                                BorderBrush="#1AFFFFFF" BorderThickness="1">
+                            <StackPanel Spacing="6">
+                                <CheckBox x:Name="SepAudioCheckBox"
+                                          Content="Save separate audio (MP3)"
+                                          FontSize="12"
+                                          IsChecked="False" />
+                                <StackPanel x:Name="SepAudioOptions"
+                                            Orientation="Horizontal" Spacing="8"
+                                            Visibility="{x:Bind SepAudioCheckBox.IsChecked,
+                                                Converter={StaticResource BoolToVisibilityConverter},
+                                                Mode=OneWay}">
+                                    <TextBlock Text="Bitrate" FontSize="11"
+                                               Foreground="{StaticResource TextSecondaryBrush}"
+                                               VerticalAlignment="Center" />
+                                    <ComboBox x:Name="Mp3BitrateCombo"
+                                              FontSize="11" Height="28"
+                                              SelectedIndex="1">
+                                        <ComboBoxItem Content="128 kbps" Tag="128" />
+                                        <ComboBoxItem Content="192 kbps" Tag="192" />
+                                        <ComboBoxItem Content="256 kbps" Tag="256" />
+                                        <ComboBoxItem Content="320 kbps — max quality" Tag="320" />
+                                        <ComboBoxItem Content="All bitrates (128/192/256/320)" Tag="all" />
+                                    </ComboBox>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
 
-                    <Button x:Name="ExportBtn"
-                            Style="{StaticResource ControlsPanelBtnStyle}"
-                            Click="ExportBtn_Click">
-                        <StackPanel Orientation="Horizontal" Spacing="7">
-                            <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7C3;" FontSize="11" />
-                            <TextBlock Text="Open Library" />
-                        </StackPanel>
-                    </Button>
+                        <!-- ── Divider ─────────────────────────────── -->
+                        <Border Height="1" Background="{StaticResource BorderDefaultBrush}" Margin="0,2" />
 
-                    <!-- Status text -->
-                    <TextBlock x:Name="StatusText"
-                               Text="Ready"
-                               FontSize="11"
-                               Foreground="{StaticResource TextTertiaryBrush}"
-                               TextWrapping="Wrap"
-                               Margin="0,4,0,0" />
-                </StackPanel>
+                        <!-- ── 6. Settings ────────────────────────── -->
+                        <Button Style="{StaticResource ControlsPanelBtnStyle}"
+                                Click="MenuSettings_Click">
+                            <StackPanel Orientation="Horizontal" Spacing="7">
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE713;" FontSize="11" />
+                                <TextBlock Text="Settings" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- ── 7. Open Library ────────────────────── -->
+                        <Button x:Name="ExportBtn"
+                                Style="{StaticResource ControlsPanelBtnStyle}"
+                                Click="ExportBtn_Click">
+                            <StackPanel Orientation="Horizontal" Spacing="7">
+                                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE7C3;" FontSize="11" />
+                                <TextBlock Text="Open Library" />
+                            </StackPanel>
+                        </Button>
+
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- ── Status bar at bottom of Controls ──────────────── -->
+                <Border Grid.Row="2"
+                        Background="{StaticResource BgBaseBrush}"
+                        BorderBrush="{StaticResource BorderPanelBrush}" BorderThickness="0,1,0,0"
+                        Padding="8,5">
+                    <StackPanel Spacing="2">
+                        <!-- Recording status row -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="REC " FontSize="10" FontWeight="SemiBold"
+                                       Foreground="{StaticResource RecordingBrush}" />
+                            <TextBlock x:Name="RecStatusText" Grid.Column="1"
+                                       Text="00:00:00" FontSize="10"
+                                       FontFamily="Cascadia Code, Consolas"
+                                       Foreground="{StaticResource TextTertiaryBrush}" />
+                        </Grid>
+                        <!-- Stream status row -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="STR " FontSize="10" FontWeight="SemiBold"
+                                       Foreground="#FF22C55E" />
+                            <TextBlock x:Name="StreamStatusText" Grid.Column="1"
+                                       Text="00:00:00" FontSize="10"
+                                       FontFamily="Cascadia Code, Consolas"
+                                       Foreground="{StaticResource TextTertiaryBrush}" />
+                        </Grid>
+                        <!-- General status text -->
+                        <TextBlock x:Name="StatusText"
+                                   Text="Ready"
+                                   FontSize="10"
+                                   Foreground="{StaticResource TextTertiaryBrush}"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
             </Grid>
 
         </Grid>

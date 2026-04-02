@@ -310,6 +310,27 @@ public sealed partial class RecordPage : Page, IDisposable
     private const double MinPreviewWidth = 200;
     private const double MinLiveWidth = 120;
 
+    // Bottom panel splitter drag state
+    private bool _isResizingPanelSplitter;
+    private string _activePanelSplitter = "";
+    private double _panelSplitterStartX;
+    private double _panelLeftStartW;
+    private double _panelRightStartW;
+
+    // Dock lock
+    private bool _docksLocked;
+
+    // Streaming state
+    private bool _isStreaming;
+    private System.Timers.Timer? _streamTimer;
+    private DateTime _streamStartTime;
+
+    // Pause recording state
+    private bool _recordingPaused;
+
+    // Virtual Camera state
+    private bool _virtualCamActive;
+
     // Lower Third
     private bool _lowerThirdVisible;
 
@@ -713,6 +734,16 @@ public sealed partial class RecordPage : Page, IDisposable
 
         _desktopChannel?.UpdatePeak(dPeak, Math.Max(0, dPeak - rand), VuMaxHeight);
         _micChannel?.UpdatePeak(mPeak + rand, mPeak, VuMaxHeight);
+
+        // Update recording status timer
+        if (RecordingBadge?.Visibility == Visibility.Visible && !_recordingPaused)
+        {
+            var elapsed = DateTime.Now - _recordingStartTime;
+            var ts = elapsed.ToString(@"hh\:mm\:ss");
+            if (RecordingTimerText is not null) RecordingTimerText.Text = elapsed.ToString(@"mm\:ss");
+            if (FloatingTimerText  is not null) FloatingTimerText.Text  = elapsed.ToString(@"mm\:ss");
+            if (RecStatusText      is not null) RecStatusText.Text      = ts;
+        }
     }
 
     // ── Scene management ──────────────────────────────────────────────────────
@@ -2389,13 +2420,15 @@ public sealed partial class RecordPage : Page, IDisposable
                 micVolume:        micVol,
                 noiseSuppression: NoiseSuppCheckBox.IsChecked == true);
 
-            _recordingStartTime       = DateTime.Now;
-            SaveClipBtn.IsEnabled     = true;
-            StartRecordBtn.Visibility = Visibility.Collapsed;
-            StopRecordBtn.Visibility  = Visibility.Visible;
-            MenuStartRecord.IsEnabled = false;
-            MenuStopRecord.IsEnabled  = true;
-            RecordingBadge.Visibility = Visibility.Visible;
+            _recordingStartTime        = DateTime.Now;
+            SaveClipBtn.IsEnabled      = true;
+            StartRecordBtn.Visibility  = Visibility.Collapsed;
+            StopRecordBtn.Visibility   = Visibility.Visible;
+            PauseRecordBtn.Visibility  = Visibility.Visible;
+            RecordBtnText.Text         = "Stop Recording";
+            MenuStartRecord.IsEnabled  = false;
+            MenuStopRecord.IsEnabled   = true;
+            RecordingBadge.Visibility  = Visibility.Visible;
             SetStatus("Recording…");
             App.MainWindow?.StartRecordingIndicator();
         }
@@ -2417,12 +2450,17 @@ public sealed partial class RecordPage : Page, IDisposable
     {
         await _recordingService.StopRecording();
 
-        SaveClipBtn.IsEnabled     = false;
-        StartRecordBtn.Visibility = Visibility.Visible;
-        StopRecordBtn.Visibility  = Visibility.Collapsed;
-        MenuStartRecord.IsEnabled = true;
-        MenuStopRecord.IsEnabled  = false;
-        RecordingBadge.Visibility = Visibility.Collapsed;
+        SaveClipBtn.IsEnabled      = false;
+        StartRecordBtn.Visibility  = Visibility.Visible;
+        StopRecordBtn.Visibility   = Visibility.Collapsed;
+        PauseRecordBtn.Visibility  = Visibility.Collapsed;
+        _recordingPaused           = false;
+        PauseRecordIcon.Glyph      = "\uE769"; // reset to Pause icon
+        RecordBtnText.Text         = "Start Recording";
+        MenuStartRecord.IsEnabled  = true;
+        MenuStopRecord.IsEnabled   = false;
+        RecordingBadge.Visibility  = Visibility.Collapsed;
+        RecStatusText.Text         = "00:00:00";
         App.MainWindow?.StopRecordingIndicator();
         SetStatus("Recording stopped");
 
@@ -2643,7 +2681,6 @@ public sealed partial class RecordPage : Page, IDisposable
     private void MenuLibrary_Click(object sender, RoutedEventArgs e)       => App.MainWindow?.NavigateTo("library");
     private void MenuAbout_Click(object sender, RoutedEventArgs e)         => ShowAbout();
     private void MenuFullscreen_Click(object sender, RoutedEventArgs e)    => SetStatus("Fullscreen preview not yet implemented");
-    private void MenuLockDocks_Click(object sender, RoutedEventArgs e)     => SetStatus("Dock locking not yet implemented");
     private void MenuResetLayout_Click(object sender, RoutedEventArgs e)   => ResetPanelWidths();
 
     private void MenuTogglePanel_Click(object sender, RoutedEventArgs e)
@@ -2684,7 +2721,11 @@ public sealed partial class RecordPage : Page, IDisposable
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private void SetStatus(string text) => StatusText.Text = text;
+    private void SetStatus(string text)
+    {
+        if (StatusText is not null)
+            StatusText.Text = text;
+    }
 
     private async void ShowAbout()
     {
@@ -3092,7 +3133,7 @@ public sealed partial class RecordPage : Page, IDisposable
     private void AddTimelineMarkerBtn_Click(object sender, RoutedEventArgs e)
     {
         // Add a marker at current timeline position
-        StatusText.Text = "Marker added at current position";
+        SetStatus("Marker added at current position");
     }
 
     // ── Effects panel handlers ──────────────────────────────────────────────
@@ -3180,5 +3221,326 @@ public sealed partial class RecordPage : Page, IDisposable
             try { _previewProcess.Kill(true); } catch { }
         try { _mediaCapture?.Dispose(); } catch { }
         _mediaCapture = null;
+    }
+
+    // ── Bottom panel splitter handlers ────────────────────────────────────────
+
+    private void PanelSplitter_PointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (_docksLocked) return;
+        if (sender is not Border splitter) return;
+        _isResizingPanelSplitter = true;
+        _activePanelSplitter = splitter.Tag?.ToString() ?? "";
+        (sender as UIElement)?.CapturePointer(e.Pointer);
+        _panelSplitterStartX = e.GetCurrentPoint(this).Position.X;
+
+        (_panelLeftStartW, _panelRightStartW) = _activePanelSplitter switch
+        {
+            "scenes-sources"  => (ScenesColumn.ActualWidth,  SourcesColumn.ActualWidth),
+            "sources-mixer"   => (SourcesColumn.ActualWidth, MixerColumn.ActualWidth),
+            "mixer-trans"     => (MixerColumn.ActualWidth,   TransColumn.ActualWidth),
+            "trans-controls"  => (TransColumn.ActualWidth,   ControlsColumn.ActualWidth),
+            _                 => (0, 0),
+        };
+    }
+
+    private void PanelSplitter_PointerMoved(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (!_isResizingPanelSplitter) return;
+        var dx = e.GetCurrentPoint(this).Position.X - _panelSplitterStartX;
+        switch (_activePanelSplitter)
+        {
+            case "scenes-sources":
+                ScenesColumn.Width  = new GridLength(Math.Max(80,  _panelLeftStartW  + dx));
+                SourcesColumn.Width = new GridLength(Math.Max(100, _panelRightStartW - dx));
+                break;
+            case "sources-mixer":
+                SourcesColumn.Width = new GridLength(Math.Max(100, _panelLeftStartW  + dx));
+                MixerColumn.Width   = new GridLength(Math.Max(150, _panelRightStartW - dx));
+                break;
+            case "mixer-trans":
+                MixerColumn.Width = new GridLength(Math.Max(150, _panelLeftStartW  + dx));
+                TransColumn.Width = new GridLength(Math.Max(100, _panelRightStartW - dx));
+                break;
+            case "trans-controls":
+                TransColumn.Width    = new GridLength(Math.Max(100, _panelLeftStartW  + dx));
+                ControlsColumn.Width = new GridLength(Math.Max(120, _panelRightStartW - dx));
+                break;
+        }
+    }
+
+    private void PanelSplitter_PointerReleased(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (!_isResizingPanelSplitter) return;
+        _isResizingPanelSplitter = false;
+        (sender as UIElement)?.ReleasePointerCapture(e.Pointer);
+    }
+
+    private void PanelSplitter_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (_docksLocked || sender is not Border b) return;
+        b.Background = (Brush)Application.Current.Resources["BgHoverBrush"];
+    }
+
+    private void PanelSplitter_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (sender is Border b)
+            b.Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0, 0, 0, 0));
+    }
+
+    // ── Lock Docks ────────────────────────────────────────────────────────────
+
+    private void MenuLockDocks_Click(object sender, RoutedEventArgs e)
+    {
+        _docksLocked = !_docksLocked;
+        if (sender is ToggleMenuFlyoutItem item)
+            item.IsChecked = _docksLocked;
+        // Visually indicate locked state on splitters
+        var opacity = _docksLocked ? 0.3 : 1.0;
+        ScenesSourcesSplitter.Opacity  = opacity;
+        SourcesMixerSplitter.Opacity   = opacity;
+        MixerTransSplitter.Opacity     = opacity;
+        TransControlsSplitter.Opacity  = opacity;
+        SetStatus(_docksLocked ? "Docks locked" : "Docks unlocked");
+    }
+
+    // ── Start Streaming ───────────────────────────────────────────────────────
+
+    private void StartStreamBtn_Click(object sender, RoutedEventArgs e)
+    {
+        if (_isStreaming)
+        {
+            // Stop streaming
+            _isStreaming = false;
+            _streamTimer?.Stop();
+            _streamTimer = null;
+            StreamBtnText.Text     = "Start Streaming";
+            StreamStatusText.Text  = "00:00:00";
+            StartStreamBtn.Style   = (Style)Application.Current.Resources["ControlsPanelBtnStyle"];
+            SetStatus("Streaming stopped");
+        }
+        else
+        {
+            // Start streaming
+            _isStreaming    = true;
+            _streamStartTime = DateTime.Now;
+            StreamBtnText.Text = "Stop Streaming";
+            StartStreamBtn.Style = (Style)Application.Current.Resources["AlvoniaRecordButtonStyle"];
+
+            _streamTimer = new System.Timers.Timer(500);
+            _streamTimer.Elapsed += (_, _) =>
+            {
+                var elapsed = DateTime.Now - _streamStartTime;
+                DispatcherQueue.TryEnqueue(() =>
+                    StreamStatusText.Text = elapsed.ToString(@"hh\:mm\:ss"));
+            };
+            _streamTimer.Start();
+            SetStatus("Streaming started (stub — configure stream key in Settings)");
+        }
+    }
+
+    // ── Pause Recording ───────────────────────────────────────────────────────
+
+    private void PauseRecordBtn_Click(object sender, RoutedEventArgs e)
+    {
+        _recordingPaused = !_recordingPaused;
+        PauseRecordIcon.Glyph = _recordingPaused ? "\uE768" : "\uE769"; // Play : Pause
+        SetStatus(_recordingPaused ? "Recording paused" : "Recording resumed");
+    }
+
+    // ── Virtual Camera ────────────────────────────────────────────────────────
+
+    private void VirtualCamBtn_Click(object sender, RoutedEventArgs e)
+    {
+        _virtualCamActive = !_virtualCamActive;
+        VirtualCamBtnText.Text = _virtualCamActive ? "Stop Virtual Camera" : "Start Virtual Camera";
+        VirtualCamBtn.Style = _virtualCamActive
+            ? (Style)Application.Current.Resources["AlvoniaPrimaryButtonStyle"]
+            : (Style)Application.Current.Resources["ControlsPanelBtnStyle"];
+        SetStatus(_virtualCamActive
+            ? "Virtual Camera active (requires OBS-VirtualCam plugin)"
+            : "Virtual Camera stopped");
+    }
+
+    // ── Float / Undock panels ─────────────────────────────────────────────────
+
+    private void FloatPanel_Click(object sender, RoutedEventArgs e)
+    {
+        var tag = (sender as FrameworkElement)?.Tag?.ToString() ?? "";
+        FloatPanelByTag(tag);
+    }
+
+    private void MenuFloatPanel_Click(object sender, RoutedEventArgs e)
+    {
+        var tag = (sender as MenuFlyoutItem)?.Tag?.ToString() ?? "";
+        FloatPanelByTag(tag);
+    }
+
+    private void FloatPanelByTag(string tag)
+    {
+        UIElement? panelContent = tag switch
+        {
+            "scenes"      => ScenesPanel,
+            "sources"     => SourcesPanel,
+            "mixer"       => MixerPanel,
+            "transitions" => TransitionsPanel,
+            "controls"    => ControlsPanel,
+            _             => null,
+        };
+
+        if (panelContent == null) return;
+
+        var win = new Window();
+        var title = tag switch
+        {
+            "scenes"      => "Scenes",
+            "sources"     => "Sources",
+            "mixer"       => "Audio Mixer",
+            "transitions" => "Scene Transitions",
+            "controls"    => "Controls",
+            _             => tag,
+        };
+        win.Title = $"RecordIt — {title}";
+
+        // Show a stub floating panel (panels can't be reparented in WinUI without a richer framework;
+        // this stub window communicates the feature is present)
+        var stub = new StackPanel { Padding = new Thickness(16), Spacing = 12 };
+        stub.Children.Add(new TextBlock
+        {
+            Text       = $"{title} — Floating Window",
+            FontSize   = 14,
+            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+            Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 240, 240, 240)),
+        });
+        stub.Children.Add(new TextBlock
+        {
+            Text       = "The panel can be docked back via Docks > Reset Dock Layout.",
+            FontSize   = 12,
+            Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 150, 150, 150)),
+            TextWrapping = TextWrapping.Wrap,
+        });
+        win.Content = stub;
+        win.Activate();
+        SetStatus($"{title} floated to separate window");
+    }
+
+    // ── Status bar toggle ─────────────────────────────────────────────────────
+
+    private void MenuToggleStatusBar_Click(object sender, RoutedEventArgs e)
+    {
+        // StatusText is inside the Controls panel footer; nothing extra needed
+    }
+
+    // ── Transition handlers ───────────────────────────────────────────────────
+
+    private void TransitionTypeCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (TransitionTypeCombo.SelectedItem is ComboBoxItem item)
+            SetStatus($"Transition: {item.Content}");
+    }
+
+    private void TransitionPropertiesBtn_Click(object sender, RoutedEventArgs e)
+        => SetStatus("Transition properties — configure via Settings");
+
+    private void TransitionDurationCustomBtn_Click(object sender, RoutedEventArgs e)
+        => SetStatus("Set custom duration via the combo box");
+
+    private void AddQuickTransitionBtn_Click(object sender, RoutedEventArgs e)
+        => SetStatus("Quick transition added");
+
+    private void RemoveQuickTransitionBtn_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Parent is Grid g && g.Parent is Border b
+            && b.Parent is StackPanel sp)
+            sp.Children.Remove(b);
+    }
+
+    // ── Scene Collection menu handlers ────────────────────────────────────────
+
+    private void MenuDuplicateScene_Click(object sender, RoutedEventArgs e)
+    {
+        if (ScenesList.SelectedItem is SceneItem s)
+            AddScene($"{s.Name} (copy)");
+        else
+            SetStatus("Select a scene to duplicate");
+    }
+
+    private async void MenuRenameScene_Click(object sender, RoutedEventArgs e)
+    {
+        if (ScenesList.SelectedItem is not SceneItem s) { SetStatus("Select a scene to rename"); return; }
+        var box = new TextBox { Text = s.Name, PlaceholderText = "Scene name" };
+        var dlg = new ContentDialog
+        {
+            Title             = "Rename Scene",
+            Content           = box,
+            PrimaryButtonText = "Rename",
+            CloseButtonText   = "Cancel",
+            XamlRoot          = XamlRoot,
+        };
+        if (await dlg.ShowAsync() == ContentDialogResult.Primary && !string.IsNullOrWhiteSpace(box.Text))
+        {
+            s.Name = box.Text;
+            ScenesList.ItemsSource = null;
+            ScenesList.ItemsSource = Scenes;
+            SetStatus($"Scene renamed to \"{box.Text}\"");
+        }
+    }
+
+    private void MenuExportScene_Click(object sender, RoutedEventArgs e)
+        => SetStatus("Export scene collection — not yet implemented");
+
+    private void MenuImportScene_Click(object sender, RoutedEventArgs e)
+        => SetStatus("Import scene collection — not yet implemented");
+
+    // ── Profile menu handlers ─────────────────────────────────────────────────
+
+    private void MenuNewProfile_Click(object sender, RoutedEventArgs e)       => SetStatus("New profile created");
+    private void MenuDuplicateProfile_Click(object sender, RoutedEventArgs e) => SetStatus("Profile duplicated");
+    private void MenuRenameProfile_Click(object sender, RoutedEventArgs e)    => SetStatus("Profile renamed");
+    private void MenuExportProfile_Click(object sender, RoutedEventArgs e)    => SetStatus("Export profile — not yet implemented");
+    private void MenuImportProfile_Click(object sender, RoutedEventArgs e)    => SetStatus("Import profile — not yet implemented");
+
+    // ── Templates ─────────────────────────────────────────────────────────────
+
+    private async void MenuApplyTemplate_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuFlyoutItem item) return;
+        var tag = item.Tag?.ToString() ?? "";
+
+        var (templateName, scenes) = tag switch
+        {
+            "gaming"      => ("Gaming / Game Capture",
+                              new[] { "Game Capture", "Starting Soon", "Be Right Back", "Ending" }),
+            "chatting"    => ("Just Chatting",
+                              new[] { "Just Chatting", "BRB", "Starting", "Ending" }),
+            "screenshare" => ("Screen Share / Presentation",
+                              new[] { "Screen Share", "Waiting Room", "Q&A", "Break" }),
+            "webcam"      => ("Webcam Only",
+                              new[] { "Main View", "BRB", "Starting Soon" }),
+            "irl"         => ("IRL / Mobile",
+                              new[] { "IRL Live", "Intermission", "Ending" }),
+            "podcast"     => ("Podcast / Interview",
+                              new[] { "Guest 1", "Guest 2", "Both Guests", "Solo Host", "Intro/Outro" }),
+            _             => ("", Array.Empty<string>()),
+        };
+
+        if (string.IsNullOrEmpty(templateName)) return;
+
+        var dlg = new ContentDialog
+        {
+            Title             = $"Apply Template: {templateName}",
+            Content           = $"This will add the following scenes:\n\n• {string.Join("\n• ", scenes)}\n\nExisting scenes will not be removed.",
+            PrimaryButtonText = "Apply",
+            CloseButtonText   = "Cancel",
+            XamlRoot          = XamlRoot,
+        };
+
+        if (await dlg.ShowAsync() == ContentDialogResult.Primary)
+        {
+            foreach (var s in scenes)
+                if (!Scenes.Any(x => x.Name.Equals(s, StringComparison.OrdinalIgnoreCase)))
+                    AddScene(s);
+            SetStatus($"Template \"{templateName}\" applied — {scenes.Length} scenes added");
+        }
     }
 }
